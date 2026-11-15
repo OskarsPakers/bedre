@@ -60,6 +60,20 @@ export const HEROES = [
     note: 'Soviet-era press house, ~66-78 m (landmark Preses nams)' },
   { slug: 'ztowers', name: 'Z-Towers', ids: [49637749], source: 'mesh', style: 4, wall: 0xaebfcc, roof: 0x93a6b4,
     note: 'two glass towers (~123 m / 90 m) on a podium on Ķīpsala' },
+  // --- districts (map: slug; ids are cadastre ids of public/data/<slug>/riga.json)
+  { map: 'agenskalns', slug: 'ag-market', name: 'Āgenskalna tirgus', ids: [49634808], source: 'mesh', style: 2, wall: 0xd9c9a4, roof: 0xa8503a,
+    note: 'brick market hall with a tall pitched roof' },
+  { map: 'agenskalns', slug: 'ag-baptist', name: 'Āgenskalna baptistu baznīca', ids: [49635717], source: 'mesh', style: 1, wall: 0xd8cdb2, roof: 0x7a808a, note: 'church' },
+  { map: 'agenskalns', slug: 'ag-albert', name: 'Svētā Alberta baznīca', ids: [49635756], source: 'mesh', style: 1, wall: 0xc9bca6, roof: 0x7a808a, note: 'church' },
+  { map: 'agenskalns', slug: 'ag-wooden', name: 'Koka nami (Kalnciema iela)', ids: [49636186], source: 'mesh', style: 0, note: 'wooden-house quarter sample' },
+  { map: 'mezaparks', slug: 'estrade', name: 'Lielā estrāde', ids: [49673065, 49673070], source: 'mesh', style: 3, wall: 0xcfcac0, roof: 0x9aa0a4, dome: 0x9aa0a4,
+    note: 'the big song-festival stage: a long concrete shell over the stage with a tiered seating bowl in front' },
+  { map: 'mezaparks', slug: 'mz-church', name: 'Mežaparka baznīca', ids: [49665685], source: 'mesh', style: 1, note: 'small wooden church' },
+  { map: 'mezaparks', slug: 'mz-wasa', name: "Villa 'Wasa'", ids: [49665210], source: 'mesh', style: 0, note: 'garden-city villa' },
+  { map: 'mezaparks', slug: 'mz-tropu', name: 'Rīgas zoo Tropu māja', ids: [49672040], source: 'mesh', style: 3, note: 'zoo tropical house' },
+  { map: 'purvciems', slug: 'pv-slab-1', name: 'Plātņu nams (34 m)', ids: [49645710, 49646937, 49648832], source: 'mesh', style: 0, note: 'row of 9-12 floor slabs' },
+  { map: 'purvciems', slug: 'pv-slab-2', name: 'Plātņu nams (30 m)', ids: [49644482, 49644483], source: 'mesh', style: 0, note: '9 floor slabs' },
+  { map: 'purvciems', slug: 'pv-church', name: 'Labā Vēsts', ids: [49645108], source: 'mesh', style: 3, note: 'church / congregation hall' },
 ];
 
 /** 6 fixed ordinary shaped blocks for before/after comparisons (seeded pick from the notable + relief set) */
@@ -67,3 +81,5 @@ export const BLOCK_IDS = [49615326, 49615322, 49615688, 49618849, 49622179, 4961
 
 export const heroById = new Map();
 for (const h of HEROES) for (const id of h.ids) heroById.set(id, h);
+/** extra review blocks per district (typical ordinary buildings) */
+export const DISTRICT_BLOCKS = { agenskalns: [49636753, 49636792, 49613072], mezaparks: [], purvciems: [49644473, 49643947, 49644283] };

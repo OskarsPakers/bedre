@@ -19,14 +19,15 @@ import { heroById } from './heroes.mjs';
 import { partsMesh } from './parts.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const pub = path.resolve(here, '../../public/data');
+const MAP = (process.argv.find((a) => a.startsWith('--map=')) || '--map=centrs').slice(6);
+const pub = path.resolve(here, '../../public/data', MAP === 'centrs' ? '' : MAP);
 const OUT = path.join(pub, 'riga-shapes.bin.gz');
 const Q = 16; // position quantisation: 1/16 m
 const OPEN = 0.7; // cells lower than this (m) are open ground (courtyards, terraces)
 const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean).map(Number);
 
 const city = JSON.parse(fs.readFileSync(path.join(pub, 'riga.json'), 'utf8'));
-const detail = JSON.parse(fs.readFileSync(path.join(here, 'data', 'riga-detail.json'), 'utf8')); // spike output (build-detail.mjs assemble); input only, not shipped
+const detail = JSON.parse(fs.readFileSync(path.join(here, 'data', MAP === 'centrs' ? 'riga-detail.json' : `riga-detail-${MAP}.json`), 'utf8')); // spike output (build-detail.mjs assemble); input only, not shipped
 const byId = new Map(city.buildings.map((b) => [b.id, b]));
 
 // ------------------------------------------------------------------ grids / fields

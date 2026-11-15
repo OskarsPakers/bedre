@@ -8,7 +8,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { HEROES, BLOCK_IDS } from '../tools/detail/heroes.mjs';
+import { HEROES, BLOCK_IDS as CENTRE_BLOCKS, DISTRICT_BLOCKS } from '../tools/detail/heroes.mjs';
+const MAP = process.env.MAP || 'centrs'; // MAP=<slug>: shoot a district (files become district-<slug>-shapes-*.png)
+const BLOCK_IDS = MAP === 'centrs' ? CENTRE_BLOCKS : DISTRICT_BLOCKS[MAP] || [];
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'scripts', 'out');
 fs.mkdirSync(out, { recursive: true });
@@ -18,7 +20,7 @@ const args = process.argv.slice(2);
 const names = args.filter((a) => !a.startsWith('--'));
 const opt = (k, d) => (args.find((a) => a.startsWith(`--${k}=`)) || `--${k}=${d}`).slice(k.length + 3);
 const quality = opt('quality', 'high');
-const prefix = opt('prefix', '');
+const prefix = opt('prefix', MAP === 'centrs' ? '' : `district-${MAP}-shapes-`);
 const only = opt('only', 'all');
 const sfx = quality === 'high' ? '' : '-' + quality;
 const want = (k) => only === 'all' || only === k;
@@ -33,7 +35,7 @@ const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('console error', m.text()); });
 async function boot() {
-  await page.goto(`${base}/?quality=${quality}&intro=0&bots=0&theme=day`);
+  await page.goto(`${base}/?quality=${quality}&intro=0&bots=0&theme=day${MAP === 'centrs' ? '' : '&map=' + MAP}`);
   await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 120000 });
   await page.evaluate(() => { window.__game.start(); });
   await page.waitForTimeout(2400);
@@ -83,7 +85,7 @@ const snap = async (file, setup, arg) => { // setup runs (again) whenever a dev-
   throw new Error('could not get a stable page for ' + file);
 };
 
-const heroes = HEROES.filter((h) => (!names.length || names.includes(h.slug)) && h.ids.length);
+const heroes = HEROES.filter((h) => (h.map || 'centrs') === MAP).filter((h) => (!names.length || names.includes(h.slug)) && h.ids.length);
 if (want('heroes')) {
   for (const h of heroes) {
     const info = await G((ids) => window.__heroInfo(ids), h.ids);
@@ -106,12 +108,13 @@ if (want('blocks') && !names.length) {
   }
 }
 if (want('overview') && !names.length) {
+  const ov = MAP === 'centrs' ? { x: -100, z: 100 } : await G(() => { const b = window.__life.world.bounds; return { x: (b.minX + b.maxX) / 2, z: (b.minZ + b.maxZ) / 2 }; });
   for (const [n, d, el] of [['overview', 2100, 52], ['overview2', 900, 38]]) {
-    await snap(`detail-${prefix}${n}${sfx}.png`, (o) => window.__freeCam(o), { x: -100, z: 100, y: 0, dist: d, el, az: 200 });
+    await snap(`detail-${prefix}${n}${sfx}.png`, (o) => window.__freeCam(o), { x: ov.x, z: ov.z, y: 0, dist: d, el, az: 200 });
   }
 }
 if (want('sheet') || (only === 'all' && !names.length)) {
-  const cells = HEROES.filter((h) => h.ids.length && fs.existsSync(path.join(out, `${prefix}hero-${h.slug}-a${sfx}.png`)));
+  const cells = HEROES.filter((h) => (h.map || 'centrs') === MAP && h.ids.length && fs.existsSync(path.join(out, `${prefix}hero-${h.slug}-a${sfx}.png`)));
   const bl = BLOCK_IDS.map((_, n) => `${prefix}block-${n + 1}${sfx}.png`).filter((f) => fs.existsSync(path.join(out, f)));
   const cell = (f, label) => `<figure><img src="${pathToFileURL(path.join(out, f))}"><figcaption>${label}</figcaption></figure>`;
   const html = `<html><body style="margin:0;background:#1d2127;font:12px sans-serif;color:#fff"><div style="display:grid;grid-template-columns:repeat(6,320px);gap:4px;padding:4px">${

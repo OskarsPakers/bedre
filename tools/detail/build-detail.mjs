@@ -20,7 +20,8 @@ const args = Object.fromEntries(process.argv.slice(3).map((a) => { const m = a.m
 const cmd = process.argv[2] || 'analyze';
 const ANALYSIS = path.join(CACHE, 'analysis');
 fs.mkdirSync(ANALYSIS, { recursive: true });
-const game = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'data', 'riga.json'), 'utf8'));
+export const MAP = args.map || 'centrs'; // --map=<slug>: any map of tools/maps.mjs (a district is another bounds rectangle in the shared projection)
+const game = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'data', MAP === 'centrs' ? '' : MAP, 'riga.json'), 'utf8'));
 
 export const PROTOTYPES = {
   stpeter: { pt: [-242.7, 444.2], name: 'Sv. Pētera baznīca' },
@@ -65,7 +66,7 @@ export function notableSet() {
   }
   // buildings added by the map extension (outside the original +-1200 m box): named / big public ones are notable too
   for (const b of game.buildings) {
-    if (Math.abs(b.p[0][0]) <= 1200 && Math.abs(b.p[0][1]) <= 1200) continue;
+    if (MAP === 'centrs' && Math.abs(b.p[0][0]) <= 1200 && Math.abs(b.p[0][1]) <= 1200) continue;
     if (b.n && !/\s\d+[A-Za-zĀ-ž]?(\s|$|\/)/.test(b.n) && b.t !== 'aux' && b.h >= 12) add(b.id, 'named-ext');
     else if (b.h >= 40) add(b.id, 'h>=40-ext');
   }
@@ -297,7 +298,7 @@ async function assemble() {
     for (const [id, ps] of Object.entries(osmParts)) { if (!out.buildings[id]) out.buildings[id] = { src: 'mesh', h: heights[id] }; out.buildings[id].osm = ps; }
   }
   if (!args['no-osm']) for (const [id, v] of Object.entries(osmFallback)) if (!out.buildings[id]) out.buildings[id] = v;
-  const outFile = path.resolve(ROOT, args.out || 'tools/detail/data/riga-detail.json');
+  const outFile = path.resolve(ROOT, args.out || (MAP === 'centrs' ? 'tools/detail/data/riga-detail.json' : `tools/detail/data/riga-detail-${MAP}.json`));
   const json = JSON.stringify(out);
   fs.writeFileSync(outFile, json);
   console.log(JSON.stringify({ variant, file: outFile, bytes: json.length, gz: gzipSize(json), sizes, stats: out.meta.stats, heightVsRigaH: heightReport.all }, null, 1));
