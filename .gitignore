@@ -1,0 +1,11 @@
+.wrangler/
+node_modules/
+dist/
+tools/.cache/
+scripts/out/
+scripts/.dist/
+.dev.vars
+*.log
+.DS_Store
+scripts/.dist*/
+.snapshots/

@@ -1,0 +1,1 @@
+{"name":"riga-detail-tools","private":true,"type":"module","version":"0.0.1","description":"Data spike: OSM building parts + I3S reality-mesh height measurement for the BEDRE Riga game","dependencies":{"draco3d":"^1.5.9"}}

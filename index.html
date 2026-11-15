@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2b3a4a" />
+  <title>BEDRE — Rīga</title>
+  <meta name="description" content="BEDRE — Rīga: a free 3D browser arcade game. Steer a hole around a real map of central Riga, swallow people, cars and whole buildings, and out-grow 7 rivals in 5 minutes. / Bedres spēle Rīgas centra kartē." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="BEDRE — Rīga" />
+  <meta property="og:title" content="BEDRE — Rīga" />
+  <meta property="og:description" content="Steer a hole around a real 3D map of Riga, swallow everything that fits and out-grow 7 rivals in 5 minutes." />
+  <meta property="og:url" content="https://bedre.pakers.lv/" />
+  <meta property="og:image" content="https://bedre.pakers.lv/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BEDRE — Rīga" />
+  <meta name="twitter:image" content="https://bedre.pakers.lv/og.png" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    /* first paint: never a white page */
+    html, body { margin: 0; height: 100%; background: #2b3a4a; }
+    #loading { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: radial-gradient(ellipse at center, #3b4d60, #222d38); color: #f6efdf; font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; transition: opacity .35s; }
+    #loading.done { opacity: 0; pointer-events: none; }
+    #loading .lg { display: flex; align-items: center; gap: 12px; font-size: 44px; font-weight: 900; letter-spacing: .06em; }
+    #loading .lh { width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #3a2a26 0, #000 70%); box-shadow: 0 0 0 5px #d9552f; animation: lspin 1.4s ease-in-out infinite; }
+    @keyframes lspin { 50% { transform: scale(.82); } }
+    #loading .lbar { width: min(280px, 70vw); height: 8px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
+    #loading .lfill { height: 100%; width: 0; background: #d9552f; border-radius: 6px; transition: width .2s; }
+    #loading .lfill.indet { width: 40% !important; animation: lind 1s ease-in-out infinite alternate; }
+    @keyframes lind { from { margin-left: 0; } to { margin-left: 60%; } }
+    #loading .lmsg { font-size: 14px; letter-spacing: .08em; opacity: .8; min-height: 1.2em; text-align: center; padding: 0 20px; }
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <div class="lg"><span class="lh"></span><span>BEDRE</span></div>
+    <div class="lbar"><div class="lfill" id="load-fill"></div></div>
+    <div class="lmsg" id="load-msg">Loading…</div>
+  </div>
+  <canvas id="c"></canvas>
+  <noscript><p style="position:fixed;inset:0;margin:0;display:flex;align-items:center;justify-content:center;color:#fff;font:18px system-ui;z-index:200;background:#2b3a4a">BEDRE needs JavaScript.</p></noscript>
+
+  <div id="hud" class="hidden">
+    <div class="card" id="card-score">
+      <div class="label" data-i18n="score">Score</div>
+      <div class="big" id="score">0</div>
+      <div class="subline"><span data-i18n="swallowedLbl">Swallowed:</span> <b id="eaten">0</b></div>
+    </div>
+    <div class="card" id="card-time">
+      <div class="label" data-i18n="time">Time</div>
+      <div class="big" id="time">5:00</div>
+    </div>
+    <div class="card" id="board"><div class="label" data-i18n="leaderboard">Leaderboard</div><ol id="board-list"></ol></div>
+    <div class="card" id="minimap-box"><canvas id="minimap" width="200" height="200"></canvas></div>
+    <div id="sizebox" class="card">
+      <div class="size-row"><span id="size-level">Size 1</span><span id="size-diam">Ø 4.4 m</span></div>
+      <div class="bar"><div id="size-fill"></div></div>
+    </div>
+    <button id="pause-btn" type="button" data-i18n-title="pauseBtn" title="Pause (Esc)"><i></i></button>
+    <div id="attrib">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</div>
+  </div>
+
+  <div id="tags"></div>
+  <div id="feed"></div>
+  <div id="swallowed" class="hidden">
+    <div class="sw-small" data-i18n="swallowedBy">Swallowed by</div>
+    <div class="sw-name"><i id="sw-dot"></i><span id="sw-by">?</span></div>
+    <div class="sw-count"><span data-i18n="backIn">Back in</span> <b id="sw-t">3</b></div>
+  </div>
+  <div id="popups"></div>
+  <div id="labels"></div>
+  <div id="joystick"><div id="joy-knob"></div></div>
+
+  <div id="start" class="panel">
+    <div class="panel-inner">
+      <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="lv">LV</button><button type="button" data-lang="en">EN</button></div>
+      <div class="logo"><span class="logo-hole"></span><span class="logo-text">BEDRE</span></div>
+      <div class="sub">Rīga</div>
+      <p class="blurb" data-i18n="blurb"></p>
+      <label class="namebox"><span data-i18n="yourName">Your name</span><input id="name" type="text" maxlength="14" data-i18n-ph="namePh" placeholder="Tu" autocomplete="off" spellcheck="false" /></label>
+      <p class="how" data-i18n="how"></p>
+      <button id="play" class="btn" disabled>Loading map&hellip;</button>
+      <div class="linkrow">
+        <button id="open-scores" class="link" type="button" data-i18n="topScores">Top scores</button>
+        <button id="open-about" class="link" type="button" data-i18n="about">About</button>
+      </div>
+      <p class="credits"><span data-i18n="footInspired">Inspired by Hole.io</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</p>
+    </div>
+  </div>
+
+  <div id="results" class="panel hidden">
+    <div class="panel-inner">
+      <div class="sub" data-i18n="timeUp">Time's up</div>
+      <div class="place" id="r-place">1st of 8</div>
+      <div class="result-score"><span id="r-score">0</span><small data-i18n="points">points</small></div>
+      <div class="globalrank" id="r-global"></div>
+      <table class="rank" id="r-table"><tbody></tbody></table>
+      <ul class="stats">
+        <li><span data-i18n="rEaten">Swallowed</span><b id="r-eaten">0</b></li>
+        <li><span data-i18n="rKills">Holes swallowed</span><b id="r-kills">0</b></li>
+        <li><span data-i18n="rDeaths">Swallowed by others</span><b id="r-deaths">0</b></li>
+        <li><span data-i18n="rBiggest">Biggest thing</span><b id="r-biggest">&mdash;</b></li>
+        <li><span data-i18n="rSize">Final size</span><b id="r-size">&mdash;</b></li>
+      </ul>
+      <button id="again" class="btn" data-i18n="playAgain">Play again</button>
+      <div class="linkrow"><button id="open-scores2" class="link" type="button" data-i18n="topScores">Top scores</button></div>
+    </div>
+  </div>
+
+  <div id="pause" class="panel hidden" role="dialog" aria-modal="true">
+    <div class="panel-inner small">
+      <div class="place" data-i18n="pause">Paused</div>
+      <button id="resume" class="btn" type="button" data-i18n="resume">Resume</button>
+      <p class="how" data-i18n="pauseHint"></p>
+    </div>
+  </div>
+
+  <div id="scores" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="ts-title">
+    <div class="panel-inner">
+      <h2 id="ts-title" data-i18n="tsTitle">Top scores</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-period="day" data-i18n="tabDay">Today</button>
+        <button type="button" role="tab" data-period="week" data-i18n="tabWeek">This week</button>
+        <button type="button" role="tab" data-period="all" data-i18n="tabAll">All time</button>
+      </div>
+      <div class="ts-wrap">
+        <table class="ts" id="ts-table"><thead><tr><th data-i18n="colRank">#</th><th data-i18n="colName">Name</th><th data-i18n="colScore">Score</th><th data-i18n="colSize">Size</th></tr></thead><tbody id="ts-body"></tbody></table>
+        <p class="ts-msg" id="ts-msg"></p>
+      </div>
+      <button id="ts-close" class="btn small" type="button" data-i18n="close">Close</button>
+    </div>
+  </div>
+
+  <div id="about" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="ab-title">
+    <div class="panel-inner">
+      <h2 id="ab-title" data-i18n="aboutTitle">About</h2>
+      <ul class="about-list">
+        <li><span data-i18n="aboutInspired">Inspired by</span> <a href="https://holeio.com" target="_blank" rel="noopener noreferrer">Hole.io</a>.</li>
+        <li><span data-i18n="aboutBuildings"></span> (<a href="https://georiga.eu" target="_blank" rel="noopener">georiga.eu</a>)</li>
+        <li><span data-i18n="aboutOsm"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors (ODbL)</a>.</li>
+        <li data-i18n="aboutBuilt"></li>
+        <li class="note" data-i18n="aboutNote"></li>
+      </ul>
+      <button id="ab-close" class="btn small" type="button" data-i18n="close">Close</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

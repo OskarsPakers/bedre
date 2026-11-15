@@ -1,0 +1,124 @@
+import * as THREE from 'three';
+import './style.css';
+import { CFG } from './config.js';
+import { loadCity } from './data.js';
+import { World } from './world.js';
+import { Game } from './game.js';
+import { initLife } from './life.js';
+import { t, applyDom, setLang, onLang } from './i18n.js';
+import { initScoresUi } from './scoresUi.js';
+
+const params = new URLSearchParams(location.search);
+const $ = (id) => document.getElementById(id);
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+
+// ---- language + static text (works before anything heavy loads) ----------------------------------------
+applyDom();
+for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => setLang(b.dataset.lang));
+
+// ---- loading screen ----------------------------------------------------------------------------------------
+const loading = { fill: $('load-fill'), msg: $('load-msg'), el: $('loading'), key: 'loadingData' };
+function setLoad(frac, key) {
+  if (key) loading.key = key;
+  loading.msg.textContent = t(loading.key) + (frac != null && frac < 1 ? ` ${Math.round(frac * 100)}%` : '…');
+  loading.fill.classList.toggle('indet', frac == null);
+  if (frac != null) loading.fill.style.width = `${Math.round(frac * 100)}%`;
+}
+onLang(() => setLoad(loading.fill.classList.contains('indet') ? null : parseFloat(loading.fill.style.width) / 100 || 0));
+setLoad(0, 'loadingData');
+const hideLoading = () => { loading.el.classList.add('done'); setTimeout(() => loading.el.remove(), 500); };
+
+function fail(key) {
+  const m = $('load-msg');
+  m.textContent = t(key);
+  $('load-fill').classList.remove('indet');
+  $('load-fill').style.width = '0';
+  loading.el.querySelector('.lh').style.animation = 'none';
+  document.body.dataset.error = key;
+}
+
+function webglOk() {
+  try {
+    const c = document.createElement('canvas');
+    return !!(window.WebGL2RenderingContext && c.getContext('webgl2')) || !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl')));
+  } catch { return false; }
+}
+
+async function boot() {
+  if (!webglOk()) { fail('noWebgl'); return; }
+  const canvas = $('c');
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  } catch (e) { console.error(e); fail('noWebgl'); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, CFG.pixelRatioCap));
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  const scene = new THREE.Scene();
+
+  const tl0 = performance.now();
+  const data = await loadCity(params.get('sample') === '1', (f) => setLoad(f, 'loadingData'));
+  setLoad(null, 'loadingBuild');
+  await nextFrame(); // let the loading screen repaint before the long synchronous build
+  const tb0 = performance.now();
+  const world = new World(scene, data);
+  window.__timing = { loadMs: Math.round(tb0 - tl0), buildMs: Math.round(performance.now() - tb0) };
+  const game = new Game({ renderer, scene, world, canvas, botCount: params.has('bots') ? Math.max(0, Math.min(15, parseInt(params.get('bots'), 10) || 0)) : CFG.bots.count });
+  if (params.get('introhold')) CFG.intro.hold = +params.get('introhold'); // test hook: linger on the overview
+  if (params.get('intro') === '0') game.introEnabled = false;
+  // URL overrides make the round local-only / unranked (the server is the source of truth for round length)
+  if (params.get('time')) { game.roundSeconds = game.timeLeft = Math.max(1, +params.get('time')); game.timeOverride = true; game.urlUnranked = 'time'; }
+  else if (params.get('sample') === '1') game.urlUnranked = 'sample';
+  else if (params.has('bots') && (parseInt(params.get('bots'), 10) || 0) !== CFG.bots.count) game.urlUnranked = 'bots';
+  game.unranked = game.urlUnranked;
+  const fit = () => game.resize(window.innerWidth, window.innerHeight);
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', () => { fit(); setTimeout(fit, 250); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  window.__game = game.api();
+  initLife({ renderer, scene, world, game, canvas });
+  window.__perf = { frames: 0, ms: 0 };
+  initScoresUi();
+  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden)');
+
+  game.hud.setReady(true, t('play'));
+  onLang(() => { if (!$('play').disabled) $('play').textContent = t('play'); });
+  $('play').addEventListener('click', () => game.start());
+  $('again').addEventListener('click', () => game.start());
+  $('pause-btn').addEventListener('click', () => game.pause(true));
+  $('resume').addEventListener('click', () => game.pause(false));
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !anyPanel()) { if (game.phase === 'playing' || game.phase === 'intro') game.pause(!game.paused); return; }
+    const typing = e.target && e.target.tagName === 'INPUT';
+    const onBtn = e.target && e.target.tagName === 'BUTTON';
+    if (((e.key === 'Enter' && !onBtn) || (e.key === ' ' && !typing && !onBtn)) && game.phase !== 'playing' && game.phase !== 'intro' && !game.paused && !anyPanel() && !$('play').disabled) game.start();
+  });
+  // pause when the tab is hidden: nothing advances, and the first frame back gets a clamped dt
+  document.addEventListener('visibilitychange', () => { if (document.hidden) game.pause(true); });
+
+  // no page scroll / pinch-zoom / context menu gestures while playing
+  const stop = (e) => { if (game.phase === 'playing' || game.phase === 'intro') { if (e.cancelable) e.preventDefault(); } };
+  document.addEventListener('touchmove', (e) => { if (!e.target.closest || !e.target.closest('.panel-inner')) stop(e); }, { passive: false });
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault());
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    const t0 = performance.now();
+    game.update(dt);
+    game.render();
+    window.__perf.frames++; window.__perf.ms += performance.now() - t0;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  hideLoading();
+  if (params.get('autostart') === '1') game.start();
+  document.body.dataset.ready = '1';
+}
+
+boot().catch((e) => { console.error(e); fail('bootError'); });
