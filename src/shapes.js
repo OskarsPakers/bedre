@@ -2,7 +2,6 @@
 // simplified roof meshes + outline loops for notable / relief buildings. Optional: resolves null on any failure.
 import { CFG } from './config.js';
 
-const STRIDE = 10;
 
 async function inflate(buf) {
   const u8 = new Uint8Array(buf);
@@ -32,6 +31,7 @@ export async function loadShapes() {
     const head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl)));
     let off = 8 + hl;
     const [bv, bt, bm, bl] = head.bytes;
+    const STRIDE = head.stride || 10;
     const nB = head.b.length / STRIDE;
     let totV = 0, totT = 0, totL = 0;
     for (let i = 0; i < nB; i++) { totV += head.b[i * STRIDE + 1]; totT += head.b[i * STRIDE + 2]; totL += head.b[i * STRIDE + 3]; }
@@ -45,7 +45,7 @@ export async function loadShapes() {
     let ov = 0, ot = 0, ol = 0;
     for (let i = 0; i < nB; i++) {
       const r = head.b.slice(i * STRIDE, i * STRIDE + STRIDE);
-      recs.set(r[0], { id: r[0], nv: r[1], nt: r[2], nl: r[3], src: r[4], vol: r[5], hmax: r[6] / 10, eave: r[7] / 10, roofRGB: r[8], ov, ot, ol });
+      recs.set(r[0], { id: r[0], nv: r[1], nt: r[2], nl: r[3], src: r[4], vol: r[5], hmax: r[6] / 10, eave: r[7] / 10, roofRGB: r[8], wallRGB: r[9] || 0, domeRGB: r[10] || 0, accentRGB: r[11] || 0, style: r[12] || 0, ov, ot, ol });
       ov += r[1]; ot += r[2]; ol += r[3];
     }
     return { q: head.q, V, T, M, L, hs, recs, meta: head.meta };

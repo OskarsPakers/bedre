@@ -1,12 +1,14 @@
 // All gameplay / rendering tunables live here.
+import { START_RADIUS, GROWTH_EXP, radiusAt, scoreAt } from './rules.js'; // shared with the Worker (anti-cheat)
 export const CFG = {
   roundSeconds: 300,
   dataUrl: '/data/riga.json',
   shapesUrl: '/data/riga-shapes.bin.gz', // optional: measured heights + simplified roof meshes (src/shapes.js)
   seed: 1337,
+  mapsRanked: false,   // flip to true once the worker stores/serves per-map boards (client then sends map: <slug>; see src/maps.js)
 
   hole: {
-    startRadius: 2.2,
+    startRadius: START_RADIUS,
     baseSpeed: 12,        // m/s at start radius
     speedExp: 0.38,       // speed ~ (r/r0)^exp
     accel: 7,             // velocity smoothing (1/s)
@@ -15,7 +17,7 @@ export const CFG = {
   },
 
   // radius = r0 * (1 + score / k) ^ exp
-  growth: { k: 16, exp: 0.44 },
+  growth: { k: 16, exp: GROWTH_EXP }, // k is set per game mode at runtime (src/modes.js, MODES in src/rules.js)
   // radius thresholds used for the "size level" HUD bar
   levels: [2.2, 3.5, 5.5, 8, 12, 18, 28, 42, 62, 90, 130],
 
@@ -52,19 +54,23 @@ export const CFG = {
   },
 
   props: {
-    people: 2400, lamps: 700, benches: 260, bins: 320, cars: 1100, vans: 170,
-    buses: 45, trams: 28, kiosks: 45, maxTrees: 9000, parkExtraTrees: 0,
+    // iteration 5: the map grew from 5.8 to ~8.9 km^2 (left bank) -> ~+40 % props
+    people: 3300, lamps: 980, benches: 360, bins: 450, cars: 1550, vans: 240,
+    buses: 62, trams: 39, kiosks: 62, maxTrees: 12000, parkExtraTrees: 0,
   },
 
-  ground: { tile: 4096, tiles: 2, margin: 140 },
+  groundUrl: '/data/riga-ground.png', // optional: class raster measured from an open orthophoto (tools/surface); stylised flat colours
+  // ground texture density per quality tier [low, medium, high] (tier = quality.js groundTier(): mobile / low-memory -> 0). Tiles are ~300 m;
+  // tiles that are plain river water get an 8 px texture. Close-up sharpness comes from the DetailLayer (px per 110 m window).
+  ground: { tileM: 300, pxPerM: [1.05, 1.5, 2.5], detailPx: [1536, 2048, 2048], margin: 60 },
   shadowMapSize: 2048,
   pixelRatioCap: 2,
 
   colors: {
     sky: 0xcfe0ec,
-    paving: '#d8cfbd', park: '#9dbd78', parkDark: '#8aae67',
+    paving: '#d9d4c7', park: '#a6c87f', parkDark: '#8aae67',
     water: '#5f86a3', waterEdge: '#86a8bf',
-    road: '#a6a29a', roadMajor: '#97938c', walk: '#e7dfcd',
+    road: '#8d8c88', roadMajor: '#84837f', walk: '#dcd5c5',
     footprint: '#c6bca8', rail: '#6d6862',
     wall: {
       res: [0xe9dcbc, 0xe2c78f, 0xd6a27a, 0xe8d3b0, 0xcf9c78, 0xdcc9a4, 0xc9b99a, 0xe5b99a],
@@ -115,17 +121,17 @@ export const CFG = {
 };
 
 export function radiusFromScore(score) {
-  return CFG.hole.startRadius * Math.pow(1 + score / CFG.growth.k, CFG.growth.exp);
+  return radiusAt(score, CFG.growth.k, CFG.hole.startRadius, CFG.growth.exp);
 }
 export function scoreFromRadius(r) {
-  return CFG.growth.k * (Math.pow(r / CFG.hole.startRadius, 1 / CFG.growth.exp) - 1);
+  return scoreAt(r, CFG.growth.k, CFG.hole.startRadius, CFG.growth.exp);
 }
 
 // ---- World life & feel (iteration 2): traffic, pedestrians, effects, audio, quality -----------------
 export const LIFE = {
   movers: {
-    cars: 300, buses: 16, trolleys: 10, trams: 11, walkers: 240, wanderers: 90,
-    taxiFrac: 0.07, boats: 5, ferries: 2, swans: 14, pigeons: 60, gulls: 16, stopDwell: [4, 8], followGap: 1.8,
+    cars: 420, buses: 22, trolleys: 13, trams: 15, walkers: 330, wanderers: 125,
+    taxiFrac: 0.07, boats: 5, ferries: 4, riverBoats: 6, swans: 16, pigeons: 80, gulls: 40, stopDwell: [4, 8], followGap: 1.8,
     birdScare: 5,          // pigeons take off when a hole comes within 8 + radius*this   // counts at full quality
     carSpeed: { primary: 11, secondary: 10, tertiary: 8.5, residential: 6.5, service: 4 },
     busSpeed: 8, tramSpeed: 7.5, walkSpeed: 1.35, wanderSpeed: 1.0,
@@ -158,4 +164,15 @@ export const LIFE = {
     oldTownRoof: [0xa8452f, 0xb5523a, 0x8e3a2b, 0xc0653f],
     centre: [0xbfd8c3, 0xe3b5b0, 0xc9bcd8, 0xefdca0, 0xb5cde0, 0xe9d8c4, 0xd9e2b5, 0xf0c9a8],
   },
+};
+
+// ---- Radio (src/meta/radio.js): internet radio through an <audio> element, started only by the player's click ------------------
+// Latvijas Radio 2: the official live HLS stream used by LSM's own player (https://replay.lsm.lv/lv/klausies/tiesraide/lr2); CORS-enabled.
+// `?radio=0` hides the button. Not proxied, recorded or re-hosted.
+CFG.radio = {
+  enabled: true,
+  hlsJs: 'https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js', // only loaded on click, where the browser has no native HLS (Chrome/Firefox)
+  stations: [
+    { id: 'lr2', name: 'Latvijas Radio 2', url: 'https://lsm.eu.cdns-redge.media/livehls/o2/lsm-live/live/audio/lr2_radio/live.livx/playlist.m3u8?renditions', type: 'hls', link: 'https://lr2.lsm.lv', linkLabel: 'lr2.lsm.lv' },
+  ],
 };

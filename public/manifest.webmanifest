@@ -1,0 +1,19 @@
+{
+  "name": "BEDRE — Rīga",
+  "short_name": "BEDRE",
+  "description": "Steer a hole around a real 3D map of Riga, swallow everything that fits and out-grow 7 rivals in 5 minutes. / Bedres spēle Rīgas centra kartē.",
+  "lang": "lv",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2b3a4a",
+  "theme_color": "#2b3a4a",
+  "categories": ["games"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

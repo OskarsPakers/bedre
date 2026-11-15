@@ -75,6 +75,14 @@ class Brain {
     this.hole = hole;
     this.rng = rng;
     this.idx = idx;
+    this.cands = [];
+    this.personalize();
+    this.reset(0);
+  }
+
+  /** Draw this bot's personality (skill, speed, reaction, aggression, aim noise) from `this.rng`. Re-run by Bots.reseed(). */
+  personalize() {
+    const { hole, rng, idx } = this;
     const B = CFG.bots, d = B.difficulty;
     const u = () => rng();
     this.skill = Math.min(1.25, d * (0.85 + u() * 0.3));
@@ -83,8 +91,6 @@ class Brain {
     this.aggr = B.aggressionMin + (B.aggressionMax - B.aggressionMin) * u();
     this.noise = B.aimNoise * Math.max(0.2, 1.4 - Math.min(1.2, d)) * (0.6 + u() * 0.8);
     this.nextThink = (idx / Math.max(1, B.count)) / B.thinkHz + u() * 0.1;
-    this.cands = [];
-    this.reset(0);
   }
 
   reset(now) {
@@ -341,13 +347,43 @@ export class Bots {
     }
   }
 
+  /**
+   * Game modes (src/modes.js): use only the first `n` of the bots that were constructed (they keep their state).
+   * Returns the holes that dropped out so the caller can clean their HUD tags.
+   */
+  setActive(n) {
+    this._all ||= { holes: this.holes.slice(), brains: this.brains.slice() };
+    n = Math.max(0, Math.min(n, this._all.holes.length));
+    const dropped = this.holes.filter((h) => !this._all.holes.slice(0, n).includes(h));
+    this.holes = this._all.holes.slice(0, n);
+    this.brains = this._all.brains.slice(0, n);
+    return dropped;
+  }
+
+  /**
+   * Deterministic bots for the daily challenge: names + personalities from `seed` (null = the normal per-session
+   * defaults: seed CFG.seed+101, random name order). Applies to every constructed bot, active or not.
+   */
+  reseed(seed, names = BOT_NAMES) {
+    const all = this._all || { holes: this.holes, brains: this.brains };
+    this.rng = mulberry32(seed == null ? CFG.seed + 101 : seed >>> 0);
+    const nr = seed == null ? Math.random : mulberry32((seed ^ 0x5bd1e995) >>> 0);
+    const pool = names.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(nr() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    all.brains.forEach((br, i) => { br.rng = this.rng; br.personalize(); br.hole.name = pool[i % pool.length]; });
+  }
+
   /** Place bots spread over the map, away from the player and each other. */
   placeAll(player) {
     const placed = [player];
     this.picker.newRound();
     placed.push(this.picker.reserve()); // the human's start spot is chosen first; bots keep away from it
+    // ~28 % of the bots (the left bank is ~30 % of the map) start across the Daugava
+    const nLeft = this.picker.leftPts && this.picker.leftPts.length ? Math.round(this.holes.length * 0.28) : 0;
+    let bi = 0;
     for (const b of this.holes) {
-      const [x, z] = this.picker.spread(placed, { minDist: CFG.bots.spawnMinDist });
+      const left = bi++ >= this.holes.length - nLeft;
+      const [x, z] = this.picker.spread(placed, { minDist: CFG.bots.spawnMinDist, pool: left ? this.picker.leftPts : null });
       b.reset(x, z);
       placed.push(b);
     }

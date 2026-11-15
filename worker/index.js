@@ -1,111 +1,79 @@
-// BEDRE — Rīga: global high-score API (Cloudflare Worker + D1). No dependencies.
-// Everything outside /api/* is served from static assets (env.ASSETS).
+// BEDRE — Rīga: API (Cloudflare Worker + D1). No dependencies. Everything outside /api/* is served from static
+// assets (env.ASSETS).
 //
-// Anti-cheat is deliberately light and secret-free: a score is only accepted for a
-// server-issued round id that is unused and whose age is ~ the round length. This
-// stops casual curl spam, not a determined cheater who waits 5 minutes.
+//   POST /api/rounds   {mode, day?}  -> {roundId, roundSeconds, mode, day?, seed, turnstileSiteKey?}
+//   POST /api/scores   {roundId,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,rankAllTime,rankToday}
+//   GET  /api/scores   ?mode=classic|quick|daily|online&period=all|week|day[&day=YYYY-MM-DD][&limit=20]
+//   POST /api/e        cookieless analytics beacon {d:{key:n}}           (worker/lib/analytics.js)
+//   GET  /api/stats    ?days=30 aggregated counters                      (public, or bearer STATS_KEY)
+//
+// Anti-cheat = plausibility + friction (worker/lib/validate.js), NOT proof: the game runs in the browser.
+// See README "Anti-cheat" for the model and what stays bypassable.
+import { MODES, CLIENT_MODES, BOARD_MODES, dailySeed, rigaDay, isDayString, shiftDay } from '../src/rules.js';
+import { json, err, now, readJson, sameOrigin, intIn, ipHashOf } from './lib/util.js';
+import { sanitizeName, sanitizeLabel } from './lib/moderation.js';
+import { insertScore, rankOf, listScores, purgeStale } from './lib/db.js';
+import { validateSubmission } from './lib/validate.js';
+import { turnstileEnabled, turnstileSiteKey, verifyTurnstile } from './lib/turnstile.js';
+import { handleEvents, handleStats } from './lib/analytics.js';
+import { handleMp } from './mp/index.js';
+export { MpRoom, MpMatchmaker } from './mp/index.js'; // Durable Object classes (multiplayer, worker/mp/)
 
-// MUST match `roundSeconds` in src/config.js.
-const ROUND_SECONDS = 300;
 const MIN_AGE_FRACTION = 0.9;          // submit no earlier than 90% of round length
 const MAX_EXTRA_AGE_S = 600;           // ...and no later than round length + 10 min
 const MAX_SCORE = 10_000_000;          // generous sanity limits
 const MAX_RADIUS = 5000;
 const MAX_EATEN = 1_000_000;
-const MAX_BODY_BYTES = 2048;
+const MAX_BODY_BYTES = 8192;           // body incl. the progress trace (~1.5 KB for 5:00)
 const MAX_ROUNDS_PER_HOUR = 30;        // per (hashed) IP
-const STALE_ROUND_S = 86400;
-// Salt is a constant: it only avoids storing raw IPs. Anyone with the source could
-// brute-force the IPv4 space against a leaked hash, so this is pseudonymisation,
-// not anonymisation. Hashes include the UTC date and rows are purged after a day.
-const IP_SALT = 'bedre-riga-v1';
+const SUBMIT_CAP_PER_DAY = { classic: 60, quick: 120, daily: 5 };   // ranked submissions per (hashed) IP per UTC day
+const DAILY_GRACE_S = 120;             // a daily round begun just after Riga midnight may still belong to yesterday
 
-const json = (data, status = 200, headers = {}) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers },
-  });
-const err = (status, message) => json({ error: message }, status);
-
-const now = () => Math.floor(Date.now() / 1000);
-
-async function sha256Hex(s) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+/** Server-side round length per mode. `ROUND_SECONDS_OVERRIDE` is a test-only var (never set in wrangler.jsonc). */
+function roundSeconds(env, mode) {
+  const o = Number(env.ROUND_SECONDS_OVERRIDE);
+  return Number.isFinite(o) && o > 0 ? o : MODES[mode].seconds;
 }
-
-function roundSeconds(env) {
-  const o = Number(env.ROUND_SECONDS_OVERRIDE); // test-only var; never set in wrangler.jsonc
-  return Number.isFinite(o) && o > 0 ? o : ROUND_SECONDS;
-}
-
-// control chars, zero-width and bidi-override characters
-const INVISIBLE = new RegExp('[\\u0000-\\u001f\\u007f-\\u009f\\u200b-\\u200f\\u2028-\\u202e\\u2066-\\u2069\\ufeff]', 'g');
-
-function sanitizeName(raw) {
-  if (typeof raw !== 'string') return null;
-  const s = raw
-    .normalize('NFC')
-    .replace(INVISIBLE, ' ')
-    .replace(/[<>&"'`\\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const chars = [...s];
-  if (chars.length < 1 || chars.length > 16) return null;
-  return s;
-}
-
-function intIn(v, min, max) {
-  return typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max ? v : null;
-}
-
-async function readJson(request) {
-  const ct = request.headers.get('content-type') || '';
-  if (!ct.toLowerCase().includes('application/json')) return { error: err(415, 'content-type must be application/json') };
-  const declared = Number(request.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return { error: err(413, 'body too large') };
-  const buf = await request.arrayBuffer();
-  if (buf.byteLength > MAX_BODY_BYTES) return { error: err(413, 'body too large') };
-  try {
-    const v = JSON.parse(new TextDecoder().decode(buf));
-    if (!v || typeof v !== 'object' || Array.isArray(v)) return { error: err(400, 'expected JSON object') };
-    return { body: v };
-  } catch {
-    return { error: err(400, 'invalid JSON') };
-  }
-}
-
-function sameOrigin(request) {
-  const origin = request.headers.get('origin');
-  if (!origin) return true;
-  try {
-    return new URL(origin).host === new URL(request.url).host;
-  } catch {
-    return false;
-  }
-}
-
-async function purgeStale(env) {
-  await env.DB.prepare('DELETE FROM rounds WHERE used = 0 AND created_at < ?').bind(now() - STALE_ROUND_S).run();
-}
+/** Test-only overrides of the per-IP caps (vars RATE_ROUNDS_PER_HOUR, CAP_DAILY ...). */
+const envInt = (env, key, dflt) => { const v = Number(env[key]); return Number.isFinite(v) && v > 0 ? v : dflt; };
 
 async function createRound(request, env) {
+  let body = {};
+  if ((request.headers.get('content-type') || '').toLowerCase().includes('application/json')) {
+    const r = await readJson(request, { maxBytes: 1024 });
+    if (r.error) return r.error;
+    body = r.body;
+  }
+  const mode = body.mode === undefined ? 'classic' : body.mode;
+  if (typeof mode !== 'string' || !CLIENT_MODES.includes(mode)) return err(400, 'mode must be classic, quick or daily');
   const t = now();
-  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  const day = new Date(t * 1000).toISOString().slice(0, 10);
-  const ipHash = await sha256Hex(`${IP_SALT}|${ip}|${day}`);
-  const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND created_at > ?')
-    .bind(ipHash, t - 3600).first();
-  if (row.n >= MAX_ROUNDS_PER_HOUR) return err(429, 'too many rounds, try again later');
+  let day = null, seed;
+  if (mode === 'daily') {
+    const today = rigaDay(t);
+    day = body.day === undefined ? today : body.day;
+    if (!isDayString(day)) return err(400, 'invalid day');
+    const ok = day === today || (day === shiftDay(today, -1) && rigaDay(t - DAILY_GRACE_S) === day);
+    if (!ok) return err(409, 'day mismatch', { today });
+    seed = dailySeed(day);
+  } else {
+    seed = crypto.getRandomValues(new Uint32Array(1))[0];
+  }
+  const ipHash = await ipHashOf(request, t);
+  const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND created_at > ?').bind(ipHash, t - 3600).first();
+  if (row.n >= envInt(env, 'RATE_ROUNDS_PER_HOUR', MAX_ROUNDS_PER_HOUR)) return err(429, 'too many rounds, try again later');
   const roundId = crypto.randomUUID();
-  await env.DB.prepare('INSERT INTO rounds (id, created_at, ip_hash, used) VALUES (?, ?, ?, 0)')
-    .bind(roundId, t, ipHash).run();
-  await purgeStale(env);
-  return json({ roundId, roundSeconds: roundSeconds(env) }, 201);
+  await env.DB.prepare('INSERT INTO rounds (id, created_at, ip_hash, used, mode, day, seed) VALUES (?, ?, ?, 0, ?, ?, ?)')
+    .bind(roundId, t, ipHash, mode, day, seed).run();
+  await purgeStale(env, t);
+  const out = { roundId, roundSeconds: roundSeconds(env, mode), mode, seed };
+  if (day) out.day = day;
+  const site = turnstileSiteKey(env);
+  if (site) out.turnstileSiteKey = site;
+  return json(out, 201);
 }
 
 async function submitScore(request, env) {
-  const { body, error } = await readJson(request);
+  const { body, error } = await readJson(request, { maxBytes: MAX_BODY_BYTES });
   if (error) return error;
   const name = sanitizeName(body.name);
   if (!name) return err(400, 'name must be 1-16 characters');
@@ -120,62 +88,99 @@ async function submitScore(request, env) {
   let biggest = null;
   if (body.biggest !== undefined && body.biggest !== null) {
     if (typeof body.biggest !== 'string') return err(400, 'invalid biggest');
-    biggest = [...body.biggest.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/[<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim()].slice(0, 40).join('') || null;
+    biggest = sanitizeLabel(body.biggest);
   }
   if (typeof body.roundId !== 'string' || body.roundId.length > 64) return err(400, 'invalid roundId');
+  if (body.mode !== undefined && (typeof body.mode !== 'string' || !CLIENT_MODES.includes(body.mode))) return err(400, 'mode not accepted from clients');
 
   const t = now();
-  const round = await env.DB.prepare('SELECT created_at, used FROM rounds WHERE id = ?').bind(body.roundId).first();
+  const round = await env.DB.prepare('SELECT created_at, used, mode, day, seed, ip_hash FROM rounds WHERE id = ?').bind(body.roundId).first();
   if (!round) return err(403, 'unknown round');
   if (round.used) return err(409, 'round already submitted');
-  const len = roundSeconds(env);
+  if (body.mode !== undefined && body.mode !== round.mode) return err(400, 'mode does not match the round');
+  if (!CLIENT_MODES.includes(round.mode)) return err(403, 'round mode not submittable');
+  const len = roundSeconds(env, round.mode);
   const age = t - round.created_at;
   if (age < len * MIN_AGE_FRACTION) return err(403, 'round not finished yet');
   if (age > len + MAX_EXTRA_AGE_S) return err(403, 'round expired');
 
-  // Atomic claim: only one concurrent request can flip used 0 -> 1.
+  const ipHash = await ipHashOf(request, t);
+  const cap = envInt(env, `CAP_${round.mode.toUpperCase()}`, SUBMIT_CAP_PER_DAY[round.mode]);
+  const used = await env.DB.prepare('SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND used = 1 AND mode = ? AND created_at > ?')
+    .bind(ipHash, round.mode, t - 86400).first();
+  if (used.n >= cap) return err(429, 'daily limit of ranked submissions reached');
+
+  // Optional Turnstile (before the round is consumed, so a failed challenge can be retried)
+  if (turnstileEnabled(env)) {
+    const v = await verifyTurnstile(env, body.turnstile, request.headers.get('cf-connecting-ip'));
+    if (!v.ok) { console.log(JSON.stringify({ ev: 'turnstile_fail', codes: v.codes })); return err(403, 'turnstile verification failed'); }
+  }
+
+  // Atomic claim: only one concurrent request can flip used 0 -> 1. From here on the round token is burnt.
   const claim = await env.DB.prepare('UPDATE rounds SET used = 1 WHERE id = ? AND used = 0').bind(body.roundId).run();
   if (!claim.meta.changes) return err(409, 'round already submitted');
 
-  const ins = await env.DB.prepare(
-    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-  ).bind(name, score, eaten, radius, rank, biggest, t).run();
-  const id = ins.meta.last_row_id;
+  const check = validateSubmission({ mode: round.mode, seconds: len, age, score, eaten, radius, rank, trace: body.trace });
+  console.log(JSON.stringify({ ev: 'score_check', mode: round.mode, verdict: check.verdict, reasons: check.reasons }));
+  if (check.verdict === 'reject') return err(422, 'score failed plausibility checks', { reasons: check.reasons });
 
+  const tr = body.trace;
+  const { id, name: stored } = await insertScore(env, {
+    mode: round.mode, day: round.day, name, score, eaten, radius, rank, biggest,
+    suspect: check.verdict === 'suspect' ? 1 : 0, flags: check.reasons.join(',') || null,
+    trace: JSON.stringify(tr), roundId: body.roundId, kills: tr.kills, deaths: tr.deaths, createdAt: t,
+  });
   const dayStart = t - (t % 86400);
-  const [all, today] = await env.DB.batch([
-    env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE score > ?').bind(score),
-    env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE score > ? AND created_at >= ?').bind(score, dayStart),
-  ]);
-  await purgeStale(env);
-  return json({ ok: true, id, name, rankAllTime: all.results[0].n + 1, rankToday: today.results[0].n + 1 }, 201);
+  let rAll, rToday;
+  if (round.mode === 'daily') rAll = rToday = await rankOf(env, { mode: 'daily', day: round.day, score });
+  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, score }), rankOf(env, { mode: round.mode, score, since: dayStart })]);
+  await purgeStale(env, t);
+  const out = { ok: true, id, name: stored, mode: round.mode, rankAllTime: rAll, rankToday: rToday };
+  if (round.day) out.day = round.day;
+  return json(out, 201);
 }
 
-async function listScores(url, env) {
+async function getScores(url, env) {
+  const mode = url.searchParams.get('mode') || 'classic';
+  if (!BOARD_MODES.includes(mode)) return err(400, 'mode must be classic, quick, daily or online');
   const period = url.searchParams.get('period') || 'all';
   if (!['all', 'week', 'day'].includes(period)) return err(400, 'period must be all, week or day');
   let limit = parseInt(url.searchParams.get('limit') || '20', 10);
   if (!Number.isFinite(limit)) limit = 20;
   limit = Math.min(50, Math.max(1, limit));
   const t = now();
+  let day = null;
+  if (mode === 'daily') {
+    day = url.searchParams.get('day') || rigaDay(t);
+    if (!isDayString(day)) return err(400, 'invalid day');
+  }
   const since = period === 'day' ? t - (t % 86400) : period === 'week' ? t - 7 * 86400 : 0;
-  const { results } = await env.DB.prepare(
-    'SELECT name, score, radius, eaten, rank, biggest, created_at AS at FROM scores WHERE created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?',
-  ).bind(since, limit).all();
-  return json({ period, scores: results }, 200, { 'cache-control': 'public, max-age=15' });
+  const scores = await listScores(env, { mode, day, since, limit });
+  const out = { mode, period, scores };
+  if (day) out.day = day;
+  return json(out, 200, { 'cache-control': 'public, max-age=15' });
 }
 
 async function handleApi(request, env, url) {
   const path = url.pathname.replace(/\/+$/, '');
   const method = request.method;
+  if (path.startsWith('/api/mp/')) return handleMp(request, env, url); // multiplayer: worker/mp/index.js
   if (path === '/api/scores') {
-    if (method === 'GET') return listScores(url, env);
+    if (method === 'GET') return getScores(url, env);
     if (method === 'POST') return submitScore(request, env);
     return err(405, 'method not allowed');
   }
   if (path === '/api/rounds') {
     if (method !== 'POST') return err(405, 'method not allowed');
     return createRound(request, env);
+  }
+  if (path === '/api/e') {
+    if (method !== 'POST') return err(405, 'method not allowed');
+    return handleEvents(request, env);
+  }
+  if (path === '/api/stats') {
+    if (method !== 'GET') return err(405, 'method not allowed');
+    return handleStats(request, env, url);
   }
   return err(404, 'not found');
 }

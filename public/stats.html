@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BEDRE — stats</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root { --bg:#f6efdf; --card:#fffaf0; --ink:#2b2a28; --ink2:#6b6256; --line:#e2d8c0; --c1:#d9552f; --c2:#2b6c9a; --c3:#d9a62f; --c4:#4e9a6a; --c5:#7c4fd0; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1f2933; --card:#2a3642; --ink:#f1ead9; --ink2:#a9b4bf; --line:#3d4b59; --c1:#ef7a56; --c2:#5fa6d6; --c3:#e8c25a; --c4:#6fc08b; --c5:#a58ae6; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 "Avenir Next", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 22px 16px 60px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: .02em; } h1 small { font-weight: 600; color: var(--ink2); font-size: 14px; }
+  p.sub { margin: 0 0 18px; color: var(--ink2); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 10px; }
+  .card h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px; color: var(--ink2); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .tile b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; } .tile span { font-size: 12px; color: var(--ink2); }
+  svg { width: 100%; height: auto; display: block; } svg text { fill: var(--ink2); font-size: 10px; font-family: inherit; }
+  .axis { stroke: var(--line); stroke-width: 1; } .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--ink2); margin-top: 4px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; } td, th { text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--line); } td:last-child, th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  #msg { padding: 30px; text-align: center; color: var(--ink2); } form { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+  input, button { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); } button { cursor: pointer; background: var(--c1); color: #fff; border: 0; font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BEDRE <small>— anonymous daily totals</small></h1>
+  <p class="sub" id="sub">Aggregated counters only: no cookies, no identifiers, no IP addresses. Source: <code>GET /api/stats</code>.</p>
+  <div id="msg">Loading…</div>
+  <div id="out" hidden>
+    <div class="tiles" id="tiles"></div>
+    <div class="grid" id="charts"></div>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const P = new URLSearchParams(location.search);
+  const days = Math.min(366, Math.max(1, parseInt(P.get('days') || '30', 10) || 30));
+  const MODES = ['classic', 'quick', 'daily', 'free', 'online'];
+  const COL = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)'];
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (name, attrs = {}, text) => { const e = document.createElementNS(NS, name); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const div = (cls, text) => { const d = document.createElement('div'); if (cls) d.className = cls; if (text != null) d.textContent = text; return d; };
+  const nice = (m) => { const p = Math.pow(10, Math.floor(Math.log10(Math.max(1, m)))); const f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
+
+  function sampleData() {                       // ?sample=1: made-up numbers for screenshots / layout checks
+    const out = []; let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const t = new Date(); t.setUTCDate(t.getUTCDate() - days + 1);
+    for (let i = 0; i < days; i++, t.setUTCDate(t.getUTCDate() + 1)) {
+      const base = 60 + 40 * Math.sin(i / 4) + i * 3 + rnd() * 40, k = {};
+      k.pv = Math.round(base); k['vis:new'] = Math.round(base * 0.55); k['vis:ret'] = k.pv - k['vis:new'];
+      MODES.forEach((m, j) => { const n = Math.round(base * [1.3, 0.5, 0.45, 0.2, 0.1][j] * (0.7 + rnd() * 0.6)); k['rs:' + m] = n; k['rf:' + m] = Math.round(n * 0.82); });
+      k['dev:mobile'] = Math.round(base * 0.6); k['dev:desktop'] = k.pv - k['dev:mobile']; k['lang:lv'] = Math.round(base * 0.7); k['lang:en'] = k.pv - k['lang:lv'];
+      k['q:high'] = Math.round(base * 0.5); k['q:medium'] = Math.round(base * 0.3); k['q:low'] = Math.round(base * 0.15);
+      for (let b = 0; b < 8; b++) k['sb:classic:' + b] = Math.round(base * [0.3, 0.45, 0.4, 0.3, 0.2, 0.1, 0.05, 0.02][b] * (0.6 + rnd() * 0.8));
+      k['err:js'] = Math.round(rnd() * 3); k.nogl = Math.round(rnd() * 2); k['pwa:standalone'] = Math.round(base * 0.04); k['pwa:install'] = Math.round(rnd() * 2); k.share = Math.round(base * 0.05);
+      out.push({ day: t.toISOString().slice(0, 10), keys: k });
+    }
+    return { from: out[0].day, to: out[out.length - 1].day, days: out };
+  }
+
+  function lineChart(title, series, data, stacked) {
+    const W = 460, H = 200, L = 34, R = 8, T = 8, B = 22;
+    const n = data.length, bw = (W - L - R) / Math.max(1, n);
+    const vals = data.map((d) => series.map((s) => d.keys[s.key] || 0));
+    const max = nice(Math.max(1, ...vals.map((v) => (stacked ? v.reduce((a, b) => a + b, 0) : Math.max(...v)))));
+    const y = (v) => T + (H - T - B) * (1 - v / max);
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': title });
+    for (let i = 0; i <= 4; i++) { const v = (max * i) / 4; svg.append(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), class: 'axis' }), el('text', { x: L - 4, y: y(v) + 3, 'text-anchor': 'end' }, Math.round(v))); }
+    if (stacked) {
+      vals.forEach((v, i) => { let acc = 0; v.forEach((n2, j) => { const h = y(acc) - y(acc + n2); acc += n2; if (h > 0) svg.append(el('rect', { x: L + i * bw + 1, width: Math.max(1, bw - 2), y: y(acc), height: h, fill: COL[j % COL.length] })); }); });
+    } else {
+      series.forEach((s, j) => {
+        const pts = vals.map((v, i) => `${(L + (i + 0.5) * bw).toFixed(1)},${y(v[j]).toFixed(1)}`).join(' ');
+        svg.append(el('polyline', { points: pts, fill: 'none', stroke: COL[j % COL.length], 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      });
+    }
+    [0, Math.floor((n - 1) / 2), n - 1].forEach((i) => { if (data[i]) svg.append(el('text', { x: L + (i + 0.5) * bw, y: H - 6, 'text-anchor': i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle' }, data[i].day.slice(5))); });
+    return card(title, svg, series);
+  }
+
+  function bars(title, rows) {                // horizontal bars: [label, n]
+    const total = rows.reduce((a, r) => a + r[1], 0) || 1, max = Math.max(1, ...rows.map((r) => r[1]));
+    const H = rows.length * 22 + 6, svg = el('svg', { viewBox: `0 0 460 ${H}`, role: 'img', 'aria-label': title });
+    rows.forEach(([label, n], i) => {
+      svg.append(el('text', { x: 0, y: 16 + i * 22 }, label), el('rect', { x: 110, y: 6 + i * 22, width: Math.max(1, (n / max) * 270), height: 14, rx: 3, fill: COL[i % COL.length] }),
+        el('text', { x: 116 + (n / max) * 270, y: 17 + i * 22 }, `${n.toLocaleString()} (${Math.round((n / total) * 100)}%)`));
+    });
+    return card(title, svg);
+  }
+
+  function card(title, node, legend) {
+    const c = div('card'); const h = document.createElement('h2'); h.textContent = title; c.append(h, node);
+    if (legend) { const l = div('legend'); legend.forEach((s, j) => { const sp = document.createElement('span'); const i = document.createElement('i'); i.style.background = COL[j % COL.length]; sp.append(i, document.createTextNode(s.label)); l.append(sp); }); c.append(l); }
+    return c;
+  }
+
+  function render(res) {
+    const data = res.days;
+    if (!data.length) { $('msg').textContent = 'No data yet.'; return; }
+    const sum = (key) => data.reduce((a, d) => a + (d.keys[key] || 0), 0);
+    const tiles = $('tiles'), charts = $('charts');
+    const tile = (n, label) => { const t = div('tile'); const b = document.createElement('b'); b.textContent = Number(n).toLocaleString(); const s = document.createElement('span'); s.textContent = label; t.append(b, s); tiles.append(t); };
+    tile(sum('pv'), `page views (${res.from} … ${res.to})`); tile(sum('vis:new'), 'first-time browsers');
+    tile(MODES.reduce((a, m) => a + sum('rs:' + m), 0), 'rounds started'); tile(MODES.reduce((a, m) => a + sum('rf:' + m), 0), 'rounds finished');
+    tile(sum('share'), 'share clicks'); tile(sum('err:js') + sum('err:promise') + sum('err:load') + sum('err:ctxlost'), 'errors');
+    charts.append(
+      lineChart('Page views and new browsers per day', [{ key: 'pv', label: 'page views' }, { key: 'vis:new', label: 'first-time browsers' }], data, false),
+      lineChart('Rounds started per day, by mode', MODES.map((m) => ({ key: 'rs:' + m, label: m })), data, true),
+      bars('Rounds started by mode', MODES.map((m) => [m, sum('rs:' + m)])),
+      bars('Device class', [['mobile', sum('dev:mobile')], ['desktop', sum('dev:desktop')]]),
+      bars('Language', [['lv', sum('lang:lv')], ['en', sum('lang:en')]]),
+      bars('Quality tier at round start', ['low', 'medium', 'high'].map((q) => [q, sum('q:' + q)])),
+      bars('Final score buckets (all ranked modes)', ['0–99', '100–299', '300–699', '700–1.4k', '1.5k–3k', '3k–6k', '6k–12k', '12k+'].map((l, b) => [l, MODES.reduce((a, m) => a + sum(`sb:${m}:${b}`), 0)])),
+      bars('Install, share, WebGL, errors', [['PWA installs', sum('pwa:install')], ['PWA launches', sum('pwa:standalone')], ['share clicks', sum('share')], ['lobby joins', sum('lobby')], ['no WebGL', sum('nogl')], ['JS errors', sum('err:js')], ['promise errors', sum('err:promise')]]),
+    );
+    $('msg').hidden = true; $('out').hidden = false;
+  }
+
+  async function load() {
+    if (P.get('sample') === '1') { $('sub').textContent = 'SAMPLE DATA (made up) — ' + $('sub').textContent; return render(sampleData()); }
+    const key = sessionStorage.getItem('bedre.statskey');
+    try {
+      const r = await fetch(`/api/stats?days=${days}`, key ? { headers: { authorization: 'Bearer ' + key } } : {});
+      if (r.status === 401) return askKey();
+      if (!r.ok) throw new Error(r.status);
+      render(await r.json());
+    } catch (e) { $('msg').textContent = 'Could not load stats.'; }
+  }
+  function askKey() {
+    const m = $('msg'); m.textContent = 'This stats page is protected. Enter the stats key:';
+    const f = document.createElement('form'), i = document.createElement('input'), b = document.createElement('button');
+    i.type = 'password'; i.autocomplete = 'off'; b.textContent = 'Open'; f.append(i, b); m.append(f);
+    f.addEventListener('submit', (e) => { e.preventDefault(); sessionStorage.setItem('bedre.statskey', i.value); location.reload(); });
+  }
+  load();
+})();
+</script>
+</body>
+</html>

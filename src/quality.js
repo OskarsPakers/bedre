@@ -4,12 +4,29 @@ import { CFG, LIFE } from './config.js';
 
 const NAMES = ['low', 'medium', 'high'];
 
+/**
+ * Ground-texture / starting quality tier (0 low, 1 medium, 2 high) chosen BEFORE the world is built:
+ * `?quality=` pins it; otherwise phones (coarse pointer + small screen) and <= 2 GB devices get low, tablets / <= 4 GB / <= 4 cores medium.
+ */
+export function groundTier() {
+  try {
+    const q = new URLSearchParams(location.search).get('quality');
+    if (NAMES.includes(q)) return NAMES.indexOf(q);
+    const mem = navigator.deviceMemory || 0, cores = navigator.hardwareConcurrency || 8;
+    const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const small = Math.min(screen.width, screen.height) <= 820;
+    if ((coarse && small) || (mem && mem <= 2)) return 0;
+    if (coarse || (mem && mem <= 4) || cores <= 4) return 1;
+  } catch (e) { /* default */ }
+  return 2;
+}
+
 export class Quality {
   constructor({ renderer, light, world, canvas }) {
     this.renderer = renderer; this.light = light; this.world = world; this.canvas = canvas;
     const q = new URLSearchParams(location.search).get('quality');
     this.auto = !NAMES.includes(q);
-    this.level = this.auto ? 2 : NAMES.indexOf(q);
+    this.level = this.auto ? groundTier() : NAMES.indexOf(q);
     this.frames = 0; this.sum = 0; this.hiccup = 0;
     this.upLock = 0; this.lastUp = -999; this.goodWindows = 0; this.badWindows = 0;
     this.t = 0;

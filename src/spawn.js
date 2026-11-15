@@ -2,6 +2,7 @@
 // closeness to the centre and by how much food lies nearby; bots/respawns use spacing from other holes.
 import { mulberry32 } from './rng.js';
 import { CFG } from './config.js';
+import { waterRoutes } from './water.js';
 
 const STREETS = new Set(['residential', 'primary', 'secondary', 'tertiary', 'service', 'pedestrian']);
 
@@ -10,6 +11,8 @@ export class SpawnPicker {
     this.world = world;
     this.rng = mulberry32(seed);
     const b = world.bounds;
+    const isC = !world.data.meta.slug || world.data.meta.slug === 'centrs';
+    this.cx = isC ? 0 : (b.minX + b.maxX) / 2; this.cz = isC ? 0 : (b.minZ + b.maxZ) / 2; // preferred player area: Freedom Monument (centre map) / map middle
     const pts = [];
     const margin = 40;
     for (const r of world.data.roads) {
@@ -29,6 +32,21 @@ export class SpawnPicker {
     if (!pts.length) pts.push({ x: world.spawn[0], z: world.spawn[1], major: true, dens: 0, round: -1 });
     this.pts = pts;
     this.round = 0;
+    // left bank (Pardaugava) candidates: points west of the river centre-line (longest non-canal water route), so some bots start there
+    this.leftPts = [];
+    try {
+      const rt = waterRoutes(world.data).filter((r) => !r.canal).sort((a, b) => b.L - a.L)[0];
+      if (rt && rt.p.length > 3) {
+        const q = rt.p.slice().sort((a, c) => a[1] - c[1]);
+        const xr = (z) => { // river centre x at depth z (linear interpolation along the route)
+          if (z <= q[0][1]) return q[0][0];
+          for (let i = 0; i < q.length - 1; i++) if (z <= q[i + 1][1]) { const t = (z - q[i][1]) / Math.max(1e-6, q[i + 1][1] - q[i][1]); return q[i][0] + (q[i + 1][0] - q[i][0]) * t; }
+          return q[q.length - 1][0];
+        };
+        this.leftPts = pts.filter((c) => c.x < xr(c.z) - 60);
+        if (this.leftPts.length < 20) this.leftPts = [];
+      }
+    } catch (e) { this.leftPts = []; }
   }
 
   /** New round: the world was reset, cached densities are stale. */
@@ -76,7 +94,7 @@ export class SpawnPicker {
     if (res && avoid.every((a) => Math.hypot(res.x - a.x, res.z - a.z) > 150)) return [res.x, res.z];
     const scored = [];
     for (const c of this.pts) {
-      const d = Math.hypot(c.x, c.z);
+      const d = Math.hypot(c.x - this.cx, c.z - this.cz);
       if (d > 750) continue;
       const dens = this._density(c);
       if (dens < 30) continue;
@@ -105,11 +123,12 @@ export class SpawnPicker {
    * Spread-out point for bots / respawns: among random street points that keep `minDist` from other holes (bigger
    * holes count larger), take the one with the most food for a hole of `radius` (default: start radius).
    */
-  spread(others, { samples = 140, minDist = 0, radius = 0 } = {}) {
+  spread(others, { samples = 140, minDist = 0, radius = 0, pool = null } = {}) {
+    const src = pool && pool.length ? pool : this.pts;
     const r = Math.max(CFG.hole.startRadius, radius);
     let best = null, bs = -Infinity;
     for (let i = 0; i < samples; i++) {
-      const c = this.pts[Math.floor(this.rng() * this.pts.length)];
+      const c = src[Math.floor(this.rng() * src.length)];
       let md = others.length ? Infinity : 1e4;
       for (const o of others) md = Math.min(md, Math.hypot(c.x - o.x, c.z - o.z) - Math.max(0, (o.radius || 0) - r) * 3);
       const food = this._food(c.x, c.z, r);

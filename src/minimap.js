@@ -2,7 +2,7 @@
 // plus live dots for every hole (sized by radius), the player highlighted, and the visible camera area.
 import * as THREE from 'three';
 
-const BG = '#e9e1cf', WATER = '#6f98b5', PARK = '#a9c78a', ROAD = '#fbf8ef', ROADM = '#ffffff', BLD = '#c4b79c';
+const BG = '#e9e1cf', WATER = '#6f98b5', PARK = '#a9c78a', WOOD = '#8fb676', ROAD = '#fbf8ef', ROADM = '#ffffff', BLD = '#c4b79c', RAIL = '#cfc7b6', SQUARE = '#f3eee2';
 
 export class Minimap {
   constructor(canvas, data) {
@@ -11,7 +11,8 @@ export class Minimap {
     const b = data.meta.bounds;
     this.b = b;
     this.w = b.maxX - b.minX; this.h = b.maxZ - b.minZ;
-    this.bg = this._render(data, 360);
+    this.aspect = this.h / this.w; // the map is a rectangle: the canvas follows its aspect
+    this.bg = this._render(data, 440);
     this._v = new THREE.Vector3();
     this._dir = new THREE.Vector3();
     this._last = 0;
@@ -20,24 +21,29 @@ export class Minimap {
   }
 
   _render(data, S) {
+    const SH = Math.round(S * this.aspect);
     const c = document.createElement('canvas');
-    c.width = c.height = S;
+    c.width = S; c.height = SH;
     const g = c.getContext('2d');
-    const sx = S / this.w, sz = S / this.h, b = this.b;
-    const P = (p) => [(p[0] - b.minX) * sx, (p[1] - b.minZ) * sz];
-    g.fillStyle = BG; g.fillRect(0, 0, S, S);
-    const poly = (list, fill) => {
+    const sx = S / this.w, b = this.b;
+    const P = (p) => [(p[0] - b.minX) * sx, (p[1] - b.minZ) * sx];
+    g.fillStyle = BG; g.fillRect(0, 0, S, SH);
+    const ring = (pts) => { pts.forEach((q, i) => { const [x, y] = P(q); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.closePath(); };
+    const poly = (list, fill, only, holes = true) => {
       g.fillStyle = fill;
       for (const o of list) {
-        const pts = o.p; if (!pts || pts.length < 3) continue;
-        g.beginPath();
-        pts.forEach((q, i) => { const [x, y] = P(q); i ? g.lineTo(x, y) : g.moveTo(x, y); });
-        g.closePath(); g.fill();
+        const pts = o.p; if (!pts || pts.length < 3 || (only && !only(o))) continue;
+        g.beginPath(); ring(pts);
+        if (holes) for (const h of o.h || []) { g.moveTo(...P(h[0])); ring(h); }
+        g.fill('evenodd');
       }
     };
+    poly(data.areas || [], WOOD, (o) => o.c === 'wd');
+    poly(data.areas || [], RAIL, (o) => o.c === 'rail');
     poly(data.parks, PARK);
+    poly(data.areas || [], SQUARE, (o) => o.c === 'sq');
     poly(data.water, WATER);
-    poly(data.buildings, BLD);
+    poly(data.buildings, BLD, null, false); // building `h` is its height, not holes
     g.lineCap = 'round'; g.lineJoin = 'round';
     for (const pass of [0, 1]) {
       for (const r of data.roads) {
@@ -57,11 +63,13 @@ export class Minimap {
   resizeToCss() {
     const css = Math.round(this.canvas.clientWidth) || 160;
     const px = Math.round(css * Math.min(2, window.devicePixelRatio || 1));
-    if (px !== this.canvas.width) { this.canvas.width = this.canvas.height = px; }
-    this.size = px;
+    const ph = Math.round(px * this.aspect);
+    this.canvas.style.height = Math.round(css * this.aspect) + 'px';
+    if (px !== this.canvas.width || ph !== this.canvas.height) { this.canvas.width = px; this.canvas.height = ph; }
+    this.size = px; this.sizeH = ph;
   }
 
-  _toMap(x, z) { return [((x - this.b.minX) / this.w) * this.size, ((z - this.b.minZ) / this.h) * this.size]; }
+  _toMap(x, z) { return [((x - this.b.minX) / this.w) * this.size, ((z - this.b.minZ) / this.h) * this.sizeH]; }
 
   /** Intersect a screen-space NDC point with the ground plane; null if it points above the horizon. */
   _ground(camera, nx, ny) {
@@ -77,7 +85,7 @@ export class Minimap {
     this._last = now;
     if (!this.size || Math.abs(this.canvas.clientWidth * Math.min(2, window.devicePixelRatio || 1) - this.size) > 2) this.resizeToCss();
     const g = this.ctx, S = this.size;
-    g.drawImage(this.bg, 0, 0, S, S);
+    g.drawImage(this.bg, 0, 0, S, this.sizeH);
     // visible area (camera frustum on the ground)
     const pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([nx, ny]) => this._ground(camera, nx, ny));
     if (pts.every(Boolean)) {

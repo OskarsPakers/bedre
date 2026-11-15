@@ -21,12 +21,12 @@ export class Blockers {
           a.push(i);
         }
     });
-    this.water = water.map((w) => cleanRing(w.p)).filter((r) => r.length >= 3).map((r) => ({ r, b: bbox(r) }));
+    this.water = water.map((w) => ({ r: cleanRing(w.p), h: (w.h || []).map(cleanRing).filter((h) => h.length >= 3) })).filter((w) => w.r.length >= 3).map((w) => ({ r: w.r, h: w.h, b: bbox(w.r) }));
   }
   inWater(x, z) {
     for (const w of this.water) {
       if (x < w.b.x0 || x > w.b.x1 || z < w.b.z0 || z > w.b.z1) continue;
-      if (pointInPoly(x, z, w.r)) return true;
+      if (pointInPoly(x, z, w.r) && !w.h.some((h) => pointInPoly(x, z, h))) return true;
     }
     return false;
   }

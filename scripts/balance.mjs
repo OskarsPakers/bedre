@@ -46,7 +46,7 @@ const page = await (await browser.newContext({ viewport: { width: 800, height: 5
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 const G = (fn, a) => page.evaluate(fn, a);
 const open = async (q) => {
-  await page.goto(`${base}/?intro=0&${q}`);
+  await page.goto(`${base}/?intro=0&${q}${process.env.MAP ? '&map=' + process.env.MAP : ''}`); // MAP=<slug>: balance a district
   await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 120000 });
   // the HUD is irrelevant for balance and may be mid-edit by someone else: keep the sim independent of it
   await G(() => { const g = window.__G; g._hudSync = () => {}; g._overlay = () => {}; g._flushPopup = () => {}; });

@@ -232,6 +232,37 @@ export class AudioEngine {
     });
   }
 
+  /** 18 November fireworks: rising whistle (rocket) */
+  fwLaunch(vol = 1, delay = 0) {
+    this.stats.triggered++;
+    if (!this.running || this.muted) return;
+    if (this.budget.big < 1 || !this._claim(1.2)) { this.stats.dropped++; return; }
+    this._guard_play(() => {
+      const t = this.ctx.currentTime + delay;
+      this._osc('sine', 700, 2400, t, 0.8, 0.035 * vol, null, 0.05);
+      this._noise(t, 0.7, 'bandpass', 1500, 3200, 2.5, 0.03 * vol, false, 0.08);
+    });
+  }
+
+  /** fireworks: boom + crackle, volume by distance (0..1); voice limited like the other big sounds */
+  fwBoom(vol = 1, big = 30) {
+    this.stats.triggered++;
+    if (!this.running || this.muted) return;
+    if (this.budget.big < 1 || !this._claim(1.6)) { this.stats.dropped++; return; }
+    this.budget.big--;
+    this._guard_play(() => {
+      const t = this.ctx.currentTime + 0.05 + (1 - vol) * 0.25; // farther = a touch later
+      const k = clamp(big / 60, 0.4, 1.4), v = 0.3 * vol;
+      this._osc('sine', 120 / Math.sqrt(k), 38, t, 0.7, v, null, 0.006);
+      this._noise(t, 0.55, 'lowpass', 1400, 120, 0.7, v * 0.9, true, 0.004);
+      const n = 6 + Math.round(k * 6);
+      for (let i = 0; i < n; i++) {
+        const tt = t + 0.12 + Math.random() * 0.9;
+        this._noise(tt, 0.03 + Math.random() * 0.04, 'highpass', rnd(2500, 6000), rnd(2500, 6000), 1, v * rnd(0.1, 0.32));
+      }
+    });
+  }
+
   _guard_play(fn) {
     try { fn(); this.stats.played++; } catch (e) { this.stats.errors++; console.warn('[audio]', e); }
   }
@@ -358,6 +389,8 @@ export function wireAudioEvents(audio) {
   bus.on('respawn', () => audio.respawn());
   bus.on('countdown', (n) => audio.tick(n));
   bus.on('roundEnd', () => audio.sting());
+  bus.on('fireworkLaunch', (e) => audio.fwLaunch(e && e.vol, e && e.delay));
+  bus.on('fireworkBoom', (e) => audio.fwBoom(e && e.vol, e && e.big));
   bus.on('pause', () => { if (audio.ctx && audio.ctx.state === 'running') audio.ctx.suspend().catch(() => {}); });
   bus.on('resume', () => { if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume().catch(() => {}); });
   document.addEventListener('click', (e) => {

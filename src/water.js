@@ -13,9 +13,11 @@ export function waterRoutes(data, { minArea = 4000, cell = 5 } = {}) {
     const c = Math.max(cell, Math.sqrt((bw * bh) / 90000)); // cap grid size at ~90k cells
     const nx = Math.ceil(bw / c) + 2, nz = Math.ceil(bh / c) + 2;
     const inside = new Uint8Array(nx * nz);
+    const holes = (w.h || []).map(cleanRing).filter((h) => h.length >= 3);
     let count = 0;
     for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
-      if (pointInPoly(b.x0 + (i - 0.5) * c, b.z0 + (j - 0.5) * c, ring)) { inside[j * nx + i] = 1; count++; }
+      const qx = b.x0 + (i - 0.5) * c, qz = b.z0 + (j - 0.5) * c;
+      if (pointInPoly(qx, qz, ring) && !holes.some((h) => pointInPoly(qx, qz, h))) { inside[j * nx + i] = 1; count++; }
     }
     if (count < 40) continue;
     // chamfer distance transform (in cells)

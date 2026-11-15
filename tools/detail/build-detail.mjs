@@ -14,6 +14,7 @@ import { ROOT, CACHE, openLayers, localToMerc, netStats } from './i3s.mjs';
 import { buildDsm, footprintGrid, heightAbove, heightStats, bboxOf, pip, quant } from './dsm.mjs';
 import { encodeGrid, decodeGrid, gzipSize, rle as rleBytes } from './shape.mjs';
 import { fitParts, partsError } from './fit.mjs';
+import { HEROES } from './heroes.mjs';
 
 const args = Object.fromEntries(process.argv.slice(3).map((a) => { const m = a.match(/^--([^=]+)=?(.*)$/); return m ? [m[1], m[2] || true] : [a, true]; }));
 const cmd = process.argv[2] || 'analyze';
@@ -62,6 +63,13 @@ export function notableSet() {
     const c = game.buildings.filter((b) => pip(l.x, l.z, b.p));
     for (const b of c) add(b.id, 'landmark:' + l.n);
   }
+  // buildings added by the map extension (outside the original +-1200 m box): named / big public ones are notable too
+  for (const b of game.buildings) {
+    if (Math.abs(b.p[0][0]) <= 1200 && Math.abs(b.p[0][1]) <= 1200) continue;
+    if (b.n && !/\s\d+[A-Za-zĀ-ž]?(\s|$|\/)/.test(b.n) && b.t !== 'aux' && b.h >= 12) add(b.id, 'named-ext');
+    else if (b.h >= 40) add(b.id, 'h>=40-ext');
+  }
+  for (const h of HEROES) for (const id of h.ids) add(id, 'hero'); // curated landmarks are always measured at 0.5 m
   const R = { x: 24.1133, lat: 56.9515 };
   const M_LON = 111320 * Math.cos((R.lat * Math.PI) / 180);
   for (const e of loadNamedOsm()) {
@@ -102,8 +110,8 @@ async function analyze() {
   if (args.limit) sel = sel.slice(0, Number(args.limit));
   const todo = sel.filter((s) => !fs.existsSync(path.join(ANALYSIS, `${s.b.id}${s.fine ? '' : '.c'}.json`)));
   console.log(`selected ${sel.length}, to analyse ${todo.length}`);
-  const half = 1300;
-  const [a, c] = [localToMerc(-half, half), localToMerc(half, -half)];
+  const bd = game.meta.bounds || { minX: -1200, maxX: 1200, minZ: -1200, maxZ: 1200 };
+  const [a, c] = [localToMerc(bd.minX - 100, bd.maxZ + 100), localToMerc(bd.maxX + 100, bd.minZ - 100)];
   const layers = (await openLayers([a[0], a[1], c[0], c[1]])).filter((l) => !/^Pazeme/i.test(l.name));
   console.log('layers:', layers.map((l) => l.name).join(', '));
   const t0 = Date.now();

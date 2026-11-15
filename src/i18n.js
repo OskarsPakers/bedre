@@ -19,7 +19,7 @@ const S = {
     colRank: '#', colName: 'Vārds', colScore: 'Punkti', colSize: 'Izmērs', loading: 'Ielādē…',
     empty: 'Vēl nav rezultātu. Esi pirmais!', offline: 'Rezultātu serveris nav pieejams.', close: 'Aizvērt', you: 'tu',
     aboutTitle: 'Par spēli', aboutInspired: 'Iedvesmojies no', aboutBuildings: 'Ēku kontūras, formas un augstumi: © Rīgas valstspilsētas pašvaldība',
-    aboutOsm: 'Ceļi, ūdeņi, parki, koki, tramvaja sliedes, pieturas, nosaukumi un ēku daļas:', aboutBuilt: 'Veidots ar three.js.',
+    mapLabel: 'Apkaime', mapOnlineNote: 'Tiešsaiste pagaidām tikai Centra kartē.', aboutGround: 'Zemes seguma klasifikācija (zāliens, koki, ielu un laukumu segums): © LĢIA ortofoto 2016–2018, CC BY 4.0, pārveidota', aboutOsm: 'Ceļi, ūdeņi, parki, koki, tramvaja sliedes, pieturas, nosaukumi un ēku daļas:', aboutBuilt: 'Veidots ar three.js.',
     aboutNote: 'Oriģināla spēle; nav saistīta ar minēto spēli vai tās autoriem.',
     footInspired: 'Iedvesmojies no Hole.io', attrib: '© OpenStreetMap · Rīgas valstspilsētas pašvaldība',
     pause: 'Pauze', resume: 'Turpināt', pauseHint: 'Esc — turpināt', pauseBtn: 'Pauze (Esc)', soundBtn: 'Skaņa ieslēgta/izslēgta (M)', soundAria: 'Ieslēgt/izslēgt skaņu',
@@ -27,6 +27,9 @@ const S = {
     noWebgl: 'Šajā ierīcē vai pārlūkā nav pieejams WebGL, tāpēc spēle nevar startēt. Mēģini citu pārlūku vai ieslēdz aparatūras paātrinājumu.',
     bootError: 'Neizdevās ielādēt spēli. Pārlādē lapu.',
     sizeAria: 'Bedres izmērs',
+    themeLbl: 'Tēma', themeAuto: 'Auto', themeDay: 'Diena', themeEvening: 'Vakars', themeWinter: 'Ziema', themeNov18: '18. nov.',
+    themeWinterDay: 'Ziema', themeWinterEve: 'Ziemas vakars', themeNov18Name: 'Lāčplēša diena', themeLigo: 'Līgo vakars',
+    themeNow: 'Šobrīd: {name}', themeNov18Cap: 'Lāčplēša diena — 18. novembra svētku vakars',
   },
   en: {
     score: 'Score', time: 'Time', swallowedLbl: 'Swallowed:', leaderboard: 'Leaderboard',
@@ -44,7 +47,7 @@ const S = {
     colRank: '#', colName: 'Name', colScore: 'Score', colSize: 'Size', loading: 'Loading…',
     empty: 'No scores yet. Be the first!', offline: 'The score server is not reachable.', close: 'Close', you: 'you',
     aboutTitle: 'About', aboutInspired: 'Inspired by', aboutBuildings: 'Building footprints, shapes and heights: © Rīgas valstspilsētas pašvaldība',
-    aboutOsm: 'Roads, water, parks, trees, tram tracks, stops, names and building parts:', aboutBuilt: 'Built with three.js.',
+    mapLabel: 'District', mapOnlineNote: 'Online is available on the Centre map only for now.', aboutGround: 'Ground-cover classification (lawns, trees, street and plaza surfaces): © LĢIA orthophoto 2016–2018, CC BY 4.0, modified', aboutOsm: 'Roads, water, parks, trees, tram tracks, stops, names and building parts:', aboutBuilt: 'Built with three.js.',
     aboutNote: 'An original game; not affiliated with the game above or its makers.',
     footInspired: 'Inspired by Hole.io', attrib: '© OpenStreetMap · Rīgas valstspilsētas pašvaldība',
     pause: 'Paused', resume: 'Resume', pauseHint: 'Esc to resume', pauseBtn: 'Pause (Esc)', soundBtn: 'Sound on/off (M)', soundAria: 'Toggle sound',
@@ -52,6 +55,9 @@ const S = {
     noWebgl: 'WebGL is not available on this device or browser, so the game cannot start. Try another browser or enable hardware acceleration.',
     bootError: 'The game failed to load. Please reload the page.',
     sizeAria: 'Hole size',
+    themeLbl: 'Theme', themeAuto: 'Auto', themeDay: 'Day', themeEvening: 'Evening', themeWinter: 'Winter', themeNov18: '18 Nov',
+    themeWinterDay: 'Winter', themeWinterEve: 'Winter evening', themeNov18Name: 'Lāčplēša Day', themeLigo: 'Līgo dusk',
+    themeNow: 'Now: {name}', themeNov18Cap: "Lāčplēša Day — the 18 November festive evening",
   },
 };
 
@@ -111,3 +117,5 @@ export function setLang(l) {
   for (const f of listeners) f(lang);
 }
 export const onLang = (f) => { listeners.push(f); };
+/** Feature modules add their own strings (modes, analytics note, ...) without touching the tables above. */
+export function extendStrings(lv, en) { Object.assign(S.lv, lv); Object.assign(S.en, en); }

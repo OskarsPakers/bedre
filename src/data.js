@@ -1,16 +1,18 @@
 import { CFG } from './config.js';
 import { generateSampleCity } from './sampleCity.js';
 import { loadShapes } from './shapes.js';
+import { loadGroundRaster } from './ground.js';
 
 /** Load the real map; fall back to the procedural sample city on any failure. */
 export async function loadCity(forceSample = false, onProgress = () => {}) {
   if (!forceSample) {
     try {
       const shapesP = loadShapes(); // in parallel with the map; resolves null when missing
+      const groundP = loadGroundRaster(CFG.groundUrl); // optional class raster, resolves null when missing
       const res = await fetch(CFG.dataUrl);
       if (res.ok) {
         const data = await readJson(res, onProgress); // dev servers may answer 200 + index.html -> throws
-        if (data && Array.isArray(data.buildings) && data.buildings.length) { data.shapes = await shapesP; return normalize(data, false); }
+        if (data && Array.isArray(data.buildings) && data.buildings.length) { data.shapes = await shapesP; data.groundRaster = await groundP; return normalize(data, false); }
       }
     } catch (e) { /* fall through */ }
   }

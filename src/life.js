@@ -7,6 +7,7 @@ import { installLabelThrottle } from './labels.js';
 import { Quality } from './quality.js';
 import { camShake } from './effects.js';
 import { findBridges } from './ground.js';
+import { initTheme } from './theme.js';
 
 export function initLife({ renderer, scene, world, game, canvas }) {
   const audio = new AudioEngine();
@@ -16,6 +17,7 @@ export function initLife({ renderer, scene, world, game, canvas }) {
   world.holesRef = () => game.holes;
   const labelStats = installLabelThrottle(game.hud, world);
   const quality = new Quality({ renderer, light: game.light, world, canvas });
+  const theme = initTheme({ renderer, scene, world, game, quality, params: new URLSearchParams(location.search) });
 
   const levelOf = (r) => {
     const L = CFG.levels;
@@ -47,6 +49,6 @@ export function initLife({ renderer, scene, world, game, canvas }) {
   // hum off outside rounds
   setInterval(() => { if (game.phase !== 'playing') audio.setHole(game.player.radius, 0, false); }, 500);
 
-  window.__life = { game, bridges: () => findBridges(world.data), audio, quality, labelStats, world, fx: world.fx, traffic: world.traffic, bus, camShake, renderer };
+  window.__life = { theme, game, bridges: () => findBridges(world.data), audio, quality, labelStats, world, fx: world.fx, traffic: world.traffic, bus, camShake, renderer };
   return window.__life;
 }

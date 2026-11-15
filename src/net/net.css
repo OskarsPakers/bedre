@@ -1,0 +1,42 @@
+/* Multiplayer ("Tiešsaiste / Online"): start-screen button, lobby panel, connection indicator, bot marks. */
+#play-online { display: block; margin: 12px auto 0; font-size: 17px; padding: 11px 26px; background: var(--slate); box-shadow: 0 5px 0 #1d2833; position: relative; }
+#play-online:hover:not(:disabled) { box-shadow: 0 4px 0 #1d2833; }
+#play-online:active:not(:disabled) { box-shadow: 0 1px 0 #1d2833; }
+#play-online:disabled { background: #9aa6b2; box-shadow: 0 5px 0 #7d8995; }
+.mp-beta { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #f6efdf; color: var(--terra2); font-size: 10px; letter-spacing: .12em; font-weight: 900; vertical-align: 3px; }
+#mp-status { min-height: 1.2em; margin: 8px 0 0; font-size: 13px; font-weight: 700; color: var(--terra2); }
+#mp-status.ok { color: var(--ink2); }
+
+#mp-lobby .panel-inner { max-width: 440px; }
+#mp-lobby .sub { margin-bottom: 4px; }
+#mp-count { font-size: 24px; font-weight: 900; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+#mp-sub { font-size: 13px; color: var(--ink2); font-weight: 600; margin: 0 0 12px; }
+#mp-players { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 5px; max-height: 34vh; overflow-y: auto; text-align: left; }
+#mp-players li { display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-radius: 10px; background: #fff; font-weight: 800; font-size: 15px; }
+#mp-players li.me { box-shadow: inset 0 0 0 2px var(--terra); }
+#mp-players li i { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(0,0,0,.12); }
+#mp-players li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mp-players li em { font-style: normal; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--terra2); }
+#mp-running { margin: 0 0 12px; padding: 9px 12px; border-radius: 12px; background: var(--cream2); text-align: left; font-size: 13px; }
+#mp-running b { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+#mp-running ol { margin: 0; padding-left: 20px; font-weight: 700; }
+#mp-running li { display: flex; justify-content: space-between; gap: 8px; }
+#mp-running li.bot { opacity: .6; }
+#mp-leave { margin-top: 2px; }
+
+/* subtle marks for AI holes (bots are simulated by the server) */
+.tag.bot { background: rgba(246,239,223,.72); font-weight: 700; }
+.tag.bot .n::after { content: " · AI"; font-size: 10px; opacity: .55; letter-spacing: .06em; }
+#board li.bot .nm::after, #r-table tr.bot .nm::after { content: " · AI"; font-size: 10px; opacity: .5; letter-spacing: .06em; }
+#r-table tr.human { font-weight: 900; }
+#r-table tr.bot { opacity: .7; }
+
+/* connection indicator + ping */
+#mp-net { position: fixed; z-index: 6; left: 14px; bottom: 18px; display: none; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(43,58,74,.82); color: #f6efdf; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; pointer-events: none; }
+#mp-net i { width: 9px; height: 9px; border-radius: 50%; background: #5fc77e; }
+#mp-net.warn i { background: #f0b73a; }
+#mp-net.bad i { background: #e5533d; animation: mpblink 1s infinite; }
+@keyframes mpblink { 50% { opacity: .25; } }
+body.mp-online #mp-net { display: flex; }
+body.mp-online #pause-btn { display: none; }
+@media (max-width: 700px) { #mp-net { left: auto; right: 10px; bottom: auto; top: 118px; } }

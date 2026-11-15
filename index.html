@@ -18,6 +18,14 @@
   <meta name="twitter:title" content="BEDRE — Rīga" />
   <meta name="twitter:image" content="https://bedre.pakers.lv/og.png" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- meta/PWA -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="BEDRE" />
+  <meta property="og:image:alt" content="BEDRE — Rīga: a hole swallowing the streets of Riga" />
+  <meta name="twitter:description" content="Steer a hole around a real 3D map of Riga, swallow everything that fits and out-grow 7 rivals in 5 minutes." />
   <style>
     /* first paint: never a white page */
     html, body { margin: 0; height: 100%; background: #2b3a4a; }
@@ -58,6 +66,7 @@
       <div class="size-row"><span id="size-level">Size 1</span><span id="size-diam">Ø 4.4 m</span></div>
       <div class="bar"><div id="size-fill"></div></div>
     </div>
+    <button id="end-free" type="button" data-i18n="endBtn">End</button>
     <button id="pause-btn" type="button" data-i18n-title="pauseBtn" title="Pause (Esc)"><i></i></button>
     <div id="attrib">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</div>
   </div>
@@ -80,6 +89,13 @@
       <div class="sub">Rīga</div>
       <p class="blurb" data-i18n="blurb"></p>
       <label class="namebox"><span data-i18n="yourName">Your name</span><input id="name" type="text" maxlength="14" data-i18n-ph="namePh" placeholder="Tu" autocomplete="off" spellcheck="false" /></label>
+      <div class="modesw" id="modesw" role="radiogroup" data-i18n-title="modesAria">
+        <button type="button" role="radio" data-mode="classic" data-i18n="modeClassic">Classic</button>
+        <button type="button" role="radio" data-mode="quick" data-i18n="modeQuick">Quick</button>
+        <button type="button" role="radio" data-mode="daily" data-i18n="modeDaily">Daily</button>
+        <button type="button" role="radio" data-mode="free" data-i18n="modeFree">Free roam</button>
+      </div>
+      <p class="mode-desc" id="mode-desc"></p>
       <p class="how" data-i18n="how"></p>
       <button id="play" class="btn" disabled>Loading map&hellip;</button>
       <div class="linkrow">
@@ -140,7 +156,9 @@
         <li><span data-i18n="aboutInspired">Inspired by</span> <a href="https://holeio.com" target="_blank" rel="noopener noreferrer">Hole.io</a>.</li>
         <li><span data-i18n="aboutBuildings"></span> (<a href="https://georiga.eu" target="_blank" rel="noopener">georiga.eu</a>)</li>
         <li><span data-i18n="aboutOsm"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors (ODbL)</a>.</li>
+        <li><span data-i18n="aboutGround"></span> (<a href="https://www.lgia.gov.lv/en/atvertie-dati" target="_blank" rel="noopener">LĢIA</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</li>
         <li data-i18n="aboutBuilt"></li>
+        <li class="note" data-i18n="aboutPrivacy"></li>
         <li class="note" data-i18n="aboutNote"></li>
       </ul>
       <button id="ab-close" class="btn small" type="button" data-i18n="close">Close</button>

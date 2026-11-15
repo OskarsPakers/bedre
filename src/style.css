@@ -207,3 +207,11 @@ html, body { overscroll-behavior: none; -webkit-touch-callout: none; }
 #pause .place { margin: 4px 0 20px; }
 #pause .btn { margin: 0 0 14px; }
 #pause .how { margin: 0 0 4px; }
+
+/* ---- district picker (start screen): thumbnail + one labelled select in a single compact row ---- */
+.mapsw { display: flex; align-items: center; gap: 10px; margin: 8px auto 2px; max-width: 320px; }
+.mapsw img { width: 48px; height: 40px; border-radius: 8px; object-fit: cover; background: #e9e1cf; box-shadow: 0 0 0 1px rgba(60,48,30,.18); image-rendering: auto; flex: none; }
+.mapsw label { display: flex; flex-direction: column; gap: 2px; flex: 1; text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.mapsw select { font: inherit; font-size: 15px; letter-spacing: 0; text-transform: none; padding: 6px 8px; border-radius: 10px; border: 2px solid rgba(60,48,30,.2); background: #fffaf0; color: inherit; min-height: 34px; }
+body[data-map]:not([data-map="centrs"]) #play-online { display: none !important; }
+@media (max-height: 760px) { .mapsw { margin-top: 4px; } .mapsw img { width: 40px; height: 32px; } }

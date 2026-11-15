@@ -1,125 +1,285 @@
-// Local-only API smoke test: builds, applies local D1 migrations into a fresh
-// state dir, runs `wrangler dev` on 8791 with a 2 s round, and asserts the API.
-import { spawn, spawnSync } from 'node:child_process';
-import { rmSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Local-only API smoke test (no browser). Parallel-safe: builds into scripts/.dist-api, own wrangler config / persistence
+// dirs / ports. Covers modes, per-mode boards, daily day handling, migrations (fresh + upgrade from 0001), trace validation
+// (accept / suspect / reject), suspect rows hidden, rate limits, profanity, Turnstile (mock siteverify), analytics
+// endpoint + DNT, stats endpoint.   API_PORT=8794 node scripts/smoke-api.mjs
+import http from 'node:http';
+import { buildInto, writeConfig, migrate, sql, startWorker, freshDir, resolve, root, run, cpSync, rmSync, mkdirSync } from './lib-test.mjs';
+import { LIMITS } from '../worker/lib/limits.js';
+import { validateSubmission, expectedSamples } from '../worker/lib/validate.js';
+import { MODES, radiusForMode, rigaDay, dailySeed, shiftDay, isDayString } from '../src/rules.js';
+import { sanitizeName } from '../worker/lib/moderation.js';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PORT = 8791;
-const BASE = `http://localhost:${PORT}`;
-const persist = resolve(root, '.wrangler/smoke-state');
-rmSync(persist, { recursive: true, force: true });
-
-const run = (cmd, args) => {
-  const r = spawnSync(cmd, args, { cwd: root, stdio: 'inherit' });
-  if (r.status !== 0) { console.error(`failed: ${cmd} ${args.join(' ')}`); process.exit(1); }
-};
-run('npm', ['run', 'build']);
-run('npx', ['wrangler', 'd1', 'migrations', 'apply', 'bedre-scores', '--local', '--persist-to', persist]);
-
-const child = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--persist-to', persist,
-  '--var', 'ROUND_SECONDS_OVERRIDE:2'], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
-let log = '';
-child.stdout.on('data', (d) => (log += d));
-child.stderr.on('data', (d) => (log += d));
-const killAll = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} };
-process.on('exit', killAll);
+const PORT = Number(process.env.API_PORT || 8794);
+const PORT_TS = PORT + 10, PORT_MOCK = PORT + 20;
+const dist = buildInto('api');
+const config = writeConfig('api', dist);
+const persistA = freshDir(resolve(root, '.wrangler/smoke-api-a'));
+const persistB = freshDir(resolve(root, '.wrangler/smoke-api-b'));
+const persistU = freshDir(resolve(root, '.wrangler/smoke-api-upgrade'));
 
 let failed = 0;
-const check = (name, ok, extra = '') => {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  ' + extra}`);
-  if (!ok) failed++;
-};
+const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  ' + extra}`); if (!ok) failed++; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const post = (path, body, headers = {}, raw) => fetch(BASE + path, {
-  method: 'POST', headers: { 'content-type': 'application/json', ...headers },
-  body: raw ?? JSON.stringify(body),
+const procs = [];
+process.on('exit', () => procs.forEach((p) => p.kill()));
+
+// ---- helpers ---------------------------------------------------------------------------------------------------
+const mkTrace = ({ mode = 'classic', score, eaten = 1, kinds = { building: 1 }, kills = 0, deaths = 0, t = 2 }) => ({
+  v: 1, t: [t], s: [score], r: [Math.round(radiusForMode(score, mode) * 100) / 100], e: [eaten], k: [kills], kinds, kills, deaths,
+});
+const gain0 = (mode) => LIMITS.modes[mode].gain[0];
+const okScore = (mode) => Math.max(5, Math.floor(gain0(mode) * 0.5));
+const susScore = (mode) => Math.floor(gain0(mode) * 2.5);           // between SOFT x2 and HARD x3 (single 2 s interval: stretch 1)
+const badScore = (mode) => Math.ceil(gain0(mode) * 3.5);
+const body = (mode, roundId, score, extra = {}) => ({
+  roundId, name: 'Anna', score, eaten: 1, radius: Math.round(radiusForMode(score, mode) * 100) / 100, rank: 3, biggest: 'Dom Cathedral',
+  trace: mkTrace({ mode, score }), ...extra,
 });
 
-try {
-  let ready = false;
-  for (let i = 0; i < 120 && !ready; i++) {
-    try { ready = (await fetch(BASE + '/')).ok; } catch {}
-    if (!ready) await sleep(500);
+async function main() {
+  let r, j;
+  // ================= migrations: fresh DB (all) and upgrade of a DB that only had 0001 ============================
+  {
+    const only1 = resolve(root, 'scripts/.tmp-api/mig-0001');
+    freshDir(only1); cpSync(resolve(root, 'migrations/0001_init.sql'), resolve(only1, '0001_init.sql'));
+    const cfg1 = writeConfig('api-mig1', dist, only1);
+    migrate(cfg1, persistU);
+    sql(cfg1, persistU, "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at) VALUES ('Old Timer', 777, 10, 5.5, 2, 'tram', 1700000000)");
+    sql(cfg1, persistU, "INSERT INTO rounds (id, created_at, ip_hash, used) VALUES ('old-round', 1700000000, 'x', 1)");
+    migrate(config, persistU);   // now the full set (0002 + 0003) on the same DB
+    const row = sql(config, persistU, 'SELECT name, score, mode, day, suspect FROM scores')[0];
+    check('upgrade 0001 -> 0003: old score row becomes classic, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.suspect === 0 && row.day === null, JSON.stringify(row));
+    const rr = sql(config, persistU, "SELECT mode FROM rounds WHERE id='old-round'")[0];
+    check('upgrade: old round row becomes classic', rr && rr.mode === 'classic', JSON.stringify(rr));
+    const tabs = sql(config, persistU, "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('stats','rate_limits') ORDER BY name").map((r) => r.name);
+    check('upgrade: stats + rate_limits tables exist', tabs.join() === 'rate_limits,stats', tabs.join());
+    migrate(config, persistU);   // idempotent re-run
+    check('migrations re-apply is a no-op', sql(config, persistU, 'SELECT COUNT(*) AS n FROM scores')[0].n === 1);
+    migrate(config, persistA); migrate(config, persistB);
+    const cols = sql(config, persistA, "SELECT name FROM pragma_table_info('scores')").map((r) => r.name);
+    check('fresh DB has the 0002 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id'].every((c) => cols.includes(c)), cols.join());
   }
-  if (!ready) throw new Error('wrangler dev not ready\n' + log);
 
-  let r = await fetch(BASE + '/');
+  const A = await startWorker({ config, persist: persistA, port: PORT, vars: { ROUND_SECONDS_OVERRIDE: 2, RATE_ROUNDS_PER_HOUR: 28, CAP_DAILY: 2 } });
+  procs.push(A);
+  const BASE = A.base;
+  const req = (path, init = {}) => fetch(BASE + path, init);
+  const post = (path, b, headers = {}, raw) => req(path, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: raw ?? JSON.stringify(b) });
+  const newRound = async (b = {}, ip) => { const r = await post('/api/rounds', b, ip ? { 'cf-connecting-ip': ip } : {}); return { status: r.status, j: await r.json() }; };
+  const scores = async (q) => (await (await req('/api/scores?' + q)).json());
+
+  r = await req('/');
   check('static index.html at /', r.ok && (await r.text()).includes('<html'));
-  r = await fetch(BASE + '/data/riga.json');
+  r = await req('/data/riga.json');
   check('/data/riga.json served', r.ok && (await r.text()).includes('"buildings"'));
+  r = await req('/stats.html');
+  check('/stats.html served', r.ok && (await r.text()).includes('/api/stats'));
 
-  r = await fetch(BASE + '/api/scores?period=all&limit=20');
-  let j = await r.json();
-  check('GET /api/scores empty', r.ok && Array.isArray(j.scores) && j.scores.length === 0, JSON.stringify(j));
-  check('leaderboard cache-control', (r.headers.get('cache-control') || '').includes('max-age=15'));
-  check('bad period -> 400', (await fetch(BASE + '/api/scores?period=zzz')).status === 400);
-  check('DELETE /api/scores -> 405', (await fetch(BASE + '/api/scores', { method: 'DELETE' })).status === 405);
-  check('GET /api/rounds -> 405', (await fetch(BASE + '/api/rounds')).status === 405);
-  check('unknown /api path -> 404', (await fetch(BASE + '/api/nope')).status === 404);
+  // ---- boards: empty, validation
+  for (const m of ['classic', 'quick', 'daily', 'online']) {
+    const j = await scores(`mode=${m}&period=all&limit=20`);
+    check(`GET /api/scores mode=${m} empty`, Array.isArray(j.scores) && j.scores.length === 0 && j.mode === m, JSON.stringify(j));
+  }
+  r = await req('/api/scores?period=all&limit=20');
+  check('default mode is classic, cache-control set', (await r.json()).mode === 'classic' && (r.headers.get('cache-control') || '').includes('max-age=15'));
+  check('bad period -> 400', (await req('/api/scores?period=zzz')).status === 400);
+  check('bad mode -> 400', (await req('/api/scores?mode=zzz')).status === 400);
+  check('bad day -> 400', (await req('/api/scores?mode=daily&day=2026-13-99')).status === 400);
+  check('DELETE /api/scores -> 405', (await req('/api/scores', { method: 'DELETE' })).status === 405);
+  check('GET /api/rounds -> 405', (await req('/api/rounds')).status === 405);
+  check('unknown /api path -> 404', (await req('/api/nope')).status === 404);
 
-  r = await post('/api/rounds', {});
-  j = await r.json();
-  const roundId = j.roundId;
-  check('POST /api/rounds', r.status === 201 && typeof roundId === 'string' && j.roundSeconds === 2, JSON.stringify(j));
+  // ---- rounds: modes, daily day handling
+  const today = rigaDay(Math.floor(Date.now() / 1000));
+  const rc = await newRound({});
+  check('POST /api/rounds {} = classic, 2 s (override), has seed', rc.status === 201 && rc.j.mode === 'classic' && rc.j.roundSeconds === 2 && Number.isInteger(rc.j.seed) && !rc.j.turnstileSiteKey, JSON.stringify(rc.j));
+  const rq = await newRound({ mode: 'quick' });
+  check('POST /api/rounds quick', rq.status === 201 && rq.j.mode === 'quick', JSON.stringify(rq.j));
+  const rd = await newRound({ mode: 'daily', day: today });
+  check('POST /api/rounds daily returns day + deterministic seed', rd.status === 201 && rd.j.day === today && rd.j.seed === dailySeed(today), JSON.stringify(rd.j));
+  const rd0 = await newRound({ mode: 'daily' });
+  check('daily without day defaults to today (same seed)', rd0.status === 201 && rd0.j.day === today && rd0.j.seed === rd.j.seed, JSON.stringify(rd0.j));
+  const yesterday = shiftDay(today, -1), tomorrow = shiftDay(today, 1);
+  const graceOpen = rigaDay(Math.floor(Date.now() / 1000) - 120) !== today;       // within 2 min after Riga midnight yesterday is still allowed
+  let x = await newRound({ mode: 'daily', day: yesterday });
+  check('daily with yesterday -> 409 (outside the midnight grace)', graceOpen ? x.status === 201 : x.status === 409, JSON.stringify(x));
+  x = await newRound({ mode: 'daily', day: tomorrow });
+  check('daily with tomorrow -> 409', x.status === 409 && x.j.today === today, JSON.stringify(x));
+  x = await newRound({ mode: 'daily', day: 'garbage' });
+  check('daily with malformed day -> 400', x.status === 400, JSON.stringify(x));
+  for (const m of ['online', 'free', 'zzz', 5]) check(`rounds: mode ${JSON.stringify(m)} not startable by clients -> 400`, (await newRound({ mode: m })).status === 400);
+  const seeds = new Set([(await newRound({})).j.seed, (await newRound({})).j.seed]);
+  check('classic seeds are random per round', seeds.size === 2);
 
-  const good = { roundId, name: 'Anna', score: 1234, eaten: 50, radius: 12.5, rank: 3, biggest: 'Dom Cathedral' };
-  r = await post('/api/scores', good);
+  // ---- create the rounds used below, then wait once for the round age
+  const roundNames = ['okA', 'dup', 'quick', 'daily', 'sus', 'rej', 'notrace', 'prof', 'modeMis', 'badTrace', 'invalid'];
+  const R = {};
+  for (const n of roundNames) R[n] = (await newRound(n === 'quick' ? { mode: 'quick' } : n === 'daily' ? { mode: 'daily' } : {})).j.roundId;
+  r = await post('/api/scores', body('classic', R.okA, okScore('classic')));
   check('immediate submit rejected (too early)', r.status === 403, `${r.status}`);
+  await sleep(2400);
 
-  await sleep(2300);
-  r = await post('/api/scores', { ...good, roundId: 'nonexistent' });
+  r = await post('/api/scores', body('classic', 'nonexistent', 5));
   check('unknown roundId rejected', r.status === 403, `${r.status}`);
-
-  // invalid payloads must not consume the round
+  const good = body('classic', R.invalid, okScore('classic'));
   for (const [label, patch] of [
-    ['empty name', { name: '   ' }], ['name too long', { name: 'x'.repeat(17) }],
-    ['negative score', { score: -1 }], ['float score', { score: 1.5 }],
-    ['huge score', { score: 1e12 }], ['string score', { score: '99' }],
-    ['huge radius', { radius: 1e9 }],
+    ['empty name', { name: '   ' }], ['name too long', { name: 'x'.repeat(17) }], ['negative score', { score: -1 }], ['float score', { score: 1.5 }],
+    ['huge score', { score: 1e12 }], ['string score', { score: '99' }], ['huge radius', { radius: 1e9 }], ['bad rank', { rank: -2 }],
+    ['client mode online', { mode: 'online' }], ['client mode free', { mode: 'free' }],
   ]) {
     r = await post('/api/scores', { ...good, ...patch });
-    check(`reject ${label}`, r.status === 400, `${r.status}`);
+    check(`reject (400) ${label}`, r.status === 400, `${r.status}`);
   }
-  r = await post('/api/scores', good, {}, 'not json');
-  check('reject invalid JSON', r.status === 400, `${r.status}`);
-  r = await fetch(BASE + '/api/scores', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify(good) });
+  r = await post('/api/scores', good, {}, 'not json'); check('reject invalid JSON', r.status === 400, `${r.status}`);
+  r = await req('/api/scores', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify(good) });
   check('reject non-JSON content-type', r.status === 415, `${r.status}`);
-  r = await post('/api/scores', { ...good, pad: 'x'.repeat(3000) });
-  check('reject oversized body', r.status === 413, `${r.status}`);
-  r = await post('/api/scores', good, { origin: 'https://evil.example' });
-  check('reject cross-origin POST', r.status === 403, `${r.status}`);
+  r = await post('/api/scores', { ...good, pad: 'x'.repeat(9000) }); check('reject oversized body', r.status === 413, `${r.status}`);
+  r = await post('/api/scores', good, { origin: 'https://evil.example' }); check('reject cross-origin POST', r.status === 403, `${r.status}`);
+  r = await post('/api/scores', { ...good, mode: 'quick' }); check('mode mismatch with the round -> 400', r.status === 400, `${r.status}`);
+  // none of the above burnt the round
+  r = await post('/api/scores', body('classic', R.invalid, okScore('classic')));
+  check('invalid payloads did not consume the round', r.status === 201, `${r.status}`);
 
-  // sanitised name
-  r = await post('/api/scores', { ...good, name: '  <b>Ann\u0007a</b>\n  "Z"  ' });
+  // ---- trace validation through the API
+  r = await post('/api/scores', { ...body('classic', R.notrace, okScore('classic')), trace: undefined });
+  check('missing trace -> 422', r.status === 422 && (await r.json()).reasons.includes('trace_missing'), `${r.status}`);
+  r = await post('/api/scores', body('classic', R.notrace, okScore('classic')));
+  check('a rejected submission burns the round token (replay -> 409)', r.status === 409, `${r.status}`);
+  const broken = body('classic', R.badTrace, 5); broken.trace.kinds = { person: 99 };
+  r = await post('/api/scores', broken); j = await r.json();
+  check('kinds count != eaten -> 422', r.status === 422 && j.reasons.includes('kinds_sum'), JSON.stringify(j));
+  r = await post('/api/scores', body('classic', R.rej, badScore('classic')));
   j = await r.json();
-  check('valid submit succeeds (name sanitised)', r.status === 201 && j.ok && j.rankAllTime === 1 && j.rankToday === 1, JSON.stringify(j));
-  check('sanitised name has no html/control/extra spaces', j.name === 'bAnn a/b Z', j.name);
+  check('gain above HARD ceiling -> 422, nothing stored', r.status === 422 && j.reasons.some((x) => /gain_hard|cap_hard|kind_values_hard/.test(x)), JSON.stringify(j));
+  r = await post('/api/scores', body('classic', R.sus, susScore('classic')));
+  j = await r.json();
+  check('gain between SOFT and HARD -> accepted as suspect (looks like success)', r.status === 201 && j.ok && j.rankAllTime >= 1, JSON.stringify(j));
 
-  r = await post('/api/scores', good);
-  check('replay of same roundId rejected', r.status === 409, `${r.status}`);
+  // ---- good submissions + sanitising + per-mode boards
+  r = await post('/api/scores', { ...body('classic', R.okA, okScore('classic')), name: '  <b>Ann\u0007a</b>\n  "Z"  ' });
+  j = await r.json();
+  check('valid classic submit succeeds, name sanitised', r.status === 201 && j.ok && j.mode === 'classic' && j.name === 'bAnn a/b Z', JSON.stringify(j));
+  r = await post('/api/scores', body('classic', R.okA, okScore('classic'))); check('replay of same roundId rejected', r.status === 409, `${r.status}`);
+  r = await post('/api/scores', { ...body('classic', R.prof, 5), name: 'F u c k er' }); j = await r.json();
+  check('profanity -> "Anonīms"', r.status === 201 && j.name === 'Anonīms', JSON.stringify(j));
+  check('moderation unit: names', sanitizeName('Pizdets') === 'Anonīms' && sanitizeName('Хуй') === 'Anonīms' && sanitizeName('Jānis Bērziņš') === 'Jānis Bērziņš' && sanitizeName('') === null);
+  r = await post('/api/scores', { ...body('classic', R.modeMis, 5), mode: 'daily' }); check('mode field != round mode -> 400', r.status === 400, `${r.status}`);
 
-  // second round, same-origin Origin header accepted, lower score ranks second
-  const j2 = await (await post('/api/rounds', {})).json();
-  await sleep(2300);
-  r = await post('/api/scores', { ...good, roundId: j2.roundId, name: 'Bruno', score: 99 }, { origin: BASE });
-  j = await r.json();
-  check('same-origin submit ok, ranked 2nd', r.status === 201 && j.rankAllTime === 2, JSON.stringify(j));
+  r = await post('/api/scores', { ...body('quick', R.quick, okScore('quick')), name: 'Quicky' }); j = await r.json();
+  check('quick submit ok', r.status === 201 && j.mode === 'quick', JSON.stringify(j));
+  r = await post('/api/scores', { ...body('daily', R.daily, okScore('daily')), name: 'Daily Dan' }); j = await r.json();
+  check('daily submit ok, bound to the day', r.status === 201 && j.mode === 'daily' && j.day === today && j.rankAllTime === 1, JSON.stringify(j));
 
-  r = await fetch(BASE + '/api/scores?period=day&limit=1');
-  j = await r.json();
-  check('limit=1 honoured', j.scores.length === 1 && j.scores[0].score === 1234, JSON.stringify(j));
-  r = await fetch(BASE + '/api/scores?period=all&limit=999');
-  j = await r.json();
-  check('leaderboard ordered desc with fields',
-    j.scores.length === 2 && j.scores[0].score === 1234 && j.scores[1].score === 99 &&
-    ['name', 'score', 'radius', 'eaten', 'rank', 'biggest', 'at'].every((k) => k in j.scores[0]), JSON.stringify(j));
-} catch (e) {
-  console.error(e);
-  failed++;
-} finally {
-  killAll();
+  sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode) VALUES ('Net Nina', 999, 5, 9.5, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'online')`);
+  const names = (j2) => j2.scores.map((s) => s.name);
+  const c = await scores('mode=classic&period=all'), q = await scores('mode=quick&period=all'), d = await scores(`mode=daily&day=${today}`), o = await scores('mode=online&period=all');
+  check('classic board: only classic rows, suspect row hidden (3 rows)', c.scores.length === 3 && ['bAnn a/b Z', 'Anna', 'Anonīms'].every((x) => names(c).includes(x)), JSON.stringify(names(c)));
+  check('quick board has only the quick score', names(q).join() === 'Quicky', JSON.stringify(names(q)));
+  check('daily board (today) has only the daily score', names(d).join() === 'Daily Dan' && d.day === today, JSON.stringify(d));
+  check('daily board of yesterday is empty', (await scores(`mode=daily&day=${yesterday}`)).scores.length === 0);
+  check('online board shows server-written rows', names(o).join() === 'Net Nina', JSON.stringify(o));
+  const flagged = sql(config, persistA, "SELECT suspect, flags, mode, length(trace) AS tl FROM scores WHERE suspect = 1");
+  check('suspect row stored (suspect=1, reason codes, trace kept) but hidden', flagged.length === 1 && /gain_soft|cap_soft|kind_values/.test(flagged[0].flags) && flagged[0].tl > 20, JSON.stringify(flagged));
+  check('rejected rounds stored nothing (exactly 7 rows)', sql(config, persistA, 'SELECT COUNT(*) AS n FROM scores')[0].n === 7);
+
+  // ---- rate limits (per hashed IP)
+  const cap = [];
+  for (let i = 0; i < 3; i++) cap.push((await newRound({ mode: 'daily' }, 'cap-ip')).j.roundId);
+  await sleep(2400);
+  const st = [];
+  for (const id of cap) st.push((await post('/api/scores', { ...body('daily', id, okScore('daily')), name: 'Cap' }, { 'cf-connecting-ip': 'cap-ip' })).status);
+  check('daily cap per IP-hash (2): 201, 201, 429', st.join() === '201,201,429', st.join());
+  const rl = [];
+  for (let i = 0; i < 30; i++) rl.push((await newRound({}, 'rl-ip')).status);
+  check('rounds/hour limit per IP-hash returns 429', rl[0] === 201 && rl.includes(429) && rl.filter((s) => s === 201).length === 28, rl.join(''));
+  check('another IP is not affected', (await newRound({}, 'other-ip')).status === 201);
+
+  // ---- analytics beacon + stats
+  const ev = (d, headers = {}, ct = 'application/json') => req('/api/e', { method: 'POST', headers: { 'content-type': ct, ...headers }, body: JSON.stringify({ d }) });
+  check('beacon 204', (await ev({ pv: 1, 'rs:classic': 2, 'dev:desktop': 1, 'sb:classic:3': 1, 'theme:night': 1 }, { 'cf-connecting-ip': 'ev1' })).status === 204);
+  check('beacon accepts text/plain (sendBeacon)', (await ev({ pv: 1 }, { 'cf-connecting-ip': 'ev1' }, 'text/plain')).status === 204);
+  await ev({ 'hack:x': 5, 'rs:evil': 3, '__proto__': 1, 'err:js': 'many', pv: 9999 }, { 'cf-connecting-ip': 'ev2' });
+  await ev({ pv: 1, 'rs:classic': 1 }, { dnt: '1', 'cf-connecting-ip': 'ev3' });
+  await ev({ pv: 1 }, { 'sec-gpc': '1', 'cf-connecting-ip': 'ev3' });
+  r = await req('/api/stats?days=30'); j = await r.json();
+  const t0 = j.days.find((x) => x.day === today);
+  check('stats: allow-listed counters aggregated (pv 1+1+50 cap, rs:classic 2)', t0 && t0.keys.pv === 52 && t0.keys['rs:classic'] === 2 && t0.keys['dev:desktop'] === 1 && t0.keys['theme:night'] === 1, JSON.stringify(t0));
+  check('stats: unknown keys ignored', t0 && !('hack:x' in t0.keys) && !('rs:evil' in t0.keys) && !('err:js' in t0.keys), JSON.stringify(t0));
+  check('stats: DNT / Sec-GPC beacons not counted', t0 && t0.keys['rs:classic'] === 2);
+  check('stats: public cache header, days param validated', (r.headers.get('cache-control') || '').includes('max-age') && (await req('/api/stats?days=abc')).ok);
+  check('beacon: GET -> 405, oversized -> 413', (await req('/api/e')).status === 405 && (await post('/api/e', { d: { pv: 1 }, pad: 'x'.repeat(3000) }, {}, undefined)).status === 413);
+  let sent = 0; for (let i = 0; i < 45; i++) { await ev({ 'share': 1 }, { 'cf-connecting-ip': 'flood' }); sent++; }
+  j = await (await req('/api/stats?days=1')).json();
+  const shares = (j.days.find((x) => x.day === today) || { keys: {} }).keys.share || 0;
+  check('beacon rate limit per IP-hash (40 / 10 min)', shares === 40, `share=${shares} of ${sent}`);
+
+  A.kill(); procs.pop();
+
+  // ================= instance B: Turnstile on (mock siteverify) + STATS_KEY ====================================
+  const verifyCalls = [];
+  const mock = http.createServer((q, s) => {
+    let b = ''; q.on('data', (c) => (b += c)); q.on('end', () => {
+      const p = new URLSearchParams(b); verifyCalls.push(Object.fromEntries(p));
+      s.setHeader('content-type', 'application/json');
+      s.end(JSON.stringify(p.get('response') === 'good-token' && p.get('secret') === 'test-secret' ? { success: true, hostname: 'localhost' } : { success: false, 'error-codes': ['invalid-input-response'] }));
+    });
+  }).listen(PORT_MOCK);
+  procs.push({ kill: () => mock.close() });
+  const B = await startWorker({ config, persist: persistB, port: PORT_TS, vars: {
+    ROUND_SECONDS_OVERRIDE: 2, TURNSTILE_SECRET: 'test-secret', TURNSTILE_SITE_KEY: '1x00000000000000000000AA',
+    TURNSTILE_VERIFY_URL: `http://127.0.0.1:${PORT_MOCK}/siteverify`, STATS_KEY: 'sekret' } });
+  procs.push(B);
+  const postB = (path, b, h = {}) => fetch(B.base + path, { method: 'POST', headers: { 'content-type': 'application/json', ...h }, body: JSON.stringify(b) });
+  const rb = [];
+  for (let i = 0; i < 4; i++) rb.push(await (await postB('/api/rounds', { mode: 'classic' })).json());
+  check('Turnstile on: round response carries the public site key', rb[0].turnstileSiteKey === '1x00000000000000000000AA', JSON.stringify(rb[0]));
+  await sleep(2400);
+  r = await postB('/api/scores', body('classic', rb[0].roundId, okScore('classic')));
+  check('Turnstile on: submit without token -> 403', r.status === 403, `${r.status}`);
+  r = await postB('/api/scores', { ...body('classic', rb[0].roundId, okScore('classic')), turnstile: 'bad-token' });
+  check('Turnstile on: invalid token -> 403 (round kept for retry)', r.status === 403, `${r.status}`);
+  r = await postB('/api/scores', { ...body('classic', rb[0].roundId, okScore('classic')), turnstile: 'good-token' });
+  check('Turnstile on: valid token -> 201', r.status === 201, `${r.status}`);
+  check('siteverify called (not for the token-less request) with secret + response form fields', verifyCalls.length === 2 && verifyCalls.every((c) => c.secret === 'test-secret' && c.response) && verifyCalls[1].response === 'good-token', JSON.stringify(verifyCalls));
+  r = await req_B('/api/stats?days=7'); check('STATS_KEY set: no key -> 401', r.status === 401);
+  r = await fetch(B.base + '/api/stats?days=7', { headers: { authorization: 'Bearer sekret' } }); check('STATS_KEY set: bearer -> 200', r.status === 200 && (r.headers.get('cache-control') || '').includes('no-store'));
+  B.kill(); mock.close(); procs.length = 0;
+  function req_B(p) { return fetch(B.base + p); }
+
+  // ================= validator unit tests (no server) ===========================================================
+  const sec = 300, n = 30;
+  const long = (mode, perStep, kinds = { building: 30 }) => {
+    const tr = { v: 1, t: [], s: [], r: [], e: [], k: [], kinds, kills: 0, deaths: 0 };
+    let s = 0;
+    for (let i = 0; i < n; i++) { s += perStep; tr.t.push(10 * (i + 1)); tr.s.push(Math.round(s)); tr.r.push(Math.round(radiusForMode(s, mode) * 100) / 100); tr.e.push(i + 1); tr.k.push(0); }
+    return tr;
+  };
+  const v = (tr, mode = 'classic', extra = {}) => validateSubmission({ mode, seconds: sec, age: sec + 3, score: tr.s[n - 1], eaten: tr.e[n - 1], radius: tr.r[n - 1], rank: 2, trace: tr, ...extra });
+  const low = Math.max(10, Math.floor(gain0('classic') * 0.4));
+  check('validator: a modest 30-sample round is ok', v(long('classic', low)).verdict === 'ok', JSON.stringify(v(long('classic', low))));
+  check('validator: expectedSamples(300)=30, (300.06)=30, (6)=1, (12)=2', expectedSamples(300) === 30 && expectedSamples(300.06) === 30 && expectedSamples(6) === 1 && expectedSamples(12) === 2);
+  check('validator: huge steady gains rejected', v(long('classic', LIMITS.modes.classic.gain[2] * 4)).verdict !== 'ok');
+  let tr = long('classic', low); tr.t[10] += 5;
+  check('validator: sample off its 10 s slot -> reject', v(tr).verdict === 'reject');
+  tr = long('classic', low); tr.t.splice(5, 1); tr.s.splice(5, 1); tr.r.splice(5, 1); tr.e.splice(5, 1); tr.k.splice(5, 1);
+  check('validator: missing samples -> reject', v(tr).verdict === 'reject');
+  tr = long('classic', low); tr.e[7] = 0;
+  check('validator: eaten decreasing -> reject', v(tr).verdict === 'reject');
+  tr = long('classic', low);
+  check('validator: round shorter than the server length -> reject', v(tr, 'classic', { seconds: 400 }).verdict === 'reject');
+  check('validator: claimed play time longer than the round age -> reject', v(tr, 'classic', { age: 100 }).verdict === 'reject');
+  check('validator: rank beyond the number of holes -> reject', v(tr, 'classic', { rank: 9 }).verdict === 'reject');
+  tr = long('classic', low); tr.r[29] = tr.r[29] * 3;
+  check('validator: radius inconsistent with growth formula -> not ok', v(tr).verdict !== 'ok');
+  check('validator: mode caps differ (quick growth is faster)', MODES.quick.growthK < MODES.classic.growthK && radiusForMode(500, 'quick') > radiusForMode(500, 'classic'));
+  check('rigaDay: summer midnight (UTC+3) and winter midnight (UTC+2)',
+    rigaDay(Date.UTC(2026, 5, 30, 20, 59, 59) / 1000) === '2026-06-30' && rigaDay(Date.UTC(2026, 5, 30, 21, 0, 0) / 1000) === '2026-07-01' &&
+    rigaDay(Date.UTC(2026, 0, 31, 21, 59, 59) / 1000) === '2026-01-31' && rigaDay(Date.UTC(2026, 0, 31, 22, 0, 0) / 1000) === '2026-02-01');
+  check('rigaDay: DST switch days stay consecutive', rigaDay(Date.UTC(2026, 2, 28, 23, 0, 0) / 1000) === '2026-03-29' && rigaDay(Date.UTC(2026, 9, 24, 22, 0, 0) / 1000) === '2026-10-25' && isDayString('2026-02-28') && !isDayString('2026-02-30x'));
+  rmSync(resolve(root, 'scripts/.tmp-api/mig-0001'), { recursive: true, force: true });
 }
+
+try { await main(); } catch (e) { console.error(e); failed++; }
+procs.forEach((p) => p.kill());
 console.log(failed ? `\n${failed} check(s) FAILED` : '\nAll checks passed');
 process.exit(failed ? 1 : 0);

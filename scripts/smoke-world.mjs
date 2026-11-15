@@ -43,7 +43,7 @@ async function main() {
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-  await page.goto(`${base}/?${query}`);
+  await page.goto(`${base}/?${query}${process.env.MAP ? '&map=' + process.env.MAP : ''}`);
   await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 120000 });
   const err = await page.evaluate(() => document.body.dataset.error);
   if (err) throw new Error('boot error ' + err);

@@ -74,13 +74,16 @@ export class Game {
   }
 
   start() {
+    if (this.online) return this.online.onStart(); // multiplayer (src/net): Play again = rejoin the lobby
     this.world.reset();
+    this.modeUnranked = null;
+    bus.emit('modeSetup', this); // src/modes.js: round length, bot count, growth, daily seeds; may set this.modeUnranked
     this.player.name = this.hud.getName(CFG.playerName);
     this.killer = null;
     this._placeAll();
     this.hud.clearTransient();
     this.paused = false; this.hud.showPause(false);
-    this.unranked = this.urlUnranked;
+    this.unranked = this.urlUnranked || this.modeUnranked || null;
     this._global = null;
     this.playT = 0;
     this._roundToken = null;
@@ -131,7 +134,8 @@ export class Game {
 
   /** End the round-start fly-in: hand over to the follow camera, start the round clock and the bots. */
   skipIntro() {
-    if (this.phase !== 'intro') return;
+    if (this.online || this.phase !== 'intro') return; // online: the intro is paced by the server clock
+
     this.phase = 'playing';
     this.intro = null;
     this.cam.snap(this.player);
@@ -161,6 +165,7 @@ export class Game {
 
   // ---- pause ----------------------------------------------------------------------------------------------
   pause(v = true) {
+    if (this.online) return; // online rounds never pause (the server clock runs on)
     if (v === this.paused) return;
     if (v && this.phase !== 'playing' && this.phase !== 'intro') return;
     this.paused = v;
@@ -223,9 +228,9 @@ export class Game {
   _showGlobal() {
     const g = this._global;
     if (!g) return;
-    if (g.state === 'ok') this.hud.setGlobal(t('globalRank', { all: g.res.rankAllTime, day: g.res.rankToday }));
+    if (g.state === 'ok') this.hud.setGlobal(g.res.mode === 'daily' ? t('globalRankDaily', { n: g.res.rankToday }) : t('globalRank', { all: g.res.rankAllTime, day: g.res.rankToday }));
     else if (g.state === 'wait') this.hud.setGlobal(t('saving'), true);
-    else if (g.state === 'unranked') this.hud.setGlobal(t('unranked'), true);
+    else if (g.state === 'unranked') this.hud.setGlobal(t(this.unranked === 'practice' ? 'practiceNote' : this.unranked === 'free' ? 'freeNote' : 'unranked'), true);
     else this.hud.setGlobal(t('notSaved'), true);
   }
 
@@ -250,7 +255,7 @@ export class Game {
     const hs = this.holes.slice().sort((a, b) => b.score - a.score || a.id - b.id);
     this.rows = hs.map((h, i) => ({
       rank: i + 1, id: h.id, name: h.name, score: h.score, radius: h.radius, isPlayer: h.isPlayer,
-      isBot: !h.isPlayer, alive: h.alive, color: '#' + h.color.getHexString(),
+      isBot: h.isBot !== undefined ? !!h.isBot : !h.isPlayer, alive: h.alive, color: '#' + h.color.getHexString(),
     }));
     this.leader = hs[0] && hs[0].score > 0 ? hs[0] : null;
     return this.rows;
@@ -296,6 +301,7 @@ export class Game {
 
   /** Advance simulation by dt seconds (no rendering). */
   update(dt, quiet = this.quiet) {
+    if (this.online) return this.online.update(dt, quiet); // multiplayer: src/net/online.js
     if (this.paused) return;
     dt = Math.min(dt, 0.1);
     if (this.phase === 'intro') dt = Math.min(dt, 0.05);

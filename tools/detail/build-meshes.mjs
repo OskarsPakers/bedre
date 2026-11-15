@@ -13,7 +13,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { cleanRing, centroid, signedArea, pointInPoly } from '../../src/geo.js';
+import { cleanRing, centroid, signedArea, pointInPoly, minBox } from '../../src/geo.js';
+import { planarMesh, Del, dp, dpClosed } from './planar.mjs';
+import { heroById } from './heroes.mjs';
+import { partsMesh } from './parts.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pub = path.resolve(here, '../../public/data');
@@ -145,31 +148,6 @@ function osmField(mesh, parts) {
 }
 
 // ------------------------------------------------------------------ outline helpers
-function dpClosed(pts, tol) {
-  const n = pts.length;
-  if (n < 5) return pts;
-  let far = 0, fd = -1;
-  for (let i = 1; i < n; i++) { const d = Math.hypot(pts[i][0] - pts[0][0], pts[i][1] - pts[0][1]); if (d > fd) { fd = d; far = i; } }
-  const a = dp(pts.slice(0, far + 1), tol), b = dp(pts.slice(far).concat([pts[0]]), tol);
-  return a.slice(0, -1).concat(b.slice(0, -1));
-}
-function dp(pts, tol) {
-  if (pts.length < 3) return pts;
-  const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
-  const st = [[0, pts.length - 1]];
-  while (st.length) {
-    const [s, e] = st.pop();
-    const [ax, az] = pts[s], [bx, bz] = pts[e];
-    const dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1e-9;
-    let md = -1, mi = -1;
-    for (let i = s + 1; i < e; i++) {
-      const d = Math.abs((pts[i][0] - ax) * dz - (pts[i][1] - az) * dx) / l;
-      if (d > md) { md = d; mi = i; }
-    }
-    if (md > tol) { keep[mi] = 1; st.push([s, mi], [mi, e]); }
-  }
-  return pts.filter((_, i) => keep[i]);
-}
 function nearestOnRing(ring, x, z) {
   let bd = 1e9, bp = null;
   for (let i = 0; i < ring.length; i++) {
@@ -180,6 +158,31 @@ function nearestOnRing(ring, x, z) {
     if (d < bd) { bd = d; bp = [px, pz]; }
   }
   return { d: bd, p: bp };
+}
+
+/** straighten an outline: edges within `tolDeg` of the dominant axes (th0, th0+90) are rotated onto them and vertices become the intersections of neighbouring snapped edges */
+function orthoLoop(l, th0, tolDeg = 14, maxMove = 1.6) {
+  const n = l.length;
+  if (n < 4) return l;
+  const lines = [];
+  for (let i = 0; i < n; i++) {
+    const [ax, az] = l[i], [bx, bz] = l[(i + 1) % n];
+    const len = Math.hypot(bx - ax, bz - az);
+    let ang = Math.atan2(bz - az, bx - ax) - th0;
+    const q = Math.round(ang / (Math.PI / 2)) * (Math.PI / 2);
+    if (len < 0.3 || Math.abs(ang - q) > (tolDeg * Math.PI) / 180) { lines.push(null); continue; }
+    const a = th0 + q, mx = (ax + bx) / 2, mz = (az + bz) / 2;
+    lines.push({ px: mx, pz: mz, dx: Math.cos(a), dz: Math.sin(a) });
+  }
+  return l.map((p, i) => {
+    const A = lines[(i + n - 1) % n], B = lines[i];
+    if (!A || !B) return p;
+    const den = A.dx * B.dz - A.dz * B.dx;
+    if (Math.abs(den) < 0.2) return p;
+    const t = ((B.px - A.px) * B.dz - (B.pz - A.pz) * B.dx) / den;
+    const x = A.px + A.dx * t, z = A.pz + A.dz * t;
+    return Math.hypot(x - p[0], z - p[1]) <= maxMove ? [x, z] : p;
+  });
 }
 
 /** boundary of the built cells as closed loops (built cell always on the same side => outer loops positive, holes negative) */
@@ -216,47 +219,6 @@ function traceLoops(F, built) {
   return loops;
 }
 
-// ------------------------------------------------------------------ Delaunay (Bowyer-Watson)
-class Del {
-  constructor(size) {
-    this.px = [-size, size, 0]; this.pz = [-size, -size, size];
-    this.live = [];
-    this._add(0, 1, 2);
-  }
-  _add(a, b, c) {
-    const { px, pz } = this;
-    const ax = px[a], az = pz[a], bx = px[b] - ax, bz = pz[b] - az, cx = px[c] - ax, cz = pz[c] - az;
-    const d = 2 * (bx * cz - bz * cx);
-    const b2 = bx * bx + bz * bz, c2 = cx * cx + cz * cz;
-    const ux = (cz * b2 - bz * c2) / d, uz = (bx * c2 - cx * b2) / d;
-    this.live.push({ a, b, c, cx: ax + ux, cz: az + uz, r2: ux * ux + uz * uz });
-  }
-  addPoint(x, z) {
-    const id = this.px.length;
-    // deterministic sub-millimetre jitter keeps cocircular lattice points from producing degenerate cavities
-    this.px.push(x + (((id * 7919) % 1000) / 1000 - 0.5) * 2e-5); this.pz.push(z + (((id * 104729) % 1000) / 1000 - 0.5) * 2e-5);
-    this.insert(id);
-    return id;
-  }
-  insert(id) {
-    const x = this.px[id], z = this.pz[id];
-    const keep = [], bad = [];
-    for (const t of this.live) {
-      const dx = x - t.cx, dz = z - t.cz;
-      (dx * dx + dz * dz < t.r2 ? bad : keep).push(t);
-    }
-    const cnt = new Map();
-    const ek = (u, v) => (u < v ? u * 262144 + v : v * 262144 + u);
-    for (const t of bad) for (const [u, v] of [[t.a, t.b], [t.b, t.c], [t.c, t.a]]) { const k = ek(u, v); const e = cnt.get(k); if (e) e.n++; else cnt.set(k, { u, v, n: 1 }); }
-    this.live = keep;
-    for (const e of cnt.values()) if (e.n === 1) this._add(e.u, e.v, id);
-  }
-  edgeSet() {
-    const s = new Set();
-    for (const t of this.live) for (const [u, v] of [[t.a, t.b], [t.b, t.c], [t.c, t.a]]) s.add(u < v ? u * 262144 + v : v * 262144 + u);
-    return s;
-  }
-}
 
 // ------------------------------------------------------------------ the mesher
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[s.length >> 1] : 0; };
@@ -358,7 +320,7 @@ function meshBuilding(F, ring, o) {
       F.H.set(out);
     }
   }
-  { // footprint vs mesh misalignment: rim cells that fall off a cliff (street level next to a tall wall) are lifted to the wall top
+  if (!(o.planar && o.planar.noRimLift)) { // footprint vs mesh misalignment: rim cells that fall off a cliff (street level next to a tall wall) are lifted to the wall top
     const R = cell < 0.75 ? 2 : 1, out = new Float32Array(F.H);
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
       const k = j * w + i; if (Number.isNaN(F.H[k]) || F.fixed[k]) continue;
@@ -382,7 +344,17 @@ function meshBuilding(F, ring, o) {
     if (!loops.length) return null;
   }
 
-  // ---- vertices on the outline, subdividing along the height profile
+  if (o.ortho) {
+    let th0 = 0, bl = 0;
+    for (const l of loops) for (let i = 0; i < l.length; i++) { const d = Math.hypot(l[(i + 1) % l.length][0] - l[i][0], l[(i + 1) % l.length][1] - l[i][1]); if (d > bl) { bl = d; th0 = Math.atan2(l[(i + 1) % l.length][1] - l[i][1], l[(i + 1) % l.length][0] - l[i][0]); } }
+    loops = loops.map((l) => orthoLoop(l, th0));
+  }
+  if (!o.noPlanar && o.planar) {
+    let r = null;
+    try { r = planarMesh(F, built, loops, o.planar); } catch (e) { if (process.argv.includes('--why')) console.warn('planar failed', e.stack); }
+    if (r) { r.planar = true; return r; }
+  }
+  // ---- vertices on the outline, subdividing along the height profile (fallback: error-bounded TIN)
   const px = [], pz = [], py = [];
   const dl = new Del(1e5);
   const addV = (x, z) => { const id = dl.addPoint(x, z); px[id] = x; pz[id] = z; py[id] = Math.max(1, F.sample(x, z)); return id; };
@@ -605,36 +577,79 @@ const rejected = [];
 for (const key of ids) {
   const d = detail.buildings[key], b = byId.get(+key);
   if (!b || !(d.grid || d.osm)) continue;
-  const ring0 = cleanRing(b.p || []);
+  const hero = heroById.get(+key) || null;
+  let ring0 = cleanRing(b.p || []);
   if (ring0.length < 3) continue;
   const area = Math.abs(signedArea(ring0));
+  const [cx, cz] = centroid(ring0); // local origin = the game's own footprint centroid (buildings.js), taken BEFORE the eave-line simplification
+  if (ring0.length > 8) { const sr = dpClosed(ring0, (hero && hero.ringTol) || 0.4); if (sr.length >= 4 && Math.abs(signedArea(sr)) > 0.97 * area) ring0 = sr; } // eave line: 0.5 m jogs of the cadastre polygon become straight walls
   if (area < 5) continue;
-  const [cx, cz] = centroid(ring0);
   if (!d.grid) continue;
   const notable = d.grid.cell < 0.75;
   const mesh = Field.fromGrid(d.grid);
-  let F = mesh, src = 1, roofRGB = 0;
-  if (d.osm && d.osm.length) {
+  let F = mesh, src = 1, roofRGB = 0, partsRes = null;
+  const mode = hero ? hero.source : 'auto';
+  if (hero && hero.barrel) { // parametric barrel vault from the footprint's oriented box and the measured height
+    const mb = minBox(ring0), apex = (d.h || 18) + 1.5, rise = Math.min(mb.W * 0.42, apex * 0.5), ux = mb.ux, uz = mb.uz, vx = -uz, vz = ux;
+    const P = (u, v) => [ux * u + vx * v, uz * u + vz * v];
+    const hl = mb.L / 2, hw = mb.W / 2, c = P(mb.cu, mb.cv);
+    const rect = [[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]].map(([u, v]) => { const q = P(mb.cu + u, mb.cv + v); return [q[0], q[1]]; });
+    void c;
+    partsRes = partsMesh([{ p: rect, y0: 0, y1: apex - rise, roof: { shape: 'barrel', h: rise, dir: ((Math.atan2(uz, ux) * 180) / Math.PI + 360) % 360 } }]);
+    if (partsRes) src = 2;
+  }
+  if (hero && hero.stepGable) { // House of the Blackheads: gabled body + stepped brick gables at both short ends, from the footprint box and the measured height
+    const mb = minBox(ring0), top = Math.min(d.hmax || 26, (d.h || 20) + 7), eave = top * 0.6, ridgeH = top * 0.86 - eave, ux = mb.ux, uz = mb.uz, vx = -uz, vz = ux;
+    const R4 = (u0, u1, v0, v1) => [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(([u, v]) => { const a = mb.cu + u, b = mb.cv + v; return [ux * a + vx * b, uz * a + vz * b]; });
+    const hl = mb.L / 2, hw = mb.W / 2, dir = ((Math.atan2(uz, ux) * 180) / Math.PI + 360) % 360;
+    const parts = [{ p: R4(-hl, hl, -hw, hw), y0: 0, y1: eave, roof: { shape: 'gabled', h: ridgeH, dir } }];
+    const steps = 7;
+    for (const sg of [-1, 1]) for (let k = 0; k < steps; k++) {
+      const w = hw * (1 - k / (steps + 0.6)), y0 = eave + ((top - eave) * k) / steps, y1 = eave + ((top - eave) * (k + 1)) / steps;
+      const u0 = sg > 0 ? hl - 0.9 : -hl, u1 = sg > 0 ? hl : -hl + 0.9;
+      parts.push({ p: R4(u0, u1, -w, w), y0: Math.min(y0, eave + ridgeH * 0.2), y1, roof: { shape: 'flat', h: 0 } });
+    }
+    partsRes = partsMesh(parts);
+    if (partsRes) src = 2;
+  }
+  if (!partsRes && d.osm && d.osm.length && mode !== 'mesh') {
+    // OSM building parts: accepted when they agree with the measured mesh (or forced by the hero config); tessellated directly (exact prisms, planar roofs, lathe domes)
     const r = osmField(mesh, d.osm);
     const topM = d.hmax ?? 0;
-    const ok = r.coverage > 0.8 && r.rms < 4.2 && topM < r.topOsm * 1.05 + 1.5;
+    const ok = mode === 'parts' || (r.coverage > 0.8 && r.rms < 4.2 && topM < r.topOsm * 1.05 + 1.5);
     if (ok) {
-      F = new Field(mesh.x0, mesh.z0, mesh.w, mesh.h, mesh.cell);
-      for (let k = 0; k < F.H.length; k++) {
-        if (Number.isNaN(mesh.H[k])) continue;
-        if (!Number.isNaN(r.osm.H[k])) { F.H[k] = r.osm.H[k]; F.S[k] = r.osm.S[k]; F.fixed[k] = 1; } else F.H[k] = mesh.H[k];
-      }
-      src = 2;
-      const cp = d.osm.find((p) => p.col && p.roof && p.roof.shape !== 'flat');
-      if (cp) roofRGB = parseInt(cp.col.slice(1), 16);
+      partsRes = partsMesh(d.osm, { crosses: !!(hero && hero.crosses) });
+      if (partsRes) { src = 2; const cp = d.osm.find((p) => p.col && p.roof && p.roof.shape !== 'flat'); if (cp) roofRGB = parseInt(cp.col.slice(1), 16); }
     } else { stats.osmRejected++; rejected.push([key, r.coverage.toFixed(2), r.rms.toFixed(1), topM, r.topOsm.toFixed(0)]); }
   }
-  const opts = notable
-    ? { eps: src === 2 ? 0.35 : 0.55, sigma: 0.75, open: false, rounds: 22, maxVerts: Math.min(1800, Math.round(60 + area * 0.5)), openMin: 14, contourTol: 0.42 }
-    : { eps: 1.0, sigma: 1.0, open: true, rounds: 14, maxVerts: Math.min(160, Math.round(16 + area * 0.15)), openMin: 20, contourTol: 0.6 };
+  const opts0 = notable
+    ? { eps: src === 2 ? 0.35 : 0.55, sigma: 0.75, open: false, rounds: 22, maxVerts: Math.min(1800, Math.round(60 + area * 0.5)), openMin: 30, contourTol: 0.5, planar: { tol: 0.35, minArea: 9, dpTol: 0.55, lathe: true, maxSlope: 1.9, maxPlanes: 26, trials: 120, weld: 0.8, maxRms: 1.9, noRimLift: true } }
+    : { eps: 1.0, sigma: 1.0, open: true, rounds: 14, maxVerts: Math.min(160, Math.round(16 + area * 0.15)), openMin: 40, contourTol: 0.6, planar: { tol: 0.8, minArea: 18, dpTol: 1.0, lathe: false, maxSlope: 1.9, maxPlanes: 10, trials: 80, weld: 1.1, maxRms: 2.4, noRimLift: true } };
+  const opts = { ...opts0, planar: { ...opts0.planar, ...((hero && hero.fit) || {}) }, ...((hero && hero.opts) || {}), ortho: !!(hero && hero.ortho) };
+  if (process.env.PLANAR_DEBUG && process.env.PLANAR_DEBUG.split(',').includes(key) && opts.planar) {
+    const R = await import('./render.mjs');
+    opts.planar.debug = (d) => {
+      const sc = Math.max(2, Math.floor(600 / Math.max(d.w, d.h)));
+      const cv = new R.Canvas(d.w * sc * 2 + 10, d.h * sc);
+      const hs = R.hillshade({ w: d.w, h: d.h, cells: Float32Array.from(d.H, (v, k) => (d.valid[k] ? v : NaN)), cell: d.cell }, sc);
+      cv.blit(hs, 0, 0);
+      for (let j = 0; j < d.h; j++) for (let i = 0; i < d.w; i++) {
+        const k = j * d.w + i, l = d.label[k];
+        if (!d.valid[k]) continue;
+        const col = l === -2 ? [255, 255, 255] : l < 0 ? [0, 0, 0] : [60 + ((l * 67) % 190), 60 + ((l * 131) % 190), 60 + ((l * 29) % 190)];
+        for (let a = 0; a < sc; a++) for (let c = 0; c < sc; c++) cv.set(d.w * sc + 10 + i * sc + a, j * sc + c, col);
+      }
+      R.writePng(path.join(here, '../.cache/detail', `labels-${key}.png`), cv.w, cv.h, cv.px);
+      console.log('debug', key, 'planes', d.planes.length, 'lathes', d.lathes.map((L) => `${L.shape}@${L.cx.toFixed(0)},${L.cz.toFixed(0)} R${L.R.toFixed(1)} ${L.reason}`).join(' '), 'rms', d.rms.toFixed(2));
+    };
+  }
   let res = null;
-  try { res = meshBuilding(F, ring0, opts); } catch (e) { console.warn('mesh failed', key, e.message); }
+  if (partsRes) { res = partsRes; res.planar = true; }
+  else try { res = meshBuilding(F, ring0, opts); } catch (e) { console.warn('mesh failed', key, e.message); }
   if (!res) { stats.failed++; if (process.argv.includes('--why')) console.log('failed', key, area.toFixed(0), d.grid.w, d.grid.h); continue; }
+  if (process.argv.includes('--verbose') && only.length) console.log(key, res.planar ? 'planar' : 'tin', 'tris', res.tris.length, 'verts', res.verts.length, JSON.stringify(res.info || {}));
+  if (res.info && res.planar) (globalThis.__rep ||= []).push([key, +(res.info.rms || 0).toFixed(2), res.info.planes, res.tris.length, res.info.dropped, res.info.lathes, Math.round(area)]);
+  if (res.planar) stats.planar = (stats.planar || 0) + 1; else stats.tin = (stats.tin || 0) + 1;
   if (src === 2) stats.osm++; else if (notable) stats.mesh++; else stats.relief = (stats.relief || 0) + 1;
   // local coords, quantise
   const nv = res.verts.length;
@@ -650,11 +665,12 @@ for (const key of ids) {
   const lq = [];
   for (const l of res.loops) { lq.push(l.idx.length, 0, l.mat); for (const i of l.idx) lq.push(i); }
   V.push(vq); T.push(tq); M.push(mq); L.push(Int16Array.from(lq));
-  outB.push([+key, nv, res.tris.length, lq.length, src === 2 ? 2 : notable ? 1 : 3, Math.round(res.vol), Math.round(res.hmax * 10), Math.round(res.eave * 10), roofRGB, 0]);
+  outB.push([+key, nv, res.tris.length, lq.length, src === 2 ? 2 : notable ? 1 : 3, Math.round(res.vol), Math.round(res.hmax * 10), Math.round(res.eave * 10), (hero && hero.roof) || roofRGB, (hero && hero.wall) || 0, (hero && (hero.dome ?? hero.roof)) || 0, (hero && hero.accent) || 0, (hero && hero.style) || 0, 0]);
   stats.tris += res.tris.length; stats.verts += nv;
   if (++done % 200 === 0) console.log(`${done}/${ids.length} ${((Date.now() - t0) / 1000).toFixed(0)}s tris ${stats.tris}`);
 }
 
+if (process.argv.includes('--report')) { const r = (globalThis.__rep || []).sort((a, b) => b[1] - a[1]); console.log('worst rms [id rms planes tris dropped lathes area]:'); for (const x of r.slice(0, 25)) console.log(JSON.stringify(x)); const t = (globalThis.__rep || []).sort((a, b) => b[3] - a[3]); console.log('most tris:'); for (const x of t.slice(0, 12)) console.log(JSON.stringify(x)); }
 const cat = (arrs, Ctor) => { const n = arrs.reduce((s, a) => s + a.length, 0); const o = new Ctor(n); let p = 0; for (const a of arrs) { o.set(a, p); p += a.length; } return o; };
 const bytesOf = (a) => Buffer.from(a.buffer, a.byteOffset, a.byteLength);
 const pad4 = (b) => (b.length % 4 ? Buffer.concat([b, Buffer.alloc(4 - (b.length % 4))]) : b);
@@ -662,13 +678,13 @@ const pad4 = (b) => (b.length % 4 ? Buffer.concat([b, Buffer.alloc(4 - (b.length
 const planes = (a) => { const b = bytesOf(a), n = a.length, o = Buffer.alloc(n * 2); for (let i = 0; i < n; i++) { o[i] = b[i * 2]; o[n + i] = b[i * 2 + 1]; } return o; };
 const parts = [pad4(planes(cat(V, Int16Array))), pad4(planes(cat(T, Uint16Array))), pad4(bytesOf(cat(M, Uint8Array))), pad4(planes(cat(L, Int16Array)))];
 const header = {
-  v: 1, q: Q,
+  v: 2, q: Q, stride: 14,
   meta: {
     generated: new Date().toISOString().slice(0, 10),
     credit: 'Building footprints, shapes and heights: © Rīgas valstspilsētas pašvaldība (georiga.eu); heights/shapes measured from the municipality reality model (mesh not shipped). Building parts: © OpenStreetMap contributors (ODbL).',
     stats,
   },
-  rec: ['id', 'nv', 'nt', 'nl', 'src(1 mesh notable, 2 OSM parts, 3 mesh relief)', 'vol', 'hmax10', 'eave10', 'roofRGB', 'wallRGB'],
+  rec: ['id', 'nv', 'nt', 'nl', 'src(1 mesh notable, 2 OSM parts, 3 mesh relief)', 'vol', 'hmax10', 'eave10', 'roofRGB', 'wallRGB', 'domeRGB', 'accentRGB', 'style(0 apartment, 1 church, 2 palace, 3 plain)', 'flags'],
   b: outB.flat(),
   hs: heightsRec, // id, p90*10, p50*10
   bytes: parts.map((p) => p.length),

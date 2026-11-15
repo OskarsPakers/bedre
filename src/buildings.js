@@ -4,6 +4,7 @@ import { CFG, LIFE } from './config.js';
 import { cleanRing, centroid, bbox, minBox, pointInPoly } from './geo.js';
 import { mulberry32 } from './rng.js';
 import { landmarkRule, pickCatHouse, addDeco, addCat } from './landmarks.js';
+import { themeHook, GLSL_BLD_VERT_DECL, GLSL_BLD_VERT_SET, GLSL_BLD_FRAG_DECL, GLSL_BLD_WINDOWS } from './themeUniforms.js';
 
 const _tri = [];
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3();
@@ -139,11 +140,12 @@ function polyArea(p) {
 export function makeBuildingMaterial() {
   const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
   mat.onBeforeCompile = (shader) => {
+    themeHook(shader); // theme.js: shared night / snow uniforms
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aWin;\nvarying vec3 vLP;\nvarying vec3 vLN;\nvarying vec4 vWin;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLP = position; vLN = normal; vWin = vec4(aWin.x * 12.0, aWin.y * 127.5, aWin.z * 8.0, aWin.w);');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aWin;\nvarying vec3 vLP;\nvarying vec3 vLN;\nvarying vec4 vWin;\n' + GLSL_BLD_VERT_DECL)
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLP = position; vLN = normal; vWin = vec4(aWin.x * 12.0, aWin.y * 127.5, aWin.z * 8.0, aWin.w);\n' + GLSL_BLD_VERT_SET);
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vLP;\nvarying vec3 vLN;\nvarying vec4 vWin;')
+      .replace('#include <common>', '#include <common>\nvarying vec3 vLP;\nvarying vec3 vLN;\nvarying vec4 vWin;\n' + GLSL_BLD_FRAG_DECL)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
   float wall = step(abs(vLN.y), 0.25) * vWin.w;
@@ -158,6 +160,7 @@ export function makeBuildingMaterial() {
   float win = wall * wx * wy * inside;
   vec3 glass = vec3(0.16, 0.22, 0.29) * (0.8 + 0.4 * fract(sin(floor(u) * 12.9898 + floor(fy) * 78.233) * 43758.5453));
   diffuseColor.rgb = mix(diffuseColor.rgb, glass, 0.82 * win);
+  ${GLSL_BLD_WINDOWS}
   // cornice line under roof and ground-floor plinth
   float cornice = wall * step(vWin.y - 0.45, vLP.y) * step(vLP.y, vWin.y);
   diffuseColor.rgb *= 1.0 - 0.1 * cornice;
@@ -246,11 +249,14 @@ export function flatHeight(b, area, hs) {
   return Math.max(3, Math.min(140, h));
 }
 
-const TAR = [0x5b5d60, 0x64625e, 0x6e6a63, 0x585a5e, 0x707070];
-const TIN = [0x55585c, 0x6b6e70, 0x4d5257, 0x7a6f66];
+// roofs must never render near-black: every colour below has a lightness >= ~0.3
+const TAR = [0x6d6f73, 0x74726e, 0x7a766f, 0x696b70, 0x7c7c7c];
+const TIN = [0x6b6f72, 0x7b8084, 0x62676c, 0x867b71];
 const TIN_GREEN = [0x6a9484, 0x78a090, 0x5f8f7c];
 const TILE = [0xb55a3c, 0xa8503a, 0xc0653f, 0x9c4a35, 0xb8613c, 0x8b6b5c];
 const RE_ORTHODOX = /Piedzimšanas|pareizticīg|Ņevsk|Trīsvienīb/i;
+/** facade styles stored per building in the shapes file (rec.style): window pattern parameters */
+const STYLE_WIN = [null, { floorH: 8.5, spacing: 4.8, frac: 0.55 }, { floorH: 5.4, spacing: 4.6, frac: 1 }, { floorH: 4, spacing: 4, frac: 0 }, { floorH: 3.4, spacing: 1.5, frac: 0.5 }];
 
 /** Indexed geometry from a decoded riga-shapes record: roof triangles (colour by slope / type) + walls extruded from the outline loops. */
 function buildShapeGeometry(S, rec, cols, winParams, wallCol, decoFn) {
@@ -260,46 +266,45 @@ function buildShapeGeometry(S, rec, cols, winParams, wallCol, decoFn) {
   const noWin = [1, 1, 1, 0];
   const wallTop = shade(wallCol, 1.0), wallBot = shade(wallCol, 0.78);
   const plain = shade(wallCol, 0.96);
-  const classCol = [cols.flat, cols.pitch, plain, cols.special];
-  // decode triangles; roof faces are flat-shaded (own vertices + face normal), facade-like steep faces (class 2) share vertices with
-  // smoothed, horizontal normals so noisy cliffs / drums read as one clean wall instead of pleats
+  const classCol = [cols.flat, cols.pitch, plain, cols.special, plain, cols.accent];
+  // decode triangles; roof faces are flat-shaded (own vertices + face normal); facade-like faces (class 2: step walls, drums, towers) get
+  // horizontal normals smoothed across neighbouring faces that differ by less than ~35 degrees (round drums read round, corners stay crisp)
   const T = S.T, M = S.M, nt = rec.nt;
   const ids = new Int32Array(nt * 3), cls = new Uint8Array(nt), fn = new Float32Array(nt * 3);
   let nextNew = 0;
-  const acc = new Float32Array(rec.nv * 3);
+  const w2 = new Map(); // vertex -> class-2 triangle list
   let roofA = 0, flatA = 0;
   for (let t = 0; t < nt; t++) {
     const o = (rec.ot + t) * 3;
     for (let k = 0; k < 3; k++) { const d = T[o + k]; ids[t * 3 + k] = d === 0 ? nextNew++ : nextNew - d; }
     const i0 = ids[t * 3], i1 = ids[t * 3 + 1], i2 = ids[t * 3 + 2];
     const ux = px(i1) - px(i0), uy = py(i1) - py(i0), uz = pz(i1) - pz(i0), vx = px(i2) - px(i0), vy = py(i2) - py(i0), vz = pz(i2) - pz(i0);
-    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
     const l = Math.hypot(nx, ny, nz) || 1;
     fn[t * 3] = nx / l; fn[t * 3 + 1] = ny / l; fn[t * 3 + 2] = nz / l;
     const m = M[rec.ot + t];
-    cls[t] = m === 2 ? 2 : m === 3 ? 3 : 1;
+    cls[t] = m === 2 ? 2 : m === 3 ? 3 : m === 5 ? 5 : m === 4 ? 2 : 1;
     if (cls[t] === 1) { const ar = l * 0.5, f = Math.abs(ny) / l > 0.95; roofA += ar; if (f) flatA += ar; }
-    if (m === 2) { // horizontal, area weighted
-      const h = Math.hypot(nx, nz) || 1;
-      for (let k = 0; k < 3; k++) { acc[ids[t * 3 + k] * 3] += (nx / h) * l; acc[ids[t * 3 + k] * 3 + 2] += (nz / h) * l; }
-    }
+    if (cls[t] === 2) for (let k = 0; k < 3; k++) { const v = ids[t * 3 + k]; let a = w2.get(v); if (!a) w2.set(v, a = []); a.push(t); }
   }
-  // a mostly flat-roofed building gets tar roofs (near-flat faces only); a pitched one keeps one roof colour so noisy faces do not patchwork
+  // a mostly flat-roofed building gets tar roofs (near-flat faces only); a pitched one keeps one roof colour so faces do not patchwork
   const flatNy = flatA > 0.5 * roofA ? 0.85 : 2;
   for (let t = 0; t < nt; t++) if (cls[t] === 1 && Math.abs(fn[t * 3 + 1]) > flatNy) cls[t] = 0;
   const wallWin = [winParams.floorH, 127.5, winParams.spacing, winParams.frac];
-  const smoothV = new Int32Array(rec.nv).fill(-1);
+  const COS = 0.82;
   for (let t = 0; t < nt; t++) {
     const c = cls[t], col = classCol[c];
     for (let k = 0; k < 3; k++) {
       const i = ids[t * 3 + k];
       if (c === 2) {
-        let v = smoothV[i];
-        if (v < 0) {
-          const ax = acc[i * 3], az = acc[i * 3 + 2], h = Math.hypot(ax, az) || 1;
-          v = smoothV[i] = b.vert(px(i), py(i), pz(i), col, wallWin, [ax / h, 0, az / h]);
+        const hx = fn[t * 3], hz = fn[t * 3 + 2], hl = Math.hypot(hx, hz) || 1, ox = hx / hl, oz = hz / hl;
+        let ax = 0, az = 0;
+        for (const u of w2.get(i)) {
+          const ux2 = fn[u * 3], uz2 = fn[u * 3 + 2], ul = Math.hypot(ux2, uz2) || 1;
+          if ((ux2 * ox + uz2 * oz) / ul >= COS) { ax += ux2 / ul; az += uz2 / ul; }
         }
-        b.idx.push(v);
+        const al = Math.hypot(ax, az) || 1;
+        b.idx.push(b.vert(px(i), py(i), pz(i), col, wallWin, [ax / al, 0, az / al]));
       } else b.idx.push(b.vert(px(i), py(i), pz(i), col, noWin, [fn[t * 3], fn[t * 3 + 1], fn[t * 3 + 2]]));
     }
   }
@@ -313,8 +318,10 @@ function buildShapeGeometry(S, rec, cols, winParams, wallCol, decoFn) {
       const A = L[p + i], B = L[p + ((i + 1) % len)];
       const ya = py(A), yb = py(B);
       if (ya - y0 < 0.05 && yb - y0 < 0.05) continue;
+      const ex = px(B) - px(A), ez = pz(B) - pz(A), el = Math.hypot(ex, ez);
+      if (el < 0.01) continue; // zero-length edge between two welded/step vertices
       const win = [winParams.floorH, Math.max(ya, yb), winParams.spacing, winParams.frac];
-      const ex = px(B) - px(A), ez = pz(B) - pz(A), el = Math.hypot(ex, ez) || 1, wn = [ez / el, 0, -ex / el];
+      const wn = [ez / el, 0, -ex / el];
       const a0 = b.vert(px(A), y0, pz(A), wallBot, win, wn), b0 = b.vert(px(B), y0, pz(B), wallBot, win, wn);
       const b1 = b.vert(px(B), yb, pz(B), wallTop, win, wn), a1 = b.vert(px(A), ya, pz(A), wallTop, win, wn);
       b.idx.push(a0, b1, b0, a0, a1, b1);
@@ -426,15 +433,18 @@ export function buildBuildings(data) {
     if (rec) {
       // ---- measured shape: roof colours by type, decorations dropped (the data has the real spires/domes), except the cat
       const orth = RE_ORTHODOX.test(nm);
+      if (rec.wallRGB) { wallCol.setHex(rec.wallRGB); it.wallCol = rec.wallRGB; }
+      if (rec.style && STYLE_WIN[rec.style]) Object.assign(winParams, STYLE_WIN[rec.style]);
       const hash = Math.abs((it.x * 7 + it.z * 3) | 0);
       let pitchCol;
       if (rec.roofRGB) pitchCol = new THREE.Color(rec.roofRGB);
       else if (rule && rule.roof) pitchCol = roofCol.clone();
       else if (zone === 'old') pitchCol = new THREE.Color(P.oldTownRoof[hash % P.oldTownRoof.length]);
       else { const r = rng(); pitchCol = new THREE.Color(r < 0.62 ? TILE[hash % TILE.length] : r < 0.93 ? TIN[hash % TIN.length] : TIN_GREEN[hash % TIN_GREEN.length]); }
-      const flatCol = new THREE.Color(TAR[hash % TAR.length]);
-      const specialCol = new THREE.Color(orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x3f4a52 : 0x5f9d89));
-      const cols = { flat: [flatCol.r, flatCol.g, flatCol.b], pitch: [pitchCol.r, pitchCol.g, pitchCol.b], special: [specialCol.r, specialCol.g, specialCol.b] };
+      const flatCol = rec.roofRGB && rec.style ? pitchCol.clone().multiplyScalar(0.96) : new THREE.Color(TAR[hash % TAR.length]);
+      const specialCol = new THREE.Color(rec.domeRGB ? rec.domeRGB : orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x5a6a74 : 0x5f9d89));
+      const accentCol = new THREE.Color(rec.accentRGB || 0xe3b53c);
+      const cols = { flat: [flatCol.r, flatCol.g, flatCol.b], pitch: [pitchCol.r, pitchCol.g, pitchCol.b], special: [specialCol.r, specialCol.g, specialCol.b], accent: [accentCol.r, accentCol.g, accentCol.b] };
       let decoFn = null;
       if (rule && rule.deco && rule.deco.kind === 'cat') {
         decoFn = (b, px, py, pz) => { // cat on the highest points (turret tips), at most two, >5 m apart

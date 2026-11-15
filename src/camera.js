@@ -5,7 +5,7 @@ import { camShake } from './effects.js';
 
 export class FollowCamera {
   constructor(aspect) {
-    this.camera = new THREE.PerspectiveCamera(CFG.camera.fov, aspect, 1, 8000);
+    this.camera = new THREE.PerspectiveCamera(CFG.camera.fov, aspect, 1, 14000);
     this.focus = new THREE.Vector3();
     this.dist = 30;
     this.elev = THREE.MathUtils.degToRad(CFG.camera.elevationDeg);

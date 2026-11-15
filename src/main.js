@@ -7,6 +7,13 @@ import { Game } from './game.js';
 import { initLife } from './life.js';
 import { t, applyDom, setLang, onLang } from './i18n.js';
 import { initScoresUi } from './scoresUi.js';
+import { initOnline } from './net/index.js';
+import { initModes, BOT_CAPACITY, getMode } from './modes.js';
+import { initTrace } from './trace.js';
+import { bindAnalytics } from './analytics.js';
+import { initMeta } from './meta/progress.js';
+import { initRadio } from './meta/radio.js';
+import { initPwa } from './meta/pwa.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
@@ -44,7 +51,10 @@ function webglOk() {
   } catch { return false; }
 }
 
+import { applyMap, initMapPicker, applyMapRules } from './maps.js';
+
 async function boot() {
+  applyMap(); initMapPicker(); // selected district (?map= / remembered): file URLs + balance multipliers, picker on the start screen
   if (!webglOk()) { fail('noWebgl'); return; }
   const canvas = $('c');
   let renderer;
@@ -65,7 +75,7 @@ async function boot() {
   const tb0 = performance.now();
   const world = new World(scene, data);
   window.__timing = { loadMs: Math.round(tb0 - tl0), buildMs: Math.round(performance.now() - tb0) };
-  const game = new Game({ renderer, scene, world, canvas, botCount: params.has('bots') ? Math.max(0, Math.min(15, parseInt(params.get('bots'), 10) || 0)) : CFG.bots.count });
+  const game = new Game({ renderer, scene, world, canvas, botCount: params.has('bots') ? Math.max(0, Math.min(15, parseInt(params.get('bots'), 10) || 0)) : BOT_CAPACITY });
   if (params.get('introhold')) CFG.intro.hold = +params.get('introhold'); // test hook: linger on the overview
   if (params.get('intro') === '0') game.introEnabled = false;
   // URL overrides make the round local-only / unranked (the server is the source of truth for round length)
@@ -82,7 +92,12 @@ async function boot() {
   initLife({ renderer, scene, world, game, canvas });
   window.__perf = { frames: 0, ms: 0 };
   initScoresUi();
-  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden)');
+  initOnline({ game, world });
+  applyMapRules(game); // non-centre maps: unranked + no Online until the worker stores per-map boards
+  initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
+  initMeta({ game, world }).catch((e) => console.warn('[meta]', e)); // album, achievements, % meter, recap, share (src/meta/)
+  initRadio(); initPwa();
+  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden)');
 
   game.hud.setReady(true, t('play'));
   onLang(() => { if (!$('play').disabled) $('play').textContent = t('play'); });

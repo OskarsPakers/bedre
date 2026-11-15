@@ -108,7 +108,7 @@ export class RoadNet {
     mk('car', data.roads); mk('bus', data.roads); mk('trolley', data.roads); mk('walk', data.roads);
     const tw = (data.tramways || []).map((t) => ({ p: t.p, k: 'tram', w: 3.4 }));
     this.realTrams = tw.length > 0;
-    mk('tram', this.realTrams ? tw : data.roads.filter((r) => r.k === 'primary').map((r) => ({ ...r, k: 'tram' })), this.realTrams ? 250 : 0);
+    mk('tram', this.realTrams ? tw : (data.meta && data.meta.sample ? data.roads.filter((r) => r.k === 'primary').map((r) => ({ ...r, k: 'tram' })) : []), this.realTrams ? 250 : 0); // districts without tracks: no trams
     this.routes = waterRoutes(data);
     mk('boat', this.routes, 0);
     const stops = data.stops || [];
@@ -194,6 +194,7 @@ export function planMovers(net, blockers, rng) {
   const hasCanal = net.nets.boat.roads.some((r) => r.canal), hasRiver = net.nets.boat.roads.some((r) => !r.canal);
   mk('boat', 'boat', M.boats, hasCanal ? (r) => r.canal : null);
   mk('boat', 'ferry', M.ferries, hasRiver ? (r) => !r.canal : null);
+  if (hasRiver && M.riverBoats) mk('boat', 'boat', M.riverBoats, (r) => !r.canal); // the Daugava is not a dead zone: boats + ferries all along it
   mk('swan', 'swan', M.swans, hasCanal ? (r) => r.canal : null);
 
   // birds: pigeons on pedestrian streets / squares, gulls along the water

@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { CFG } from './config.js';
 import { createGround } from './ground.js';
+import { groundTier } from './quality.js';
 import { buildBuildings } from './buildings.js';
 import { Blockers, scatterProps } from './scatter.js';
 import {
@@ -40,7 +41,7 @@ export class World {
     this.traffic = new Traffic(this);
     this.net = new RoadNet(data);
 
-    this.ground = createGround(data);
+    this.ground = createGround(data, groundTier());
     scene.add(this.ground);
 
     const b = buildBuildings(data);
@@ -57,7 +58,7 @@ export class World {
       });
     }
     this.blockers = new Blockers(b.items.map((it) => it.ring), data.water);
-    this.spawn = this.findSpawn(0, 0);
+    { const bb = this.bounds, dist = data.meta.slug && data.meta.slug !== 'centrs'; this.spawn = this.findSpawn(dist ? (bb.minX + bb.maxX) / 2 : 0, dist ? (bb.minZ + bb.maxZ) / 2 : 0); } // district maps: map middle; centre: origin as before
     this._buildProps(data);
     shuffleInPlace(this.traffic.list, mulberry32(CFG.seed + 3));
     this.counts.props = this.objects.length - b.items.length;

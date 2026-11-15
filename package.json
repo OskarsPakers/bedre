@@ -11,7 +11,12 @@
     "dev:worker": "npm run build && wrangler d1 migrations apply bedre-scores --local && wrangler dev --port 8791",
     "smoke:api": "node scripts/smoke-api.mjs",
     "smoke:e2e": "node scripts/smoke-e2e.mjs",
-    "deploy": "npm run build && wrangler d1 migrations apply bedre-scores --remote && wrangler deploy"
+    "gen:limits": "node tools/gen-limits.mjs",
+    "check:legit": "node tools/check-legit.mjs",
+    "build:mp": "node tools/mp/build-objects.mjs",
+    "smoke:mp": "node scripts/smoke-mp.mjs",
+    "test:mp": "node scripts/test-mp-sim.mjs",
+    "deploy": "npm run build:mp && npm run build && wrangler d1 migrations apply bedre-scores --remote && wrangler deploy"
   },
   "type": "module",
   "dependencies": {

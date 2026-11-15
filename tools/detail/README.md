@@ -24,10 +24,16 @@ Node >= 20, no build step. Only optional dependency: `draco3d` (see "Draco" belo
 | `check-alignment.mjs` | footprint vs mesh alignment (best shift of 300 sample buildings) |
 | `validate-heights.mjs` | mesh heights vs known landmark heights |
 | `preview-protos.mjs` | writes `tools/.cache/detail/preview-<slug>.png` (hillshade \| V1 grid mesh \| V2 parts \| OSM parts) |
-| `build-meshes.mjs` | grid / OSM parts -> simplified indexed roof meshes + outline loops + measured heights -> `public/data/riga-shapes.bin.gz` (~6 s, offline) |
+| `build-meshes.mjs` | grid / OSM parts -> clean low-poly shapes + outline loops + measured heights -> `public/data/riga-shapes.bin.gz` (~9 s, offline). `--only=<id,id> [--verbose] [--why] [--report]`; env `PLANAR_DEBUG=<id,id>` writes `tools/.cache/detail/labels-<id>.png` (height grid + plane labels), `PLANAR_WHY=1` prints fit diagnostics |
+| `planar.mjs` | plane-fitted roofs (RANSAC planes, lathe domes / pyramid spires, shared-chain boundaries, straightened ridges, CDT, welded heights + vertical step walls), see "Plane-fitted mesher" |
+| `parts.mjs` | OSM `building:part` list -> exact prisms + planar gable/hip/skillion roofs + smooth lathe domes / onion domes / cones (+ optional gilded crosses) |
+| `heroes.mjs` | curated config of the ~25 landmark buildings: ids, source (`parts` / `mesh` / `auto`), facade style, palette, camera notes; `BLOCK_IDS` = 6 fixed ordinary blocks for before/after shots |
+| `preview-shapes.mjs` | software-rendered preview of what is in `riga-shapes.bin.gz` (no browser): `node preview-shapes.mjs nativity blocks heroes <id>` -> `tools/.cache/detail/shape-<name>.png` (env `PITCH=25`, `SHAPES=<file>`) |
 | `render.mjs` | tiny software rasteriser + PNG writer used by the previews |
 
-Re-run: `cd tools/detail && npm i && node build-detail.mjs analyze --set=all && node build-detail.mjs assemble && node preview-protos.mjs --osm`.
+Re-run: `cd tools/detail && npm i && node build-detail.mjs analyze --set=all && node build-detail.mjs assemble --variant=grid && node build-meshes.mjs`.
+`analyze` takes its area from `riga.json` `meta.bounds` (+100 m) and skips cached buildings, so after a map extension only the added buildings are downloaded
+(the 2026-11 extension to x in [-2100, 1200], z in [-1200, 1500] cost 243 MB over the wire / 728 requests, 441 more buildings with grids; named / >= 12 m buildings outside the old box are measured at 0.5 m).
 (`analyze` skips buildings already in `tools/.cache/detail/analysis/`; delete that folder to redo them.)
 
 ## Track B facts (I3S)
@@ -102,3 +108,37 @@ Re-run: `cd tools/detail && npm i && node build-detail.mjs analyze --set=all && 
   ring about its centroid to the apex. Reference tessellator: `partsToTris` in `shape.mjs`.
 * Default file = heights + heightsP50 + fine grids (412) + coarse grids (1810) + OSM parts (44). Other variants: `assemble --variant=parts --no-coarse`
   (V2 + heights + OSM only), `--variant=both`.
+
+
+## Plane-fitted mesher (`planar.mjs`)
+
+Replaces the error-bounded TIN as the default roof mesher (the TIN stays as fallback: footprints with < 20 m^2 of valid cells and fits whose residual is too high).
+Input: the denoised height field (cells < 0.7 m are open ground; no rim lifting any more), the outline loops (cadastre ring simplified at 0.4 m, or the traced contour when
+there are real courtyards), per-class options (notable: 0.5 m cells, plane tolerance 0.35 m, >= 9 m^2 per region, <= 26 planes, lathes on; relief: 1 m cells, 0.8 m, >= 18 m^2, <= 10 planes).
+
+1. **Lathe detection**: local maxima >= 3.5 m are probed on 16 rays (round) or on square perimeters (pyramids, rotated to the outline's longest edge, 6 angles);
+   the apex centre is refined (0.2 m grid) and a base radius is found where the profile hits the footprint edge, a cliff (drum rim / tower top, relative to the local slope), or loses
+   symmetry. Accepted when the symmetry error beyond 13 % of the height drop is small (this rejects ridges and hips, accepts domes, cones, onion domes, round tower roofs
+   and square or round spires). The measured radial profile (monotone, resampled by arc length, <= 10 rings; 2-10 vertices for pyramids) becomes a surface of revolution on a 12-24 gon (or square) base polygon.
+2. **Planes**: RANSAC on the remaining cells (120 trials, 3-point planes, slope <= 62 deg), refit on the largest connected inlier set, residual cells join the plane within 1.6 tol or grow in from neighbours;
+   mode filter + merge of regions smaller than the minimum area (chimneys, dormers, tree overhang, noise).
+3. **Boundaries**: label-map borders become chains between junctions (shared by both neighbours, simplified once with Douglas-Peucker); a chain between two pitched planes whose
+   heights meet is moved onto their intersection line (straight ridge / hip / valley), junctions go to the common point of their planes, chain ends snap onto the outline or lathe base.
+4. **Triangulation**: constrained Delaunay of outline + chains + lathe base polygons (no interior points, planar faces stay planar); components between constraints get their plane.
+5. **Heights**: every triangle vertex takes its plane's height; vertices where neighbouring planes differ by < `weld` (0.8 / 1.1 m) are welded (mean), elsewhere a vertical step wall
+   (class 2) joins the two levels (tower / drum / parapet walls are exactly vertical, their top and bottom follow the planes). Outline walls are still extruded by the game from the loops; a loop may contain zero-length edges where two roof levels meet the wall.
+
+File format `BSH1` v2: header `stride: 14`, record = `id, nv, nt, nl, src, vol, hmax10, eave10, roofRGB, wallRGB, domeRGB, accentRGB, style, flags` (colours 0 = default palette).
+Triangle classes (`mats`): 0 flat roof, 1 pitched roof, 2 wall (windows; step walls, drums, towers), 3 dome / spire (hero `dome` colour or verdigris), 5 accent (gold crosses). `style`: 0 apartment windows,
+1 church (tall narrow windows, floors 8.5 m), 2 palace (large windows, floors 5.4 m), 3 plain stone (no windows).
+
+## Heroes (`heroes.mjs`)
+
+Per hero: `source` = `parts` (OSM parts, forced; used for the Nativity cathedral whose OSM model is clean) / `mesh` (plane-fitted mesh, OSM never used) / `auto` (parts when they agree with the mesh, else mesh).
+The OSM models of the Dome, the Opera and St Peter were checked and are worse than the measured mesh (bulb tower, plain boxes), so those use the mesh. Old / New St Gertrude: `49619142` is the Old
+(Ģertrūdes iela) church; `49622206` (Lāčplēša iela 37) is the Baptist Union chapel (9.6 m), not New St Gertrude, which stands at Brīvības iela 119 outside the map, so it was dropped.
+Review shots: `PORT=5181 GPU=1 node scripts/detail-shots.mjs [slug ...] [--prefix=before-]` -> `scripts/out/hero-<slug>-{a,b,play}.png`, `hero-sheet.png`, `block-1..6.png`, `detail-overview*.png`.
+
+Hero flags added later: `ortho` (outline edges within 14 degrees of the dominant axes are squared), `ringTol` (eave-line simplification, m), `fit` / `opts` (planar / mesher option overrides), `barrel` (parametric half-elliptic vault over the footprint's oriented box, the Central Market pavilions),
+`stepGable` (gabled body + stepped brick gables, the House of the Blackheads); facade style `4` = glass curtain wall (cool tint, fine horizontal bands). Heroes are always measured at 0.5 m (`notableSet`).
+Library (Mūkusalas iela 3, id 49629679, 12.5k m^2, one cadastre piece, hmax 70.8 m) and Saules akmens (tall tower is `49639844`, Balasta dambis 15, 120.6 m; the earlier id `49639106`, 78 m, is Preses nams) are curated that way.

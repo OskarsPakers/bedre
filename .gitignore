@@ -9,3 +9,12 @@ scripts/.dist/
 .DS_Store
 scripts/.dist*/
 .snapshots/
+scripts/.*-state*/
+scripts/.mp-*
+scripts/.wrangler-*
+scripts/.api-*
+scripts/.e2e-*
+tools/detail/node_modules/
+scripts/.tmp-*/
+scripts/.wrangler/
+tools/out/*.partial.json

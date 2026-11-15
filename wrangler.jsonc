@@ -22,5 +22,16 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Multiplayer (worker/mp/): one Durable Object per room + one tiny matchmaker. SQLite-backed classes (the only kind
+  // available on the free plan) are declared with `new_sqlite_classes`. Tag must be unique and never reused.
+  "durable_objects": {
+    "bindings": [
+      { "name": "MP_ROOM", "class_name": "MpRoom" },
+      { "name": "MP_MATCHMAKER", "class_name": "MpMatchmaker" }
+    ]
+  },
+  "migrations": [
+    { "tag": "mp-v1", "new_sqlite_classes": ["MpRoom", "MpMatchmaker"] }
+  ],
   "observability": { "logs": { "enabled": true } }
 }

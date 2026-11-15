@@ -4,6 +4,7 @@ import { CFG } from './config.js';
 
 export class Lighting {
   constructor(scene) {
+    this.scene = scene;
     const sky = new THREE.Color(CFG.colors.sky);
     scene.background = sky;
     scene.fog = new THREE.Fog(sky, 100, 600);
@@ -26,6 +27,21 @@ export class Lighting {
     this.shadowFade = 1; // 1 = full shadows, 0 = none
     this.hemiBase = this.hemi.intensity; this.sunBase = this.sun.intensity;
     this._lastT = performance.now();
+    this.shadowK = 1;                       // theme: shadow strength multiplier (softer at night)
+    this.flash = 0; this.flashColor = new THREE.Color(1, 1, 1); // firework flash (theme.js sets these each frame)
+    this._hemiSky = this.hemi.color.clone();
+  }
+
+  /** Apply a theme look (src/theme.js): sky / fog colours, hemisphere + sun, sun direction, shadow strength. All values pre-built, no per-frame cost. */
+  applyTheme(T) {
+    this.scene.background.copy(T.fog);
+    this.fog.color.copy(T.fog);
+    this.hemi.color.copy(T.hemi.sky); this.hemi.groundColor.copy(T.hemi.ground);
+    this._hemiSky.copy(T.hemi.sky);
+    this.hemiBase = T.hemi.i;
+    this.sun.color.copy(T.sun.color); this.sunBase = T.sun.i;
+    this.dir.copy(T.sun.dir);
+    this.shadowK = T.shadow;
   }
 
   /** target shadow strength for a camera distance: full while a texel is < fadeTexel[0] m, gone at fadeTexel[1] m */
@@ -47,11 +63,13 @@ export class Lighting {
     this.shadowFade += (tgt - this.shadowFade) * (dt > 0 ? 1 - Math.exp(-6 * dt) : 1);
     if (Math.abs(tgt - this.shadowFade) < 0.003) this.shadowFade = tgt;
     const f = this.shadowFade, s = this.sun.shadow;
-    s.intensity = f;
+    s.intensity = f * this.shadowK;
     s.autoUpdate = f > 0.001; // fully faded: skip rendering the shadow map (big win at the widest zoom)
     // without cast shadows the sunlit/shaded contrast comes from face shading only: keep it a bit stronger
     this.sun.intensity = this.sunBase * (0.92 + 0.08 * f);
     this.hemi.intensity = this.hemiBase * (0.9 + 0.1 * f);
+    if (this.flash > 0.002) { this.hemi.intensity += this.flash * 0.55; this.hemi.color.copy(this._hemiSky).lerp(this.flashColor, Math.min(0.7, this.flash)); }
+    else if (this.flash !== 0) { this.flash = 0; this.hemi.color.copy(this._hemiSky); }
     if (f <= 0.001) return; // shadow camera placement is irrelevant while faded out
     // shadow region: enough to cover what the camera sees near the focus
     const half = THREE.MathUtils.clamp(dist * 0.62, 28, 1700);
