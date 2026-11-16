@@ -26,7 +26,10 @@ export function applyMap() {
     const k = m.mult || {};
     for (const key of ['people', 'lamps', 'benches', 'bins', 'cars', 'vans', 'buses', 'trams', 'kiosks']) CFG.props[key] = Math.round(CFG.props[key] * (k.props ?? 1));
     CFG.props.maxTrees = Math.round(CFG.props.maxTrees * (k.trees ?? 1));
+    CFG.props.people = Math.round(CFG.props.people * (k.people ?? 1)); // extra small food around the player spawn (people are what a start hole eats first)
     CFG.value.buildingDiv *= k.value ?? 1;
+    CFG.bots.difficulty *= k.bots ?? 1;
+    if (k.botSpeed) CFG.bots.speedCap = k.botSpeed;
     for (const key of ['cars', 'buses', 'trolleys', 'walkers', 'wanderers']) LIFE.movers[key] = Math.round(LIFE.movers[key] * (k.props ?? 1));
   }
   document.body.dataset.map = m.slug;
@@ -38,13 +41,13 @@ const nameOf = (m) => (getLang() === 'lv' ? m.lv : m.en);
 
 /** District picker row on the start screen: thumbnail + labelled <select>. Switching = clean reload with ?map=. */
 export function initMapPicker() {
-  const anchor = document.querySelector('#start .namebox');
+  const anchor = $('opts-body');
   if (!anchor || $('mapsw')) return;
   const cur = activeSlug();
   const row = document.createElement('div');
   row.id = 'mapsw'; row.className = 'mapsw';
-  row.innerHTML = '<img id="map-thumb" alt="" width="48" height="40" /><label><span id="map-label"></span><select id="map-select" aria-label="District"></select></label>';
-  anchor.after(row);
+  row.innerHTML = '<img id="map-thumb" alt="" width="52" height="42" /><label><span id="map-label"></span><select id="map-select" aria-label="District"></select></label>';
+  anchor.prepend(row);
   const sel = $('map-select'), img = $('map-thumb');
   const fill = () => {
     $('map-label').textContent = t('mapLabel');
@@ -52,7 +55,7 @@ export function initMapPicker() {
     for (const m of MAPS) { const o = document.createElement('option'); o.value = m.slug; o.textContent = nameOf(m); if (m.slug === cur) o.selected = true; sel.appendChild(o); }
   };
   fill(); onLang(fill);
-  const setThumb = (slug) => { img.src = mapPaths(slug).thumb; img.onerror = () => { img.style.visibility = 'hidden'; }; img.onload = () => { img.style.visibility = 'visible'; }; };
+  const setThumb = (slug) => { img.src = mapPaths(slug).thumb; img.hidden = false; img.onerror = () => { img.hidden = true; }; img.onload = () => { img.hidden = false; }; };
   setThumb(cur);
   sel.addEventListener('change', () => {
     const slug = sel.value;

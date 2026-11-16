@@ -7,6 +7,7 @@ import { bus } from './events.js';
 import { MODES } from './rules.js';
 import { mulberry32 } from './rng.js';
 import { t, extendStrings, onLang, getLang } from './i18n.js';
+import { isCentre } from './maps.js';
 import { TWISTS, dailyInfo, dailyUsed, markDailyUsed, todayRiga } from './daily.js';
 import './modes.css';
 
@@ -17,6 +18,7 @@ extendStrings({
   modeDescFree: 'Bez taimera, botiem un reitinga.',
   modeDescDaily: '{twist}. Viens reitinga mēģinājums dienā.',
   modeDescDailyUsed: '{twist}. Reitinga mēģinājums izmantots — treniņš.',
+  modeDescDailyCentre: 'Dienas izaicinājums ir tikai Centra kartē.', modeDailyCentre: 'Dienas izaicinājums un Tiešsaiste: tikai Centra karte.',
   dailyIntroTitle: 'Dienas izaicinājums', twistLbl: 'Šodienas īpatnība', practiceTag: 'treniņš — nereitingots',
   twistoldtown: 'Starts Vecrīgā', twistcentre: 'Starts pie Brīvības pieminekļa', twistbots9: '9 boti', twistquiet: 'Tikai 3 boti',
   twisttough: 'Gudrāki, ātrāki boti', twistcrowd: '9 boti un starts Vecrīgā',
@@ -32,6 +34,7 @@ extendStrings({
   modeDescFree: 'No timer, no bots, no ranking.',
   modeDescDaily: '{twist}. One ranked attempt per day.',
   modeDescDailyUsed: '{twist}. Ranked attempt used — practice.',
+  modeDescDailyCentre: 'The daily challenge is played on the Centre map only.', modeDailyCentre: 'Daily challenge and Online: Centre map only.',
   dailyIntroTitle: 'Daily challenge', twistLbl: "Today's twist", practiceTag: 'practice — not ranked',
   twistoldtown: 'Start in the Old Town', twistcentre: 'Start by the Freedom Monument', twistbots9: '9 bots', twistquiet: 'Only 3 bots',
   twisttough: 'Smarter, faster bots', twistcrowd: '9 bots and an Old Town start',
@@ -55,11 +58,14 @@ const state = { id: 'classic', daily: null, practice: false, ranked: true, bots:
 let game = null, params = null, baseDifficulty = CFG.bots.difficulty, touched = false, savedNames = null;
 
 try { const v = localStorage.getItem(KEY); if (ids.includes(v)) state.id = v; } catch { /* storage blocked */ }
+/** The daily challenge exists on the centre map only (fixed seeded setup, one board). */
+const allowed = (id) => id !== 'daily' || isCentre();
+if (!allowed(state.id)) state.id = 'classic';
 
 export const getMode = () => state.id;
 export const modeState = () => ({ ...state });
 export function setMode(id) {
-  if (!ids.includes(id)) return;
+  if (!ids.includes(id) || !allowed(id)) return;
   state.id = id;
   try { localStorage.setItem(KEY, id); } catch { /* ignore */ }
   refreshUi();
@@ -69,21 +75,25 @@ export function setMode(id) {
 /** What src/scores.js should ask the server for: null = no server round (free roam, daily practice). */
 export function roundRequest() {
   if (state.id === 'free' || !state.ranked) return null;
-  return state.id === 'daily' ? { mode: 'daily', day: state.daily.day } : { mode: state.id };
+  const map = (CFG.map && CFG.map.slug) || 'centrs';
+  return state.id === 'daily' ? { mode: 'daily', map, day: state.daily.day } : { mode: state.id, map };
 }
 
 // ---- UI ----------------------------------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 function refreshUi() {
   const d = dailyInfo(gameDay());
-  for (const b of document.querySelectorAll('#modesw [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === state.id));
+  for (const b of document.querySelectorAll('#modesw [data-mode]')) {
+    b.setAttribute('aria-checked', String(b.dataset.mode === state.id));
+    if (b.dataset.mode === 'daily') { b.disabled = !isCentre(); b.title = isCentre() ? '' : t('modeDailyCentre'); }
+  }
   document.body.classList.remove(...ids.map((i) => 'mode-' + i));
   document.body.classList.add('mode-' + state.id);
   const el = $('mode-desc');
   if (!el) return;
   const key = state.id === 'daily' ? (dailyUsed(d.day) ? 'modeDescDailyUsed' : 'modeDescDaily')
     : 'modeDesc' + state.id[0].toUpperCase() + state.id.slice(1);
-  el.textContent = t(key, { day: d.day, twist: twistName(d.twist) });
+  el.textContent = t(key, { day: d.day, twist: twistName(d.twist) }) + (isCentre() ? '' : ' ' + t('modeDailyCentre'));
 }
 
 function showDailyIntro(info, practice) {
@@ -171,7 +181,7 @@ export function initModes(g, { params: p = new URLSearchParams(location.search) 
   game = g; params = p;
   baseDifficulty = CFG.bots.difficulty;
   const urlMode = p.get('mode');
-  if (ids.includes(urlMode)) state.id = urlMode;
+  if (ids.includes(urlMode) && allowed(urlMode)) state.id = urlMode;
   if (!p.has('bots')) setBots(g, CFG.bots.count);          // main.js builds BOT_CAPACITY bots; classic uses the usual 7
   bus.on('modeSetup', setup);
   bus.on('roundGo', () => { if (state.id === 'daily' && state.ranked) markDailyUsed(state.daily.day); });

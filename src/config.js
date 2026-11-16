@@ -5,7 +5,7 @@ export const CFG = {
   dataUrl: '/data/riga.json',
   shapesUrl: '/data/riga-shapes.bin.gz', // optional: measured heights + simplified roof meshes (src/shapes.js)
   seed: 1337,
-  mapsRanked: false,   // flip to true once the worker stores/serves per-map boards (client then sends map: <slug>; see src/maps.js)
+  mapsRanked: true,    // the worker stores/serves one board per map (migrations/0004_maps.sql); the client sends map: <slug> (src/modes.js roundRequest, src/scores.js)
 
   hole: {
     startRadius: START_RADIUS,
@@ -171,7 +171,6 @@ export const LIFE = {
 // `?radio=0` hides the button. Not proxied, recorded or re-hosted.
 CFG.radio = {
   enabled: true,
-  hlsJs: 'https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js', // only loaded on click, where the browser has no native HLS (Chrome/Firefox)
   stations: [
     { id: 'lr2', name: 'Latvijas Radio 2', url: 'https://lsm.eu.cdns-redge.media/livehls/o2/lsm-live/live/audio/lr2_radio/live.livx/playlist.m3u8?renditions', type: 'hls', link: 'https://lr2.lsm.lv', linkLabel: 'lr2.lsm.lv' },
   ],

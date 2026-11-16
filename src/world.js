@@ -118,8 +118,10 @@ export class World {
     for (const p of movers) placements.push(p);
     const groups = new Map();
     for (const p of placements) {
-      // trees are chunked into 250 m cells so each chunk can be frustum-culled (the 9000-tree mesh is the biggest triangle cost)
-      const gk = p.kind === 'tree' ? `tree:${Math.floor(p.x / 250)}:${Math.floor(p.z / 250)}` : p.kind;
+      // static props (trees included) are chunked into 250 m cells so each chunk can be frustum-culled: an un-chunked instanced mesh
+      // submits EVERY instance of the whole map each frame (the triangle count of a dense district map was 2-3x what is on screen).
+      // Movers (cars, people, boats...) keep one mesh per kind: they travel across cells and their bounds would go stale.
+      const gk = p.m ? p.kind : `${p.kind}:${Math.floor(p.x / 250)}:${Math.floor(p.z / 250)}`;
       if (!groups.has(gk)) groups.set(gk, []);
       groups.get(gk).push(p);
     }
@@ -127,13 +129,15 @@ export class World {
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
     this.propMeshes = [];
     this.treeMeshes = [];
+    const geoOfKind = new Map();
     const col = new THREE.Color();
     const tintsFor = { car: CAR_TINTS, van: CAR_TINTS, bus: BUS_TINTS, tram: TRAM_TINTS, tree: TREE_TINTS, kiosk: KIOSK_TINTS, parasol: PARASOL_TINTS, stall: STALL_TINTS, bike: BIKE_TINTS, scooter: SCOOTER_TINTS, pigeon: BIRD_TINTS };
     for (const [, list] of groups) {
       const kind = list[0].kind;
       const def = PROP_DEFS[kind];
-      const geo = def.make();
+      let geo = geoOfKind.get(kind); if (!geo) geoOfKind.set(kind, (geo = def.make())); // one geometry per kind, shared by every chunk
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
+      const chunked = !list[0].m;
       mesh.frustumCulled = false;
       mesh.castShadow = !['bike', 'scooter', 'pigeon', 'swan', 'bench', 'bin', 'cafeset'].includes(kind);
       if (kind === 'tree') this.treeMeshes.push(mesh);
@@ -157,7 +161,7 @@ export class World {
       });
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-      if (kind === 'tree') { mesh.computeBoundingSphere(); mesh.frustumCulled = true; }
+      if (chunked) { mesh.computeBoundingSphere(); const bs = mesh.boundingSphere; if (bs) bs.radius += 4; mesh.frustumCulled = true; } // +4 m: objects tilt / slide while falling
       this.scene.add(mesh);
       this.propMeshes.push(mesh);
     }

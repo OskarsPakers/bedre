@@ -4,7 +4,7 @@
 //   - when the round timer starts:  startRound();        // fire and forget; asks the server for {mode, day?} of src/modes.js
 //   - when the round ends:          const res = await submitScore({ name, score, eaten, radius, rank, biggest });
 //                                   // res = { ok, id, mode, rankAllTime, rankToday } or null on failure
-//   - leaderboard screen:           const list = await fetchScores('all', 20, { mode: 'classic' });  // null offline, [] when empty
+//   - leaderboard screen:           const list = await fetchScores('all', 20, { mode: 'classic', map: 'centrs' });  // null offline, [] when empty
 // Every call resolves (never throws) so the game works offline / on plain `vite dev` without the worker. The server
 // only accepts a score ~round-length after startRound(), together with the progress trace of src/trace.js. Free roam
 // and practice rounds never create a server round. Turnstile (optional, off by default) runs only at submit time.
@@ -12,7 +12,7 @@ import { roundRequest } from './modes.js';
 import { getTrace } from './trace.js';
 
 const TIMEOUT_MS = 4000;
-let round = null;          // { roundId, mode, day, turnstileSiteKey }
+let round = null;          // { roundId, mode, map, day, turnstileSiteKey }
 let startSeq = 0;
 /** The last score this client successfully submitted (to highlight its row in the Top scores panel). */
 export let lastSubmission = null;
@@ -39,7 +39,7 @@ export async function startRound() {
   const data = await api('/api/rounds', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(req) });
   if (!data || typeof data.roundId !== 'string') return null;
   if (seq !== startSeq) return null;           // a newer round started meanwhile
-  round = { roundId: data.roundId, mode: data.mode || req.mode, day: data.day || null, turnstileSiteKey: data.turnstileSiteKey || null };
+  round = { roundId: data.roundId, mode: data.mode || req.mode, map: data.map || req.map || 'centrs', day: data.day || null, turnstileSiteKey: data.turnstileSiteKey || null };
   return { roundId: round.roundId, roundSeconds: data.roundSeconds, mode: round.mode, seed: data.seed };
 }
 
@@ -84,19 +84,19 @@ async function turnstileToken(siteKey) {
 export async function submitScore({ name, score, eaten, radius, rank, biggest } = {}) {
   if (!round) return null;
   const r = round;
-  const body = { roundId: r.roundId, mode: r.mode, name, score: Math.round(score), eaten: Math.round(eaten || 0), radius, rank, biggest, trace: getTrace() };
+  const body = { roundId: r.roundId, mode: r.mode, map: r.map, name, score: Math.round(score), eaten: Math.round(eaten || 0), radius, rank, biggest, trace: getTrace() };
   if (r.turnstileSiteKey) { const tok = await turnstileToken(r.turnstileSiteKey); if (tok) body.turnstile = tok; }
   const data = await api('/api/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }, r.turnstileSiteKey ? 15000 : TIMEOUT_MS);
   if (data && data.ok) {
     if (round === r) round = null;             // a round id is single-use
-    lastSubmission = { name: data.name || name, score: Math.round(score), radius, mode: r.mode, day: r.day };
+    lastSubmission = { name: data.name || name, score: Math.round(score), radius, mode: r.mode, map: r.map, day: r.day };
   }
   return data && data.ok ? data : null;
 }
 
-/** opts: { mode: 'classic'|'quick'|'daily'|'online', day: 'YYYY-MM-DD' (daily) } */
+/** opts: { mode: 'classic'|'quick'|'daily'|'online', map: map slug (default centrs), day: 'YYYY-MM-DD' (daily) } */
 export async function fetchScores(period = 'all', limit = 20, opts = {}) {
-  const q = new URLSearchParams({ period, limit: String(limit), mode: opts.mode || 'classic' });
+  const q = new URLSearchParams({ period, limit: String(limit), mode: opts.mode || 'classic', map: opts.map || 'centrs' });
   if (opts.day) q.set('day', opts.day);
   const data = await api(`/api/scores?${q}`, { cache: 'no-store' });
   return data && Array.isArray(data.scores) ? data.scores : null;

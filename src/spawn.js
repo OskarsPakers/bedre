@@ -12,6 +12,7 @@ export class SpawnPicker {
     this.rng = mulberry32(seed);
     const b = world.bounds;
     const isC = !world.data.meta.slug || world.data.meta.slug === 'centrs';
+    this.playerR = isC ? 750 : Math.max(750, 0.4 * Math.min(b.maxX - b.minX, b.maxZ - b.minZ)); // how far from the preferred area the human's start may be
     this.cx = isC ? 0 : (b.minX + b.maxX) / 2; this.cz = isC ? 0 : (b.minZ + b.maxZ) / 2; // preferred player area: Freedom Monument (centre map) / map middle
     const pts = [];
     const margin = 40;
@@ -61,12 +62,12 @@ export class SpawnPicker {
   }
 
   /**
-   * Edible things for a fresh (start-radius) hole around a point: count of untouched objects within 55 m that a
-   * start hole can eat now or after a few bites (fit < 1.5x the start limit). Cached per round (round start only).
+   * Edible things for a fresh (start-radius) hole around a point: count of untouched objects within 60 m that a
+   * start hole can eat right now. Cached per round (round start only).
    */
   _density(c) {
     if (c.round === this.round && c.dens >= 0) return c.dens;
-    c.dens = this._count(c.x, c.z, 55, CFG.hole.startRadius * CFG.swallow.fitRatio * 1.5);
+    c.dens = this._count(c.x, c.z, 60, CFG.hole.startRadius * CFG.swallow.fitRatio); // = what a start hole can eat within 60 m (scripts/spawn-check.mjs wants >= 80)
     c.round = this.round;
     return c.dens;
   }
@@ -95,7 +96,7 @@ export class SpawnPicker {
     const scored = [];
     for (const c of this.pts) {
       const d = Math.hypot(c.x - this.cx, c.z - this.cz);
-      if (d > 750) continue;
+      if (d > this.playerR) continue;
       const dens = this._density(c);
       if (dens < 30) continue;
       let s = Math.min(dens, 140) - d * 0.03 + (c.major ? 6 : 0);
@@ -107,6 +108,8 @@ export class SpawnPicker {
       for (const c of this.pts) { const v = this._density(c); if (v > bd) { bd = v; best = c; } }
       return [best.x, best.z];
     }
+    const rich = scored.filter(([, c]) => c.dens >= 80); // every human start should have >= 80 edible things within 60 m when the map has such spots
+    if (rich.length >= 3) scored.splice(0, scored.length, ...rich);
     scored.sort((a, b) => b[0] - a[0]);
     // choose among the top spots that are at least 80 m apart (variety without giving up quality)
     const top = [];

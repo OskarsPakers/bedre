@@ -38,7 +38,7 @@ export const GLSL_BLD_WINDOWS = `
   }`;
 
 // ---- ground (chained onto the hole-patched material, injected right after <color_fragment>) ---------------
-export const GLSL_GROUND_DECL = 'uniform float uNight;\nuniform float uSnow;\nuniform vec3 uWaterTint;';
+export const GLSL_GROUND_DECL = 'uniform float uNight;\nuniform float uSnow;\nuniform vec3 uWaterTint;\nuniform float uThemeTime;';
 export const GLSL_GROUND = `
 {
   vec3 base = diffuseColor.rgb;
@@ -55,8 +55,18 @@ export const GLSL_GROUND = `
     diffuseColor.rgb = mix(base, sn, uSnow);
   }
   if (uNight > 0.001) {
-    diffuseColor.rgb = mix(diffuseColor.rgb, uWaterTint, wm * uNight * 0.78);
-    totalEmissiveRadiance += uWaterTint * (wm * uNight * 0.12);
+    // river at night: a broad sky-tinted gradient plus faint moving specular streaks instead of one flat navy
+    float wn = wm * uNight;
+    vec2 q = vWXZ;
+    vec2 wq = q + vec2(sin(q.y * 0.045 + uThemeTime * 0.15), sin(q.x * 0.037 - uThemeTime * 0.12)) * 18.0;   // domain warp: no regular dot grid
+    float wave = sin(wq.x * 0.032 + wq.y * 0.62 + uThemeTime * 0.45) * sin(wq.x * 0.075 - wq.y * 0.29 - uThemeTime * 0.3);   // long, thin streaks
+    float grad = 0.5 + 0.5 * sin(q.x * 0.0061 + q.y * 0.0043 + 1.3);
+    vec3 skyTone = uWaterTint + vec3(0.075, 0.095, 0.19);
+    vec3 wcol = mix(uWaterTint, skyTone, grad * 0.85);
+    float streak = smoothstep(0.62, 1.0, wave);
+    wcol += vec3(0.14, 0.18, 0.28) * streak * 0.34;
+    diffuseColor.rgb = mix(diffuseColor.rgb, wcol, wn * 0.8);
+    totalEmissiveRadiance += wcol * (wn * 0.13) + vec3(0.09, 0.12, 0.2) * (streak * wn * 0.2);
   }
 }`;
 

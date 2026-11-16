@@ -140,6 +140,7 @@ async function main() {
         const cap = await page.evaluate(() => document.getElementById('themecap')?.textContent);
         ok(/novembra|November/.test(cap || ''), 'start-screen caption', cap);
         // picker: choose Winter -> persisted + applied; reload keeps it
+        await page.evaluate(() => window.__ui.openOptions());
         await page.click('#themesw button[data-theme="winter"]');
         ok((await page.evaluate(() => window.__theme.id)) === 'winter', 'picker applies winter');
         ok((await page.evaluate(() => localStorage.getItem('bedre.theme'))) === 'winter', 'picker stored');
@@ -178,14 +179,19 @@ async function main() {
       ok(e.fw.active === 0 && !e.fw.visible, `fireworks ended (active ${e.fw.active}, visible ${e.fw.visible})`);
       // a second round: themes switch cleanly, memory stable
       const m0 = await page.evaluate(() => { const i = window.__life.renderer.info.memory; return { g: i.geometries, t: i.textures }; });
-      for (let k = 0; k < 3; k++) {
-        await page.evaluate((k) => { window.__theme.setPick(['winter', 'evening', 'nov18'][k], false); }, k);
-        await page.click('#again').catch(() => {});
-        await page.evaluate(() => window.__game.start());
-        await page.waitForTimeout(1200);
-      }
-      const m1 = await page.evaluate(() => { const i = window.__life.renderer.info.memory; return { g: i.geometries, t: i.textures }; });
-      ok(m1.g <= m0.g + 4 && m1.t <= m0.t + 1, `memory stable across theme switches / rounds: geometries ${m0.g}->${m1.g}, textures ${m0.t}->${m1.t}`);
+      const cycle = async () => {
+        for (let k = 0; k < 3; k++) {
+          await page.evaluate((k) => { window.__theme.setPick(['winter', 'evening', 'nov18'][k], false); }, k);
+          await page.click('#again').catch(() => {});
+          await page.evaluate(() => window.__game.start());
+          await page.waitForTimeout(1200);
+        }
+        return page.evaluate(() => { const i = window.__life.renderer.info.memory; return { g: i.geometries, t: i.textures }; });
+      };
+      // the first cycle may lazily create each theme's own assets once (snow sprite, sky stars, ...); a second identical cycle must not grow anything
+      const m1 = await cycle();
+      const m2 = await cycle();
+      ok(m1.g <= m0.g + 12 && m1.t <= m0.t + 8 && m2.g <= m1.g && m2.t <= m1.t, `memory stable across theme switches / rounds: geometries ${m0.g}->${m1.g}->${m2.g}, textures ${m0.t}->${m1.t}->${m2.t} (first cycle may add the themes' own assets once, the second must not grow)`);
       ok(errors.length === 0, 'fireworks run: no errors', errors.slice(0, 3).join(' | '));
       await close(page);
     }

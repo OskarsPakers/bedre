@@ -4,7 +4,8 @@
 // endpoint + DNT, stats endpoint.   API_PORT=8794 node scripts/smoke-api.mjs
 import http from 'node:http';
 import { buildInto, writeConfig, migrate, sql, startWorker, freshDir, resolve, root, run, cpSync, rmSync, mkdirSync } from './lib-test.mjs';
-import { LIMITS } from '../worker/lib/limits.js';
+import { LIMITS, limitsFor } from '../worker/lib/limits.js';
+import { MAP_SLUGS } from '../tools/maps.mjs';
 import { validateSubmission, expectedSamples } from '../worker/lib/validate.js';
 import { MODES, radiusForMode, rigaDay, dailySeed, shiftDay, isDayString } from '../src/rules.js';
 import { sanitizeName } from '../worker/lib/moderation.js';
@@ -27,7 +28,7 @@ process.on('exit', () => procs.forEach((p) => p.kill()));
 const mkTrace = ({ mode = 'classic', score, eaten = 1, kinds = { building: 1 }, kills = 0, deaths = 0, t = 2 }) => ({
   v: 1, t: [t], s: [score], r: [Math.round(radiusForMode(score, mode) * 100) / 100], e: [eaten], k: [kills], kinds, kills, deaths,
 });
-const gain0 = (mode) => LIMITS.modes[mode].gain[0];
+const gain0 = (mode) => limitsFor('centrs').modes[mode].gain[0];
 const okScore = (mode) => Math.max(5, Math.floor(gain0(mode) * 0.5));
 const susScore = (mode) => Math.floor(gain0(mode) * 2.5);           // between SOFT x2 and HARD x3 (single 2 s interval: stretch 1)
 const badScore = (mode) => Math.ceil(gain0(mode) * 3.5);
@@ -47,17 +48,17 @@ async function main() {
     sql(cfg1, persistU, "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at) VALUES ('Old Timer', 777, 10, 5.5, 2, 'tram', 1700000000)");
     sql(cfg1, persistU, "INSERT INTO rounds (id, created_at, ip_hash, used) VALUES ('old-round', 1700000000, 'x', 1)");
     migrate(config, persistU);   // now the full set (0002 + 0003) on the same DB
-    const row = sql(config, persistU, 'SELECT name, score, mode, day, suspect FROM scores')[0];
-    check('upgrade 0001 -> 0003: old score row becomes classic, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.suspect === 0 && row.day === null, JSON.stringify(row));
-    const rr = sql(config, persistU, "SELECT mode FROM rounds WHERE id='old-round'")[0];
-    check('upgrade: old round row becomes classic', rr && rr.mode === 'classic', JSON.stringify(rr));
+    const row = sql(config, persistU, 'SELECT name, score, mode, map, day, suspect FROM scores')[0];
+    check('upgrade 0001 -> 0004: old score row becomes classic + centrs, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.map === 'centrs' && row.suspect === 0 && row.day === null, JSON.stringify(row));
+    const rr = sql(config, persistU, "SELECT mode, map FROM rounds WHERE id='old-round'")[0];
+    check('upgrade: old round row becomes classic + centrs', rr && rr.mode === 'classic' && rr.map === 'centrs', JSON.stringify(rr));
     const tabs = sql(config, persistU, "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('stats','rate_limits') ORDER BY name").map((r) => r.name);
     check('upgrade: stats + rate_limits tables exist', tabs.join() === 'rate_limits,stats', tabs.join());
     migrate(config, persistU);   // idempotent re-run
     check('migrations re-apply is a no-op', sql(config, persistU, 'SELECT COUNT(*) AS n FROM scores')[0].n === 1);
     migrate(config, persistA); migrate(config, persistB);
     const cols = sql(config, persistA, "SELECT name FROM pragma_table_info('scores')").map((r) => r.name);
-    check('fresh DB has the 0002 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id'].every((c) => cols.includes(c)), cols.join());
+    check('fresh DB has the 0002 + 0004 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id', 'map'].every((c) => cols.includes(c)), cols.join());
   }
 
   const A = await startWorker({ config, persist: persistA, port: PORT, vars: { ROUND_SECONDS_OVERRIDE: 2, RATE_ROUNDS_PER_HOUR: 28, CAP_DAILY: 2 } });
@@ -182,6 +183,43 @@ async function main() {
   check('suspect row stored (suspect=1, reason codes, trace kept) but hidden', flagged.length === 1 && /gain_soft|cap_soft|kind_values/.test(flagged[0].flags) && flagged[0].tl > 20, JSON.stringify(flagged));
   check('rejected rounds stored nothing (exactly 7 rows)', sql(config, persistA, 'SELECT COUNT(*) AS n FROM scores')[0].n === 7);
 
+  // ---- per-map boards (migration 0004): rounds are bound to a map, boards are one per map x mode, daily / online are centre-only
+  {
+    const MIP = 'map-ip';
+    const mr = (b) => newRound(b, MIP);
+    const rP = await mr({ mode: 'classic', map: 'purvciems' }), rDef = await mr({ mode: 'classic' }), rQa = await mr({ mode: 'quick', map: 'agenskalns' });
+    const rMz = await mr({ mode: 'classic', map: 'mezaparks' }), rMis = await mr({ mode: 'classic', map: 'purvciems' });
+    check('rounds: map is echoed (and defaults to centrs)', rP.status === 201 && rP.j.map === 'purvciems' && rDef.status === 201 && rDef.j.map === 'centrs', JSON.stringify([rP.j, rDef.j]));
+    for (const bad of ['nowhere', 5, '', '../centrs', null]) check(`rounds: map ${JSON.stringify(bad)} -> 400`, (await mr({ mode: 'classic', map: bad })).status === 400);
+    check('rounds: daily on a district map -> 400 (centre only)', (await mr({ mode: 'daily', map: 'mezaparks' })).status === 400);
+    check('rounds: daily on centrs with map given -> 201', (await mr({ mode: 'daily', map: 'centrs' })).status === 201);
+    check('map allow-list matches tools/maps.mjs', MAP_SLUGS.includes('centrs') && MAP_SLUGS.length === 4);
+    await sleep(2400);
+    r = await post('/api/scores', { ...body('classic', rMis.j.roundId, okScore('classic')), map: 'agenskalns' }, MIP ? { 'cf-connecting-ip': MIP } : {});
+    check('scores: map field != the round map -> 400', r.status === 400, `${r.status}`);
+    r = await post('/api/scores', { ...body('classic', rMis.j.roundId, okScore('classic')), map: 'zzz' }, { 'cf-connecting-ip': MIP });
+    check('scores: unknown map -> 400', r.status === 400, `${r.status}`);
+    r = await post('/api/scores', { ...body('classic', rP.j.roundId, okScore('classic') + 3), map: 'purvciems', name: 'Purv' }, { 'cf-connecting-ip': MIP }); j = await r.json();
+    check('scores: purvciems classic submit ok, answer names the map', r.status === 201 && j.map === 'purvciems' && j.rankAllTime === 1, JSON.stringify(j));
+    r = await post('/api/scores', { ...body('quick', rQa.j.roundId, okScore('quick')), name: 'Agen' }, { 'cf-connecting-ip': MIP }); j = await r.json();
+    check('scores: map omitted -> the round\'s map (agenskalns quick)', r.status === 201 && j.map === 'agenskalns', JSON.stringify(j));
+    r = await post('/api/scores', { ...body('classic', rMz.j.roundId, okScore('classic')), map: 'mezaparks', name: 'Meza' }, { 'cf-connecting-ip': MIP });
+    check('scores: mezaparks classic submit ok', r.status === 201);
+    const pc = await scores('mode=classic&map=purvciems&period=all'), cc = await scores('mode=classic&period=all'), ac = await scores('mode=classic&map=agenskalns&period=all'), aq = await scores('mode=quick&map=agenskalns&period=all');
+    check('board per map: purvciems classic has only Purv', names(pc).join() === 'Purv' && pc.map === 'purvciems', JSON.stringify(pc));
+    check('board per map: the centre classic board is untouched (3 rows) and default map = centrs', cc.scores.length === 3 && cc.map === 'centrs', JSON.stringify(names(cc)));
+    check('board per map: agenskalns classic empty, agenskalns quick has Agen', ac.scores.length === 0 && names(aq).join() === 'Agen', JSON.stringify([names(ac), names(aq)]));
+    check('boards: unknown map -> 400', (await req('/api/scores?mode=classic&map=zzz')).status === 400);
+    const dq = await scores('mode=daily&map=purvciems&period=all'), oq = await scores('mode=online&map=mezaparks&period=all');
+    check('boards: daily / online on a district map are empty', dq.scores.length === 0 && oq.scores.length === 0);
+    const mrow = sql(config, persistA, "SELECT map FROM scores WHERE name = 'Purv'")[0];
+    check('scores row stores the map column', mrow && mrow.map === 'purvciems', JSON.stringify(mrow));
+    // the plausibility limits are per map: every map has its own table and an unknown slug falls back to the centre
+    check('limits: every map has a table with the three required parts', MAP_SLUGS.every((m) => { const L = limitsFor(m); return L && L.modes.classic && L.modes.quick && L.value && L.valueOther > 0; }));
+    check('limits: daily limits exist for the centre only', !!limitsFor('centrs').modes.daily && MAP_SLUGS.filter((m) => m !== 'centrs').every((m) => !limitsFor(m).modes.daily));
+    check('limits: unknown map falls back to the centre', limitsFor('nope') === limitsFor('centrs'));
+  }
+
   // ---- rate limits (per hashed IP)
   const cap = [];
   for (let i = 0; i < 3; i++) cap.push((await newRound({ mode: 'daily' }, 'cap-ip')).j.roundId);
@@ -258,7 +296,8 @@ async function main() {
   const low = Math.max(10, Math.floor(gain0('classic') * 0.4));
   check('validator: a modest 30-sample round is ok', v(long('classic', low)).verdict === 'ok', JSON.stringify(v(long('classic', low))));
   check('validator: expectedSamples(300)=30, (300.06)=30, (6)=1, (12)=2', expectedSamples(300) === 30 && expectedSamples(300.06) === 30 && expectedSamples(6) === 1 && expectedSamples(12) === 2);
-  check('validator: huge steady gains rejected', v(long('classic', LIMITS.modes.classic.gain[2] * 4)).verdict !== 'ok');
+  check('validator: huge steady gains rejected on every map', MAP_SLUGS.every((m) => v(long('classic', limitsFor(m).modes.classic.gain[2] * 4), 'classic', { map: m }).verdict !== 'ok'));
+  check('validator: huge steady gains rejected', v(long('classic', limitsFor('centrs').modes.classic.gain[2] * 4)).verdict !== 'ok');
   let tr = long('classic', low); tr.t[10] += 5;
   check('validator: sample off its 10 s slot -> reject', v(tr).verdict === 'reject');
   tr = long('classic', low); tr.t.splice(5, 1); tr.s.splice(5, 1); tr.r.splice(5, 1); tr.e.splice(5, 1); tr.k.splice(5, 1);

@@ -1,9 +1,10 @@
 // Top scores panel (Today / This week / All time) + About popover. Names are untrusted: textContent only.
 import { fetchScores, lastSubmission } from './scores.js';
-import { t, fmt, onLang } from './i18n.js';
+import { t, fmt, onLang, getLang } from './i18n.js';
 import { getMode, twistName } from './modes.js';
 import { dailyInfo, todayRiga } from './daily.js';
 import { shiftDay } from './rules.js';
+import { MAPS, activeSlug } from './maps.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,7 +12,7 @@ export function initScoresUi() {
   const panel = $('scores'), about = $('about'), body = $('ts-body'), msg = $('ts-msg'), table = $('ts-table');
   const tabs = [...panel.querySelectorAll('[data-period]')];
   let period = 'day', seq = 0, state = 'loading', rows = [];
-  let smode = 'classic', dayPick = 0; // board mode; daily: 0 = today, -1 = yesterday
+  let smode = 'classic', smap = 'centrs', dayPick = 0; // board mode + map; daily: 0 = today, -1 = yesterday
 
   // mode switch (+ daily day switch and the day's twist), built here so the markup stays in one place
   const tabsEl = panel.querySelector('.tabs');
@@ -24,9 +25,17 @@ export function initScoresUi() {
     return row;
   };
   const modeRow = mkRow('ts-modes', [['classic', 'modeClassic'], ['quick', 'modeQuick'], ['daily', 'modeDaily'], ['online', 'modeOnline']], 'smode', (v) => { smode = v; load(); });
+  // map switch (one board per map x mode); daily and online exist on the centre map only
+  const mapRow = document.createElement('div'); mapRow.className = 'tabs ts-maps'; mapRow.setAttribute('role', 'tablist'); mapRow.setAttribute('aria-label', t('tsMapAria'));
+  for (const m of MAPS) {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.smap = m.slug;
+    b.addEventListener('click', () => { if (!b.disabled) { smap = m.slug; load(); } }); mapRow.append(b);
+  }
+  const mapNote = document.createElement('p'); mapNote.className = 'ts-note';
+  const labelMaps = () => { for (const b of mapRow.children) { const m = MAPS.find((x) => x.slug === b.dataset.smap); b.textContent = getLang() === 'lv' ? m.lv : m.en; } mapNote.textContent = t('tsCentreOnly'); };
   const dayRow = mkRow('ts-days', [[0, 'tabDay'], [-1, 'tabYesterday']], 'dpick', (v) => { dayPick = +v; load(); });
   const twistEl = document.createElement('p'); twistEl.className = 'ts-twist';
-  tabsEl.before(modeRow); tabsEl.after(dayRow, twistEl);
+  tabsEl.before(modeRow, mapRow, mapNote); tabsEl.after(dayRow, twistEl); labelMaps();
   const boardDay = () => shiftDay(todayRiga(), dayPick);
 
   const hasPanelOpen = () => !panel.classList.contains('hidden') || !about.classList.contains('hidden');
@@ -40,7 +49,7 @@ export function initScoresUi() {
     else if (state === 'empty') msg.textContent = t('empty');
     if (state !== 'ok') return;
     let mine = -1;
-    if (lastSubmission && lastSubmission.mode === smode) mine = rows.findIndex((r) => r.name === lastSubmission.name && r.score === lastSubmission.score);
+    if (lastSubmission && lastSubmission.mode === smode && (lastSubmission.map || 'centrs') === smap) mine = rows.findIndex((r) => r.name === lastSubmission.name && r.score === lastSubmission.score);
     rows.forEach((r, i) => {
       const tr = document.createElement('tr');
       if (i === mine) tr.className = 'me';
@@ -60,10 +69,14 @@ export function initScoresUi() {
     for (const b of tabs) b.setAttribute('aria-selected', String(b.dataset.period === period));
     for (const b of modeRow.children) b.setAttribute('aria-selected', String(b.dataset.smode === smode));
     for (const b of dayRow.children) b.setAttribute('aria-selected', String(+b.dataset.dpick === dayPick));
+    const centreOnly = smode === 'daily' || smode === 'online';
+    if (centreOnly) smap = 'centrs';
+    for (const b of mapRow.children) { b.setAttribute('aria-selected', String(b.dataset.smap === smap)); b.disabled = centreOnly && b.dataset.smap !== 'centrs'; }
+    mapNote.style.display = centreOnly ? '' : 'none';
     const daily = smode === 'daily';
     tabsEl.style.display = daily ? 'none' : ''; dayRow.style.display = daily ? '' : 'none'; twistEl.style.display = daily ? '' : 'none';
     if (daily) twistEl.textContent = `${t('tsDaily', { day: boardDay() })} · ${t('tsTwist', { twist: twistName(dailyInfo(boardDay()).twist) })}`;
-    const list = await fetchScores(period, 20, daily ? { mode: smode, day: boardDay() } : { mode: smode });
+    const list = await fetchScores(period, 20, daily ? { mode: smode, map: smap, day: boardDay() } : { mode: smode, map: smap });
     if (my !== seq) return;
     if (list === null) state = 'offline';
     else if (!list.length) state = 'empty';
@@ -75,6 +88,7 @@ export function initScoresUi() {
     about.classList.add('hidden'); panel.classList.remove('hidden'); $('ts-close').focus();
     const m = lastSubmission ? lastSubmission.mode : getMode();
     smode = ['classic', 'quick', 'daily', 'online'].includes(m) ? m : 'classic';
+    smap = lastSubmission && lastSubmission.map ? lastSubmission.map : activeSlug();
     dayPick = 0;
     load();
   }
@@ -93,6 +107,7 @@ export function initScoresUi() {
   }, true);
   onLang(() => {
     for (const b of [...modeRow.children, ...dayRow.children]) b.textContent = t(b.dataset.i18n);
+    labelMaps(); mapRow.setAttribute('aria-label', t('tsMapAria'));
     if (!panel.classList.contains('hidden')) load();
   });
   return { hasPanelOpen, openScores, openAbout };

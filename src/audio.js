@@ -358,13 +358,6 @@ export class AudioEngine {
 }
 
 export function mountMuteButton(audio) {
-  const css = document.createElement('style');
-  css.textContent = `#mute-btn{position:fixed;top:18px;left:calc(50% + 78px);z-index:40;width:38px;height:38px;border-radius:50%;border:0;
-    background:rgba(246,239,223,.92);box-shadow:0 2px 8px rgba(0,0,0,.25);font-size:19px;line-height:38px;padding:0;cursor:pointer;
-    pointer-events:auto;user-select:none}
-    #mute-btn:hover{background:#fff}#mute-btn:active{transform:scale(.94)}
-    @media (max-width:520px){#mute-btn{top:auto;bottom:86px;left:auto;right:12px}}`;
-  document.head.appendChild(css);
   const b = document.createElement('button');
   b.id = 'mute-btn'; b.type = 'button';
   const lab = () => { b.title = t('soundBtn'); b.setAttribute('aria-label', t('soundAria')); };
@@ -373,7 +366,7 @@ export function mountMuteButton(audio) {
   sync(audio.muted);
   audio.onMute.push(sync);
   b.addEventListener('click', (e) => { e.stopPropagation(); audio.unlock(); audio.toggleMute(); b.blur(); });
-  document.body.appendChild(b);
+  (document.getElementById('hud-btns') || document.body).appendChild(b);
   window.addEventListener('keydown', (e) => {
     if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) audio.toggleMute();
   });

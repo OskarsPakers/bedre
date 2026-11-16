@@ -103,7 +103,11 @@ const shot = (page, n) => page.screenshot({ path: path.join(out, `final-${n}.png
   const snap = () => page.evaluate(() => {
     const L = window.__life; let n = 0; L.world.scene ? 0 : 0;
     const scene = L.renderer.info; const sc = window.__scene;
-    return { geo: scene.memory.geometries, tex: scene.memory.textures, programs: scene.programs ? scene.programs.length : 0, objs: L.world.objects.length, calls: scene.render.calls, dom: document.getElementsByTagName('*').length };
+    // geometry uuids in the scene GRAPH (a static mesh that a later round's camera sees for the first time is uploaded to the GPU late, which makes
+    // renderer.info.memory.geometries creep by one without any leak): compare the graph, not the GPU upload count
+    const uuids = new Set(); L.world.scene.traverse((o) => { if (o.geometry) uuids.add(o.geometry.uuid); });
+    window.__uuidSeen = window.__uuidSeen || new Set(); const fresh = [...uuids].filter((u) => !window.__uuidSeen.has(u)).length; uuids.forEach((u) => window.__uuidSeen.add(u));
+    return { geo: scene.memory.geometries, graphGeo: uuids.size, newGraphGeo: fresh, tex: scene.memory.textures, programs: scene.programs ? scene.programs.length : 0, objs: L.world.objects.length, calls: scene.render.calls, dom: document.getElementsByTagName('*').length };
   });
   const snaps = [];
   for (let i = 0; i < 6; i++) {
@@ -113,8 +117,8 @@ const shot = (page, n) => page.screenshot({ path: path.join(out, `final-${n}.png
     if (i < 5) { await page.click('#again'); await page.waitForFunction(() => window.__game.state.phase === 'playing'); }
   }
   console.log('leak snapshots (after each round):', JSON.stringify(snaps));
-  const a = snaps[1], z = snaps[5];
-  check('no growth in geometries / textures / objects / DOM over 5 replays', z.geo <= a.geo && z.tex <= a.tex && z.objs === a.objs && z.dom <= a.dom + 5, JSON.stringify([a, z]));
+  const a = snaps[2], z = snaps[5];   // baseline after a warm-up round
+  check('no growth in scene-graph geometries / textures / objects / DOM over the replays (after a warm-up round)', z.graphGeo <= a.graphGeo && snaps.slice(3).every((x) => x.newGraphGeo === 0) && z.tex <= a.tex + 1 && z.objs === a.objs && z.dom <= a.dom + 5, JSON.stringify([a, z]));
   await ctx.close();
 }
 

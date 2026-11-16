@@ -13,6 +13,7 @@ export class FollowCamera {
     this.zoom = 1;
     try { const z = parseFloat(sessionStorage.getItem('bedre.zoom')); if (z > 0) this.zoom = Math.min(CFG.camera.zoomMax, Math.max(CFG.camera.zoomMin, z)); } catch (e) { /* ignore */ }
     this.lead = new THREE.Vector3(); // smoothed look-ahead offset (movement direction)
+    this.ease = 0;                   // 0..~1.6: theme.js eases the pitch down / zoom out a little while fireworks are in the sky (see Theme.frame)
   }
 
   /** Wheel / pinch zoom multiplier (clamped, remembered for the session). factor > 1 zooms out. */
@@ -48,8 +49,9 @@ export class FollowCamera {
   }
 
   apply() {
-    const d = this.dist, c = this.camera;
-    c.position.set(this.focus.x, this.focus.y + Math.sin(this.elev) * d, this.focus.z + Math.cos(this.elev) * d);
+    const d = this.dist * (1 + this.ease * 0.14), c = this.camera;
+    const el = this.elev - this.ease * 0.2;   // fireworks: up to ~11 deg flatter per 1.0 of ease
+    c.position.set(this.focus.x, this.focus.y + Math.sin(el) * d, this.focus.z + Math.cos(el) * d);
     // look slightly ahead (north) so the hole sits a bit below screen centre
     this._look.set(this.focus.x, 0, this.focus.z - d * 0.08);
     if (camShake.amp > 0) { const k = d * 0.01; c.position.x += camShake.x * k; c.position.y += camShake.y * k; c.position.z += camShake.z * k; this._look.x += camShake.x * k; this._look.z += camShake.z * k; }

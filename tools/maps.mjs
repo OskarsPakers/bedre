@@ -4,7 +4,10 @@
 //   slug      url / folder name; 'centrs' keeps the legacy paths (public/data/riga.json ...)
 //   bounds    local metres (minX, maxX, minZ, maxZ)
 //   focus     [lat, lon, label] a well-known landmark in the middle of the map (start camera, thumbnails, notes)
-//   mult      per-map balance multipliers (props: prop/mover density, value: building value divisor scale, trees: tree budget)
+//   mult      per-map balance multipliers (props: prop/mover density, value: building value divisor scale, trees: tree budget,
+//             people: extra pedestrians (small food at the spawn), bots: bot difficulty scale,
+//             botSpeed: bot speed cap (default 1.04; the sparse forest map needs faster bots to keep up with a perfect player)). Tuned with `MAP=<slug> node scripts/balance.mjs`: a 5:00 round should pace like the centre
+//             (greedy final radius ~120-160 m, best bot 50-75 % of greedy, >= 80 edible objects within 60 m of every player spawn).
 export const ORIGIN = { lat: 56.9515, lon: 24.1133 };
 const M_LAT = 111320, M_LON = 111320 * Math.cos((ORIGIN.lat * Math.PI) / 180);
 export const toLocal = (lat, lon) => [Math.round((lon - ORIGIN.lon) * M_LON), Math.round(-(lat - ORIGIN.lat) * M_LAT)];
@@ -18,20 +21,24 @@ export const MAPS = [
   },
   {
     slug: 'agenskalns', lv: 'Āgenskalns', en: 'Āgenskalns', focus: [56.9357, 24.0710, 'Āgenskalna tirgus'],
-    bounds: around([56.9357, 24.0710], 1300, 1300), mult: { props: 1.3, value: 0.35, trees: 1 },
+    bounds: around([56.9357, 24.0710], 1300, 1300), mult: { props: 1.3, value: 0.34, trees: 1, people: 1.25 },
     notes: 'Wooden-house quarter west of the Daugava: Āgenskalna tirgus, Kalnciema kvartāls, Māras dīķis, Torņakalns edge, Uzvaras parks.',
   },
   {
     slug: 'mezaparks', lv: 'Mežaparks', en: 'Mežaparks', focus: [57.0040, 24.1540, 'Mežaparks'],
-    bounds: around([57.0040, 24.1540], 1300, 1300), mult: { props: 0.9, value: 0.12, trees: 1.6 },
+    bounds: around([57.0040, 24.1540], 1300, 1300), mult: { props: 1.7, value: 0.14, trees: 2.0, bots: 2.0, botSpeed: 1.1, people: 1.25 },
     notes: 'Garden city of villas in pine forest, Lielā estrāde, Rīgas zoo edge, Ķīšezers shore.',
   },
   {
     slug: 'purvciems', lv: 'Purvciems', en: 'Purvciems', focus: [56.9579, 24.1872, 'Arcada Purvciems'],
-    bounds: around([56.9579, 24.1872], 1300, 1300), mult: { props: 2.6, value: 0.25, trees: 1 },
+    bounds: around([56.9579, 24.1872], 1300, 1300), mult: { props: 2.6, value: 0.36, trees: 1, people: 1.3 },
     notes: 'Soviet-era panel-block estate (5/9/12/16 floors): big slabs, courtyards, wide streets.',
   },
 ];
+/** Allow-list of map slugs shared by the client, the build tools and the Worker (POST /api/rounds, /api/scores, GET /api/scores). */
+export const MAP_SLUGS = MAPS.map((m) => m.slug);
+export const DEFAULT_MAP = 'centrs';
+export const isMapSlug = (s) => typeof s === 'string' && MAP_SLUGS.includes(s);
 export const mapBySlug = (s) => MAPS.find((m) => m.slug === s) || MAPS[0];
 /** URLs of a map's files (the centre keeps the legacy flat paths). */
 export function mapPaths(slug) {

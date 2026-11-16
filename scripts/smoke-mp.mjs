@@ -27,6 +27,8 @@ const check = (name, ok, info = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  $
 // One build snapshot: the table is dumped from it AND it is the build that gets served (sources are edited concurrently by other
 // agents, so a separate vite build would drift away from the table).
 if (!process.argv.includes('--skip-table')) run('node', ['tools/mp/build-objects.mjs'], { env: { ...process.env, PORT: process.env.PORT || '5186', MP_KEEP_DIST: 'scripts/.dist-mp' } });
+// the table in public/mp must match the sources (fails loudly when it is stale; with --skip-table it guards the reused build)
+run('node', ['tools/mp/check-objects.mjs']);
 fs.rmSync(state, { recursive: true, force: true });
 // temp wrangler config: same bindings as wrangler.jsonc but its own asset dir (the build above) and a throw-away local D1
 const baseCfg = {

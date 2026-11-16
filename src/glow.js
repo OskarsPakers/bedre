@@ -34,7 +34,7 @@ void main() {
 
 const WARM = new THREE.Color(1.0, 0.7, 0.34);
 const HEAD = new THREE.Color(1.0, 0.95, 0.8);
-const RED = new THREE.Color(0xff2a3a), WHITE = new THREE.Color(1, 1, 1);
+const WARM_WHITE = new THREE.Color(1.0, 0.86, 0.62);
 const CAPACITY_CANDLES = 520;
 const VEH_LEN = { car: 4.6, taxi: 4.6, van: 5.2, bus: 12, trolleybus: 12, trolley: 12, tram: 25 };
 
@@ -56,6 +56,8 @@ export class Glow {
       else if (o.landmark && (o.kind === 'monument' || o.kind === 'freedom' || o.kind === 'laima' || o.kind === 'pylon' || o.kind === 'railarch')) lmObjs.push(o);
       else if (o.mover && VEH_LEN[o.kind] && o.moverM) this.veh.push(o);
     }
+    // soft warm UPLIGHT on a handful of landmarks only (the old red wash read as a pink blob from the steep gameplay camera)
+    lmObjs.sort((a, b) => (b.value || 0) - (a.value || 0)); lmObjs.length = Math.min(lmObjs.length, 10);
     this.nLamp = lampObjs.length * 2;
     this.nWash = lmObjs.length * 2;
     this.nCandle = CAPACITY_CANDLES;
@@ -109,9 +111,9 @@ export class Glow {
       const rec = { o, v: this.iWash + n * 2, h, idx: n };
       for (let k = 0; k < 2; k++) {
         const v = rec.v + k;
-        this.pos[v * 3] = o.x; this.pos[v * 3 + 1] = k === 0 ? Math.min(h * 0.16, 7) : Math.min(h * 0.5, 30); this.pos[v * 3 + 2] = o.z;
-        this.col[v * 4 + 3] = k === 0 ? -0.22 : -0.08;
-        this.baseSize[v] = Math.min(40, Math.max(9, h * (k === 0 ? 0.6 : 0.5)));
+        this.pos[v * 3] = o.x; this.pos[v * 3 + 1] = k === 0 ? 2.2 : Math.min(h * 0.4, 18); this.pos[v * 3 + 2] = o.z;
+        this.col[v * 4 + 3] = k === 0 ? -0.13 : -0.04;
+        this.baseSize[v] = k === 0 ? Math.min(20, Math.max(7, h * 0.3)) : Math.min(14, Math.max(0, h * 0.18));
         this.fx[v * 2] = 0; this.fx[v * 2 + 1] = 0.5;
       }
       this.washes.push(rec); n++;
@@ -135,7 +137,7 @@ export class Glow {
     const c = this.col;
     for (const w of this.washes) {
       let col = WARM;
-      if (festive) col = (w.idx % 3 === 1) ? WHITE : RED;
+      if (festive) col = WARM_WHITE; // 18 Nov: the flags carry the colour, the uplight stays a soft warm white
       for (let k = 0; k < 2; k++) { const v = w.v + k; c[v * 4] = col.r; c[v * 4 + 1] = col.g; c[v * 4 + 2] = col.b; }
     }
     this.aCol.needsUpdate = true;

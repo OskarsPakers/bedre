@@ -431,7 +431,9 @@ export function buildBuildings(data) {
     };
     if (rule && rule.win) Object.assign(winParams, rule.win); // landmark facades (e.g. tall opera windows)
     // Purvciems: Soviet panel blocks = crisp pale boxes with a regular window grid and flat grey roofs (never red mansards)
-    const panel = slug === 'purvciems' && !rule && !it.landmark && (t === 'res' || t === 'com' || t === 'pub' || t === 'oth') && area > 200 && it.h >= 8 && !(rec && rec.style);
+    const panel = slug === 'purvciems' && !rule && (t === 'res' || t === 'com' || t === 'pub' || t === 'oth') && area > 200 && it.h >= 8 && !(rec && rec.style);
+    const bigFlat = slug === 'purvciems' && !rule && !panel && area > 350 && t !== 'rel' && t !== 'aux' && !(rec && rec.style); // big shops / halls: flat grey roofs too
+    if (bigFlat) roofCol.setHex([0x77797c, 0x6e7073, 0x808285][Math.abs((it.x * 3 + it.z * 5) | 0) % 3]);
     if (panel) {
       wallCol.setHex(PANEL_WALLS[Math.abs((it.x * 7 + it.z * 13) | 0) % PANEL_WALLS.length]); it.wallCol = wallCol.getHex();
       Object.assign(winParams, { floorH: 2.8, spacing: 2.7, frac: 1 });
@@ -450,8 +452,8 @@ export function buildBuildings(data) {
       else if (rule && rule.roof) pitchCol = roofCol.clone();
       else if (zone === 'old') pitchCol = new THREE.Color(P.oldTownRoof[hash % P.oldTownRoof.length]);
       else { const r = rng(); pitchCol = new THREE.Color(r < 0.62 ? TILE[hash % TILE.length] : r < 0.93 ? TIN[hash % TIN.length] : TIN_GREEN[hash % TIN_GREEN.length]); }
-      if (panel) pitchCol = roofCol.clone();
-      const flatCol = panel ? roofCol.clone() : rec.roofRGB && rec.style ? pitchCol.clone().multiplyScalar(0.96) : new THREE.Color(TAR[hash % TAR.length]);
+      if (panel || bigFlat) pitchCol = roofCol.clone();
+      const flatCol = panel || bigFlat ? roofCol.clone() : rec.roofRGB && rec.style ? pitchCol.clone().multiplyScalar(0.96) : new THREE.Color(TAR[hash % TAR.length]);
       const specialCol = new THREE.Color(rec.domeRGB ? rec.domeRGB : orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x5a6a74 : 0x5f9d89));
       const accentCol = new THREE.Color(rec.accentRGB || 0xe3b53c);
       const cols = { flat: [flatCol.r, flatCol.g, flatCol.b], pitch: [pitchCol.r, pitchCol.g, pitchCol.b], special: [specialCol.r, specialCol.g, specialCol.b], accent: [accentCol.r, accentCol.g, accentCol.b] };
@@ -513,7 +515,7 @@ export function buildBuildings(data) {
     }
     if (spire) decos.push(spire);
     let mansard = null;
-    if (!panel && !spire && !(rule && rule.deco) && (t === 'res' || t === 'pub' || t === 'oth' || t === 'rel') && h > 7 && h < 40 && hull > 0 && area / hull > 0.82 &&
+    if (!panel && !bigFlat && !spire && !(rule && rule.deco) && (t === 'res' || t === 'pub' || t === 'oth' || t === 'rel') && h > 7 && h < 40 && hull > 0 && area / hull > 0.82 &&
         minSide > 8 && ring.length <= 24 && rng() < 0.7) {
       mansard = { s: 0.62 + rng() * 0.12, rh: Math.min(4.5, 0.22 * minSide + 0.5) };
     }

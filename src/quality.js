@@ -29,6 +29,7 @@ export class Quality {
     this.level = this.auto ? groundTier() : NAMES.indexOf(q);
     this.frames = 0; this.sum = 0; this.hiccup = 0;
     this.upLock = 0; this.lastUp = -999; this.goodWindows = 0; this.badWindows = 0;
+    this.failedUps = 0; this.ceiling = 2; // an up-step that does not hold doubles the wait (60, 120, ... s); the second failure pins the lower level for the session
     this.t = 0;
     this.history = [];
     this.avgMs = 0;
@@ -81,12 +82,15 @@ export class Quality {
     if (avg > 1000 / Q.downFps) {
       this.badWindows++; this.goodWindows = 0;
       if (this.badWindows >= 2 && this.level > 0) {
-        if (this.t - this.lastUp < 20) this.upLock = this.t + 60; // stepping up did not hold
+        if (this.t - this.lastUp < 20) { // stepping up did not hold: back off exponentially, then give up on that level (no oscillation)
+          this.failedUps++; this.upLock = this.t + 60 * Math.pow(2, this.failedUps - 1);
+          if (this.failedUps >= 2) this.ceiling = Math.max(0, this.level - 1);
+        }
         this.apply(this.level - 1); this.badWindows = 0;
       }
     } else if (avg < 1000 / Q.upFps) {
       this.goodWindows++; this.badWindows = 0;
-      if (this.goodWindows >= 4 && this.level < 2 && this.t > this.upLock) {
+      if (this.goodWindows >= 4 && this.level < this.ceiling && this.t > this.upLock) {
         this.lastUp = this.t; this.apply(this.level + 1); this.goodWindows = 0;
       }
     } else { this.badWindows = 0; this.goodWindows = 0; }
@@ -94,6 +98,6 @@ export class Quality {
 
   info(renderer = this.renderer) {
     const i = renderer.info;
-    return { level: this.name, auto: this.auto, avgMs: +this.avgMs.toFixed(1), calls: i.render.calls, triangles: i.render.triangles, history: this.history };
+    return { level: this.name, auto: this.auto, ceiling: this.ceiling, failedUps: this.failedUps, avgMs: +this.avgMs.toFixed(1), calls: i.render.calls, triangles: i.render.triangles, history: this.history };
   }
 }

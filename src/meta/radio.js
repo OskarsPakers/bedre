@@ -8,16 +8,18 @@ import { onLang } from '../i18n.js';
 const KEY = 'bedre.radio';
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 const CSS = `
-#radio-btn{position:fixed;top:18px;left:calc(50% + 124px);z-index:40;width:38px;height:38px;border-radius:50%;border:0;background:rgba(246,239,223,.92);box-shadow:0 2px 8px rgba(0,0,0,.25);font-size:18px;line-height:38px;padding:0;cursor:pointer;pointer-events:auto;user-select:none}
-#radio-btn:hover{background:#fff}#radio-btn:active{transform:scale(.94)}#radio-btn[aria-pressed=true]{background:var(--terra,#d9552f);box-shadow:0 0 0 3px #fff,0 2px 8px rgba(0,0,0,.3)}
-#radio-btn.err{opacity:.6}
-body:has(#start:not(.hidden)) #radio-btn,body:has(#results:not(.hidden)) #radio-btn{top:auto;bottom:18px;left:auto;right:18px}
-body:has(#start:not(.hidden)) #radio-pop,body:has(#results:not(.hidden)) #radio-pop{top:auto;bottom:64px;left:auto;right:18px}
-#radio-pop{position:fixed;top:64px;left:calc(50% + 40px);z-index:40;background:rgba(246,239,223,.96);border-radius:12px;padding:7px 12px 8px;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:12px;font-weight:700;color:#2a2622;width:232px;pointer-events:auto}
+#radio-pop{position:fixed;top:calc(var(--gap) + var(--btn) + 8px);left:calc(50% + 100px);z-index:41;background:rgba(246,239,223,.97);border-radius:12px;padding:8px 12px 9px;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:12px;font-weight:700;color:#2a2622;width:230px;pointer-events:auto}
+#radio-pop[hidden]{display:none}
 #radio-pop .rn{display:flex;justify-content:space-between;gap:8px;align-items:baseline}#radio-pop .rn b{font-size:13px}
 #radio-pop a{color:#b8401f;text-decoration:underline;text-underline-offset:2px}#radio-pop .rs{color:#6b6258;font-weight:600;font-size:11px;min-height:1.2em}
-#radio-pop input[type=range]{width:100%;margin:5px 0 0;accent-color:#d9552f;height:18px}
-@media (max-width:520px){#radio-btn{top:auto;bottom:182px;left:auto;right:12px}#radio-pop{top:auto;bottom:176px;left:auto;right:58px;width:200px}}
+#radio-pop .rrow{display:flex;gap:8px;align-items:center;margin-top:4px}
+#radio-pop input[type=range]{flex:1;min-width:0;accent-color:#d9552f;height:18px;margin:0}
+#radio-pop button{font:inherit;font-size:11px;font-weight:800;border:0;border-radius:8px;padding:5px 10px;background:#2b3a4a;color:#f6efdf;cursor:pointer;min-height:28px}
+#radio-btn.err{opacity:.6}
+body:has(#start:not(.hidden)) #radio-pop,body:has(#results:not(.hidden)) #radio-pop{top:auto;left:auto;right:var(--gap);bottom:calc(var(--gap) + var(--btn) + 8px)}
+body:has(#scores:not(.hidden),#about:not(.hidden),#meta-panel:not(.hidden),#mp-lobby:not(.hidden),#pause:not(.hidden)) #radio-pop{visibility:hidden}
+@media (max-width:900px),(max-height:520px){#radio-pop{top:auto;left:auto;right:calc(var(--gap) + var(--btn) + 8px);bottom:80px;width:200px}}
+@media (max-height:520px){#radio-pop{bottom:12px}}
 `;
 
 export function initRadio() {
@@ -39,16 +41,19 @@ export function initRadio() {
   const pop = el('div'); pop.id = 'radio-pop'; pop.hidden = true;
   const rn = el('div', 'rn'); const nameB = el('b'); const link = el('a'); link.target = '_blank'; link.rel = 'noopener noreferrer'; rn.append(nameB, link);
   const status = el('div', 'rs'); const slider = el('input'); slider.type = 'range'; slider.min = '0'; slider.max = '1'; slider.step = '0.02'; slider.value = String(vol);
-  pop.append(rn, status, slider);
-  document.body.append(btn, pop);
+  const stopBtn = el('button'); stopBtn.id = 'radio-stop'; stopBtn.type = 'button';
+  const rrow = el('div', 'rrow'); rrow.append(slider, stopBtn);
+  pop.append(rn, status, rrow);
+  (document.getElementById('hud-btns') || document.body).append(btn); document.body.append(pop);
 
-  let on = false, hls = null, pausedByGame = false, ducked = false, errTimer = 0;
+  let on = false, hls = null, pausedByGame = false, ducked = false, errTimer = 0, popTimer = 0;
+  const showPop = (v, autoHide = 0) => { pop.hidden = !v; clearTimeout(popTimer); if (v && autoHide) popTimer = setTimeout(() => { pop.hidden = true; }, autoHide); };
   const A = LIFE.audio;
 
   const label = () => {
     btn.title = on ? mt('radioStop') : `${mt('radioBtn')}: ${station.name}`; btn.setAttribute('aria-label', btn.title);
     nameB.textContent = station.name; link.textContent = station.linkLabel || station.link; link.href = station.link;
-    slider.setAttribute('aria-label', mt('radioVol'));
+    slider.setAttribute('aria-label', mt('radioVol')); stopBtn.textContent = '■ ' + mt('radioStopLbl');
   };
   label(); onLang(label);
 
@@ -65,21 +70,17 @@ export function initRadio() {
     clearTimeout(errTimer); errTimer = setTimeout(() => { if (on) stop(true); }, 4000);
   }
 
-  function loadHls() {
-    if (window.Hls) return Promise.resolve(window.Hls);
-    return new Promise((res, rej) => {
-      const s = document.createElement('script'); s.src = C.hlsJs; s.async = true; s.crossOrigin = 'anonymous';
-      s.onload = () => (window.Hls ? res(window.Hls) : rej(new Error('hls missing'))); s.onerror = () => rej(new Error('hls load failed'));
-      document.head.appendChild(s);
-    });
-  }
+  // hls.js is a bundled dependency (the light build: audio HLS only), loaded with a dynamic import on the first click only where the
+  // browser has no native HLS (Chrome / Firefox). It stays out of the main chunk and no third-party script is ever fetched.
+  const loadHls = () => import('hls.js/dist/hls.light.mjs').then((m) => m.default || m.Hls);
 
   async function start() {
     on = true; pausedByGame = false; btn.classList.remove('err');
-    btn.setAttribute('aria-pressed', 'true'); pop.hidden = false; setStatus(mt('radioLoading')); label();
+    btn.setAttribute('aria-pressed', 'true'); showPop(true, 7000); setStatus(mt('radioLoading')); label();
     audio.dataset.station = station.id; audio.dataset.src = station.url;
     try {
-      const native = audio.canPlayType('application/vnd.apple.mpegurl');
+      const forceJs = new URLSearchParams(location.search).get('hlsjs') === '1'; // test hook: exercise the bundled hls.js path even where HLS is native
+      const native = forceJs ? '' : audio.canPlayType('application/vnd.apple.mpegurl');
       if (station.type === 'hls' && !native) {
         const Hls = await loadHls();
         if (!on) return;
@@ -97,11 +98,12 @@ export function initRadio() {
     try { audio.pause(); } catch { /* ignore */ }
     if (hls) { try { hls.destroy(); } catch { /* ignore */ } hls = null; }
     audio.removeAttribute('src'); try { audio.load(); } catch { /* ignore */ }
-    btn.setAttribute('aria-pressed', 'false'); btn.classList.remove('err'); pop.hidden = true; setStatus(''); label(); duck(false);
+    btn.setAttribute('aria-pressed', 'false'); btn.classList.remove('err'); showPop(false); setStatus(''); label(); duck(false);
     if (!quiet) persist();
   }
-  btn.addEventListener('click', (e) => { e.stopPropagation(); btn.blur(); if (on) stop(); else start(); persist(); });
-  slider.addEventListener('input', () => { vol = +slider.value; audio.volume = vol; persist(); });
+  btn.addEventListener('click', (e) => { e.stopPropagation(); btn.blur(); if (!on) { start(); persist(); } else showPop(pop.hidden, 7000); }); // playing: the button toggles the station card; stopping is its Stop button
+  stopBtn.addEventListener('click', (e) => { e.stopPropagation(); stop(); });
+  slider.addEventListener('input', () => { vol = +slider.value; audio.volume = vol; persist(); showPop(true, 7000); });
   audio.addEventListener('error', () => { if (on && audio.error) fail(); });
   audio.addEventListener('playing', () => { btn.classList.remove('err'); clearTimeout(errTimer); setStatus(mt('radioBy')); });
 

@@ -67,8 +67,11 @@
       <div class="bar"><div id="size-fill"></div></div>
     </div>
     <button id="end-free" type="button" data-i18n="endBtn">End</button>
-    <button id="pause-btn" type="button" data-i18n-title="pauseBtn" title="Pause (Esc)"><i></i></button>
     <div id="attrib">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</div>
+  </div>
+  <!-- round buttons: one tidy row (desktop) / column (phones); sound + radio are appended by audio.js / radio.js -->
+  <div id="hud-btns">
+    <button id="pause-btn" type="button" data-i18n-title="pauseBtn" title="Pause (Esc)"><i></i></button>
   </div>
 
   <div id="tags"></div>
@@ -83,44 +86,68 @@
   <div id="joystick"><div id="joy-knob"></div></div>
 
   <div id="start" class="panel">
-    <div class="panel-inner">
+    <div class="panel-inner start-card">
       <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="lv">LV</button><button type="button" data-lang="en">EN</button></div>
-      <div class="logo"><span class="logo-hole"></span><span class="logo-text">BEDRE</span></div>
-      <div class="sub">Rīga</div>
-      <p class="blurb" data-i18n="blurb"></p>
-      <label class="namebox"><span data-i18n="yourName">Your name</span><input id="name" type="text" maxlength="14" data-i18n-ph="namePh" placeholder="Tu" autocomplete="off" spellcheck="false" /></label>
-      <div class="modesw" id="modesw" role="radiogroup" data-i18n-title="modesAria">
-        <button type="button" role="radio" data-mode="classic" data-i18n="modeClassic">Classic</button>
-        <button type="button" role="radio" data-mode="quick" data-i18n="modeQuick">Quick</button>
-        <button type="button" role="radio" data-mode="daily" data-i18n="modeDaily">Daily</button>
-        <button type="button" role="radio" data-mode="free" data-i18n="modeFree">Free roam</button>
+      <div class="start-head">
+        <div class="logo"><span class="logo-hole"></span><span class="logo-text">BEDRE</span></div>
+        <div class="sub">Rīga</div>
+        <p class="blurb" data-i18n="blurb"></p>
       </div>
-      <p class="mode-desc" id="mode-desc"></p>
-      <p class="how" data-i18n="how"></p>
-      <button id="play" class="btn" disabled>Loading map&hellip;</button>
-      <div class="linkrow">
-        <button id="open-scores" class="link" type="button" data-i18n="topScores">Top scores</button>
-        <button id="open-about" class="link" type="button" data-i18n="about">About</button>
+      <div class="start-main">
+        <label class="namebox"><span data-i18n="yourName">Your name</span><input id="name" type="text" maxlength="14" data-i18n-ph="namePh" placeholder="Tu" autocomplete="off" spellcheck="false" /></label>
+        <div class="modesw" id="modesw" role="radiogroup" data-i18n-title="modesAria">
+          <button type="button" role="radio" data-mode="classic" data-i18n="modeClassic">Classic</button>
+          <button type="button" role="radio" data-mode="quick" data-i18n="modeQuick">Quick</button>
+          <button type="button" role="radio" data-mode="daily" data-i18n="modeDaily">Daily</button>
+          <button type="button" role="radio" data-mode="free" data-i18n="modeFree">Free roam</button>
+        </div>
+        <p class="mode-desc" id="mode-desc"></p>
+        <button id="play" class="btn" disabled>Loading map&hellip;</button>
+        <!-- net/ui.js adds the Online button + #mp-status right after #play -->
+        <div class="opts" id="opts">
+          <button id="opts-toggle" class="opts-sum" type="button" aria-expanded="false" aria-controls="opts-body"><span class="opts-lbl" data-i18n="optsTitle">Options</span><span class="opts-val" id="opts-val"></span><span class="chev" aria-hidden="true"></span></button>
+          <div id="opts-body" class="opts-body" hidden></div>
+        </div>
+        <div class="linkrow">
+          <button id="open-scores" class="link" type="button" data-i18n="topScores">Top scores</button>
+          <button id="open-about" class="link" type="button" data-i18n="about">About</button>
+        </div>
       </div>
       <p class="credits"><span data-i18n="footInspired">Inspired by Hole.io</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</p>
     </div>
   </div>
 
   <div id="results" class="panel hidden">
-    <div class="panel-inner">
-      <div class="sub" data-i18n="timeUp">Time's up</div>
-      <div class="place" id="r-place">1st of 8</div>
-      <div class="result-score"><span id="r-score">0</span><small data-i18n="points">points</small></div>
-      <div class="globalrank" id="r-global"></div>
-      <table class="rank" id="r-table"><tbody></tbody></table>
-      <ul class="stats">
-        <li><span data-i18n="rEaten">Swallowed</span><b id="r-eaten">0</b></li>
-        <li><span data-i18n="rKills">Holes swallowed</span><b id="r-kills">0</b></li>
-        <li><span data-i18n="rDeaths">Swallowed by others</span><b id="r-deaths">0</b></li>
-        <li><span data-i18n="rBiggest">Biggest thing</span><b id="r-biggest">&mdash;</b></li>
-        <li><span data-i18n="rSize">Final size</span><b id="r-size">&mdash;</b></li>
-      </ul>
-      <button id="again" class="btn" data-i18n="playAgain">Play again</button>
+    <div class="panel-inner results-card">
+      <div class="r-head">
+        <div class="sub" data-i18n="timeUp">Time's up</div>
+        <div class="place" id="r-place">1st of 8</div>
+        <div class="result-score"><span id="r-score">0</span><small data-i18n="points">points</small></div>
+        <div class="globalrank" id="r-global"></div>
+      </div>
+      <div class="rtabs" id="rtabs" role="tablist">
+        <button type="button" role="tab" data-rt="score" aria-selected="true" data-i18n="rtScore">Result</button>
+        <button type="button" role="tab" data-rt="map" aria-selected="false" data-i18n="rtMap">Map</button>
+        <button type="button" role="tab" data-rt="ach" aria-selected="false"><span data-i18n="rtAch">Progress</span><em id="rt-badge" class="badge" hidden></em></button>
+      </div>
+      <div class="rpanes">
+        <section class="rpane" id="rt-score" data-pane="score">
+          <table class="rank" id="r-table"><tbody></tbody></table>
+          <ul class="stats">
+            <li><span data-i18n="rEaten">Swallowed</span><b id="r-eaten">0</b></li>
+            <li><span data-i18n="rKills">Holes swallowed</span><b id="r-kills">0</b></li>
+            <li><span data-i18n="rDeaths">Swallowed by others</span><b id="r-deaths">0</b></li>
+            <li><span data-i18n="rBiggest">Biggest thing</span><b id="r-biggest">&mdash;</b></li>
+            <li class="wide"><span data-i18n="rSize">Final size</span><b id="r-size">&mdash;</b></li>
+          </ul>
+        </section>
+        <section class="rpane" id="rt-map" data-pane="map" hidden></section>
+        <section class="rpane" id="rt-ach" data-pane="ach" hidden></section>
+      </div>
+      <div class="r-actions">
+        <button id="again" class="btn" data-i18n="playAgain">Play again</button>
+        <div class="r-share" id="r-share"></div>
+      </div>
       <div class="linkrow"><button id="open-scores2" class="link" type="button" data-i18n="topScores">Top scores</button></div>
     </div>
   </div>
@@ -153,11 +180,13 @@
     <div class="panel-inner">
       <h2 id="ab-title" data-i18n="aboutTitle">About</h2>
       <ul class="about-list">
+        <li class="howto" data-i18n="how"></li>
         <li><span data-i18n="aboutInspired">Inspired by</span> <a href="https://holeio.com" target="_blank" rel="noopener noreferrer">Hole.io</a>.</li>
         <li><span data-i18n="aboutBuildings"></span> (<a href="https://georiga.eu" target="_blank" rel="noopener">georiga.eu</a>)</li>
         <li><span data-i18n="aboutOsm"></span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors (ODbL)</a>.</li>
         <li><span data-i18n="aboutGround"></span> (<a href="https://www.lgia.gov.lv/en/atvertie-dati" target="_blank" rel="noopener">LĢIA</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</li>
         <li data-i18n="aboutBuilt"></li>
+        <li><span data-i18n="aboutRadio"></span> (<a href="https://lr2.lsm.lv" target="_blank" rel="noopener">lr2.lsm.lv</a>)</li>
         <li class="note" data-i18n="aboutPrivacy"></li>
         <li class="note" data-i18n="aboutNote"></li>
       </ul>

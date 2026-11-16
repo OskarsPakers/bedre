@@ -142,3 +142,10 @@ Review shots: `PORT=5181 GPU=1 node scripts/detail-shots.mjs [slug ...] [--prefi
 Hero flags added later: `ortho` (outline edges within 14 degrees of the dominant axes are squared), `ringTol` (eave-line simplification, m), `fit` / `opts` (planar / mesher option overrides), `barrel` (parametric half-elliptic vault over the footprint's oriented box, the Central Market pavilions),
 `stepGable` (gabled body + stepped brick gables, the House of the Blackheads); facade style `4` = glass curtain wall (cool tint, fine horizontal bands). Heroes are always measured at 0.5 m (`notableSet`).
 Library (Mūkusalas iela 3, id 49629679, 12.5k m^2, one cadastre piece, hmax 70.8 m) and Saules akmens (tall tower is `49639844`, Balasta dambis 15, 120.6 m; the earlier id `49639106`, 78 m, is Preses nams) are curated that way.
+
+## Districts (maps)
+All scripts take `--map=<slug>` (`agenskalns`, `mezaparks`, `purvciems`; default `centrs`): `node build-detail.mjs analyze --set=all --map=<slug>`, `assemble --variant=grid --map=<slug>` (-> `data/riga-detail-<slug>.json`),
+`node build-meshes.mjs --map=<slug>` (-> `public/data/<slug>/riga-shapes.bin.gz`, resolved by the client through `CFG.shapesUrl`). The analysis cache is shared by cadastre id. Heroes carry `map: '<slug>'`;
+review shots: `MAP=<slug> PORT=5181 GPU=1 node scripts/detail-shots.mjs` -> `scripts/out/district-<slug>-shapes-*.png`.
+Measured 2026-11: reality-mesh coverage Āgenskalns 82 % of buildings (5876/7166), Mežaparks 98 % (1843/1871), Purvciems 18 % (617/3379: the rest keeps pipeline heights). Download 700 + 423 + 120 MB.
+Purvciems (`data.meta.slug === 'purvciems'` in `src/buildings.js`): res/com/pub boxes >= 8 m and > 200 m^2 get pale panel colours + a regular 2.8 m x 2.7 m window grid, big boxes (> 350 m^2) get flat grey roofs, no mansards.

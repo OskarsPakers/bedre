@@ -14,6 +14,7 @@ import { bindAnalytics } from './analytics.js';
 import { initMeta } from './meta/progress.js';
 import { initRadio } from './meta/radio.js';
 import { initPwa } from './meta/pwa.js';
+import { initUi } from './ui.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
@@ -54,7 +55,7 @@ function webglOk() {
 import { applyMap, initMapPicker, applyMapRules } from './maps.js';
 
 async function boot() {
-  applyMap(); initMapPicker(); // selected district (?map= / remembered): file URLs + balance multipliers, picker on the start screen
+  applyMap(); initMapPicker(); initUi(); // selected district (?map= / remembered): file URLs + balance multipliers, picker on the start screen
   if (!webglOk()) { fail('noWebgl'); return; }
   const canvas = $('c');
   let renderer;
@@ -97,7 +98,7 @@ async function boot() {
   initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
   initMeta({ game, world }).catch((e) => console.warn('[meta]', e)); // album, achievements, % meter, recap, share (src/meta/)
   initRadio(); initPwa();
-  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden)');
+  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden)');
 
   game.hud.setReady(true, t('play'));
   onLang(() => { if (!$('play').disabled) $('play').textContent = t('play'); });

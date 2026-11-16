@@ -4,7 +4,7 @@ import { CFG } from '../config.js';
 import { bus } from '../events.js';
 import { t, kindName, onLang, getLang } from '../i18n.js';
 import { placeText } from '../hud.js';
-import { mt, lname } from './strings.js';
+import { mt, lname, aname, asub } from './strings.js';
 import { load, save, saveSoon } from './store.js';
 import { loadAreas, getAreas, areaAt } from './districts-names.js';
 import { buildAlbum, collect, collectedCount, renderAlbum } from './album.js';
@@ -16,24 +16,10 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 
 const CSS = `
-#meta-pct{position:absolute;top:84px;left:50%;transform:translateX(-50%);min-width:150px;background:rgba(246,239,223,.93);border-radius:10px;padding:4px 10px 6px;box-shadow:0 3px 10px rgba(43,34,24,.2);font-size:11px;font-weight:700;color:var(--ink2);text-align:center;pointer-events:none;white-space:nowrap}
-#meta-pct b{color:var(--ink);font-variant-numeric:tabular-nums}#meta-pct b.me{color:var(--terra2)}
-#meta-pct .bar2{height:5px;border-radius:4px;background:var(--cream2);margin-top:3px;position:relative;overflow:hidden}
-#meta-pct .bar2 i{position:absolute;left:0;top:0;bottom:0;background:#8aa0b4;display:block}#meta-pct .bar2 i.me{background:var(--terra)}
-#open-progress{position:absolute;top:6px;left:10px;padding:3px 9px;border-radius:999px;border:2px solid var(--cream2);font-size:11px;font-weight:800;letter-spacing:.04em;text-decoration:none;color:var(--ink2);background:transparent}#open-progress:hover{background:#fff;color:var(--terra2)}
-@media (max-width:560px){#open-progress{position:static;border:0;font-size:14px;padding:6px 4px;color:var(--terra2);text-decoration:underline;text-underline-offset:3px}}
-#meta-area{position:fixed;left:50%;top:116px;transform:translateX(-50%);z-index:20;pointer-events:none;text-align:center;color:#fff;text-shadow:0 2px 0 rgba(43,34,24,.5),0 0 14px rgba(0,0,0,.45);opacity:0}
-#meta-area.show{animation:metaarea 2.8s ease-out forwards}#meta-area .an{display:inline;font-size:22px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}#meta-area .as{display:inline;margin-left:10px;font-size:12px;font-weight:700;letter-spacing:.1em;opacity:.92}
-@keyframes metaarea{0%{opacity:0;transform:translate(-50%,-8px)}12%{opacity:1;transform:translate(-50%,0)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-4px)}}
-#meta-toasts{position:fixed;left:50%;bottom:98px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(440px,calc(100vw - 24px))}
-.meta-toast{pointer-events:auto;background:var(--slate);color:var(--cream);padding:9px 16px 9px 12px;border-radius:14px;font-weight:700;font-size:14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center;animation:metat .35s ease-out;border-bottom:3px solid var(--terra)}
-.meta-toast.out{opacity:0;transition:opacity .4s}.meta-toast i{font-style:normal;font-size:20px;line-height:1}.meta-toast button{font:inherit;font-weight:800;background:var(--terra);color:#fff;border:0;border-radius:8px;padding:4px 10px;cursor:pointer}
+.meta-toast{pointer-events:auto;background:var(--slate);color:var(--cream);padding:9px 16px 9px 12px;border-radius:14px;font-weight:700;font-size:14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center;animation:metat .35s ease-out;border-bottom:3px solid var(--terra);max-width:100%}
+.meta-toast span{min-width:0;overflow-wrap:anywhere}
+.meta-toast.out{opacity:0;transition:opacity .4s}.meta-toast i{font-style:normal;font-size:20px;line-height:1}.meta-toast button{font:inherit;font-weight:800;background:var(--terra);color:#fff;border:0;border-radius:8px;padding:6px 12px;min-height:32px;cursor:pointer}
 @keyframes metat{from{opacity:0;transform:translateY(10px)}}
-#meta-panel{z-index:35;background:radial-gradient(ellipse at center,rgba(43,58,74,.55),rgba(30,38,48,.85))}
-#meta-panel .panel-inner{max-width:580px;text-align:left}#meta-panel h2{text-align:center}
-.mp-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
-.mp-tabs button{font:inherit;font-size:14px;font-weight:800;padding:6px 14px;border-radius:999px;border:2px solid var(--cream2);background:transparent;color:var(--ink2);cursor:pointer}
-.mp-tabs button[aria-selected=true]{background:var(--slate);border-color:var(--slate);color:var(--cream)}
 .mp-body{max-height:min(54vh,470px);overflow-y:auto;margin-bottom:14px;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:2px}
 .mp-count{font-weight:800;font-size:15px;margin-bottom:5px}
 .mp-bar{height:10px;border-radius:6px;background:var(--cream2);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.15);margin-bottom:10px}.mp-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--terra),#f08a3c);border-radius:6px}
@@ -48,16 +34,7 @@ const CSS = `
 .mp-aic{font-size:22px;color:#b7ad9a;line-height:1.1}.mp-arow.got .mp-aic{color:#d9a52f}.mp-abody{flex:1;min-width:0}
 .mp-aname{font-weight:800;font-size:14px}.mp-adesc{font-size:12px;color:var(--ink2);font-weight:600;margin-bottom:4px}
 .mp-aprog{display:flex;gap:8px;align-items:center;font-size:11px;font-weight:700;color:var(--ink2)}
-@media (max-width:560px){#meta-pct{min-width:0;width:98px;padding:3px 6px 5px;font-size:9.5px;top:82px}#meta-area{top:112px;white-space:nowrap}#meta-area .an{font-size:17px}#meta-area .as{display:none}.mp-grid{grid-template-columns:repeat(2,1fr)}#meta-toasts{bottom:84px}}
-#meta-recap{margin:12px 0 14px;text-align:left}#meta-recap h3{margin:0 0 6px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
-#meta-recap canvas{display:block;width:100%;height:auto;border-radius:10px;box-shadow:inset 0 0 0 2px var(--cream2)}
-#meta-recap .rc-cap{font-size:11px;color:var(--ink2);font-weight:600;margin:3px 0 8px}
-#meta-recap .rc-leg{display:flex;gap:12px;font-size:11px;font-weight:700;color:var(--ink2);margin-top:3px}.rc-leg i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
-#meta-recap .rc-big{font-size:15px;font-weight:800;margin:8px 0 4px;color:var(--slate)}
-#meta-recap .rc-chips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 8px}.rc-chip{background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;box-shadow:inset 0 0 0 2px var(--cream2)}.rc-chip b{color:var(--terra2)}
-#meta-recap .rc-sec{font-size:12px;font-weight:800;color:var(--ink2);margin-top:6px}
-#meta-recap .rc-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-.btn.alt{background:var(--slate);box-shadow:0 4px 0 #1d2833;font-size:16px;padding:9px 22px}.btn.alt:hover:not(:disabled){box-shadow:0 3px 0 #1d2833}
+@media (max-width:560px){.mp-grid{grid-template-columns:repeat(2,1fr)}}
 `;
 
 export async function initMeta({ game, world }) {
@@ -89,11 +66,13 @@ export async function initMeta({ game, world }) {
     });
   };
   resetRound();
+  // rounds that used debug hooks / URL overrides never unlock anything (free roam and daily practice still count)
+  const debugRound = () => !!game.unranked && game.unranked !== 'free' && game.unranked !== 'practice' && !window.__metaAllowDebug;
   const defs = makeDefs({ R, album, churchIds, oldTown: oldTown && oldTown.id, levelMax: CFG.levels.length });
 
   // ---- DOM: HUD meter, area banner, toasts -------------------------------------------------------------------
   const pct = el('div'); pct.id = 'meta-pct';
-  const pctTxt = el('div'); const barBox = el('div', 'bar2'); const bAll = el('i'); const bMe = el('i', 'me'); barBox.append(bAll, bMe); pct.append(pctTxt, barBox);
+  const pctTxt = el('div', 'pl'); const barBox = el('div', 'bar2'); const bAll = el('i'); const bMe = el('i', 'me'); barBox.append(bAll, bMe); pct.append(pctTxt, barBox);
   ($('hud') || document.body).appendChild(pct);
   const banner = el('div'); banner.id = 'meta-area'; const bn = el('div', 'an'); const bs = el('div', 'as'); banner.append(bn, bs); document.body.appendChild(banner);
   const toasts = el('div'); toasts.id = 'meta-toasts'; toasts.setAttribute('aria-live', 'polite'); document.body.appendChild(toasts);
@@ -101,35 +80,48 @@ export async function initMeta({ game, world }) {
   const fmtPct = (v) => (v < 10 ? v.toFixed(1) : String(Math.round(v)));
   const drawPct = () => {
     pctTxt.replaceChildren();
-    const a = el('span', '', mt('pctRiga') + ' '); const b1 = el('b', '', fmtPct(R.pctAll) + '%');
-    const sep = el('span', '', ' · ' + mt('pctYou') + ' '); const b2 = el('b', 'me', fmtPct(R.pctMe) + '%');
-    pctTxt.append(a, b1, sep, b2);
+    const a = el('span'); a.append(el('span', 'l-full', mt('pctRiga') + ' '), el('span', 'l-short', mt('pctRigaShort') + ' '), el('b', '', fmtPct(R.pctAll) + '%'));
+    const c = el('span'); c.append(el('span', 'l-full', mt('pctYou') + ' '), el('span', 'l-short', mt('pctYouShort') + ' '), el('b', 'me', fmtPct(R.pctMe) + '%'));
+    pctTxt.append(a, c);
     bAll.style.width = Math.min(100, R.pctAll * 4) + '%'; bMe.style.width = Math.min(100, R.pctMe * 4) + '%';
     pct.dataset.all = R.pctAll.toFixed(3); pct.dataset.me = R.pctMe.toFixed(3);
   };
   drawPct();
 
+  // at most 2 toasts visible; the rest wait in a queue. Nothing is queued while the results panel is up (the panel lists the items instead).
+  const MAXT = 2, queue = []; let shown = 0;
+  const resultsUp = () => { const r = $('results'); return !!r && !r.classList.contains('hidden'); };
+  function pump() {
+    while (shown < MAXT && queue.length) {
+      const q = queue.shift(); if (q.cancelled) continue;
+      shown++; toasts.append(q.d);
+      const done = () => { q.d.classList.add('out'); setTimeout(() => { q.d.remove(); shown = Math.max(0, shown - 1); pump(); }, 450); };
+      q.close = done;
+      if (!q.opts.sticky) setTimeout(done, q.opts.ms || 3200);
+    }
+  }
   function toast(icon, text, opts = {}) {
-    const d = el('div', 'meta-toast'); const i = el('i', '', icon); const s = el('span', '', text); d.append(i, s);
+    if (resultsUp() && !opts.sticky) return null;
+    const d = el('div', 'meta-toast'); const i = el('i', '', icon); const s2 = el('span', '', text); d.append(i, s2);
     if (opts.action) { const b = el('button', '', opts.action.label); b.type = 'button'; b.addEventListener('click', opts.action.fn); d.append(b); }
-    toasts.append(d);
-    while (toasts.children.length > 5) toasts.firstChild.remove();
-    if (!opts.sticky) setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 450); }, opts.ms || 3800);
+    if (queue.length > 6) queue.shift();
+    queue.push({ d, opts }); pump();
     return d;
   }
+  const clearToasts = () => { for (const q of queue) q.cancelled = true; queue.length = 0; for (const c of [...toasts.children]) c.remove(); shown = 0; };
   window.__metaToast = toast;
 
   function showArea(a) {
-    bn.textContent = lname(a);
+    bn.textContent = aname(a);
     const i = areaIdx.get(a.id);
     const p = (100 * R.areaMe[i]) / Math.max(1, areaTotal[i]);
-    bs.textContent = mt('areaIn', { n: fmtPct(p) });
+    bs.textContent = (asub(a) ? asub(a) + ' · ' : '') + mt('areaIn', { n: fmtPct(p) });
     banner.dataset.area = a.id;
     banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
   }
 
   const unlockToast = (d) => { R.newAch.push(d.id); toast('★', mt('achUnlocked', { name: achName(d) }), { ms: 4600 }); };
-  const evalAch = () => evaluate(defs, unlockToast);
+  const evalAch = () => { if (!debugRound()) evaluate(defs, unlockToast); };
 
   // ---- events --------------------------------------------------------------------------------------------------------
   const normKind = (k) => String(k || '').replace(/^person\d+$/, 'person');
@@ -138,7 +130,7 @@ export async function initMeta({ game, world }) {
     R.all += o.value;
     const ai = objArea[o.id];
     if (ai >= 0) R.areaAll[ai] += o.value;
-    if (!hole.isPlayer) return;
+    if (!hole.isPlayer || debugRound()) return;
     R.me += o.value;
     if (ai >= 0) R.areaMe[ai] += o.value;
     const k = normKind(o.kind); R.kinds[k] = (R.kinds[k] || 0) + 1;
@@ -224,12 +216,13 @@ export async function initMeta({ game, world }) {
   }
   function buildRecap() {
     const res = game._res; if (!res) return;
-    const old = $('meta-recap'); if (old) old.remove();
+    const mapPane = $('rt-map'), achPane = $('rt-ach'), shareBox = $('r-share');
+    if (!mapPane || !achPane || !shareBox) return;
+    mapPane.replaceChildren(); achPane.replaceChildren(); shareBox.replaceChildren();
     const sec = el('section'); sec.id = 'meta-recap';
-    sec.append(el('h3', '', mt('recapTitle')));
     const rec = recapData();
     const map = el('canvas'); map.id = 'meta-recap-map'; drawRecapMap(map, rec, 560);
-    sec.append(map, el('div', 'rc-cap', mt('recapMap')));
+    sec.append(el('h3', '', mt('recapTitle')), map, el('div', 'rc-cap', mt('recapMap')));
     const spark = el('canvas'); spark.id = 'meta-recap-spark'; drawSpark(spark, rec);
     sec.append(spark);
     const leg = el('div', 'rc-leg'); const l1 = el('span'); const i1 = el('i'); i1.style.background = rec.color; l1.append(i1, mt('recapYou'));
@@ -240,29 +233,35 @@ export async function initMeta({ game, world }) {
     if (rows.length) {
       sec.append(el('div', 'rc-sec', mt('recapAreas')));
       const ch = el('div', 'rc-chips'); ch.id = 'meta-recap-areas';
-      for (const r of rows) { const c = el('span', 'rc-chip', lname(r.a) + ' '); c.append(el('b', '', fmtPct(r.pct) + '%')); ch.append(c); }
+      for (const r of rows) { const c = el('span', 'rc-chip', aname(r.a) + (asub(r.a) ? ' (' + asub(r.a) + ')' : '') + ' '); c.append(el('b', '', fmtPct(r.pct) + '%')); ch.append(c); }
       sec.append(ch);
     }
+    mapPane.append(sec);
+    // progress tab: new album objects + new achievements (instead of in-round toasts)
+    const ach = el('section'); ach.id = 'meta-recap-new';
     const list = (title, items) => {
       if (!items.length) return;
-      sec.append(el('div', 'rc-sec', title));
+      const w = el('div'); w.append(el('div', 'rc-sec', title));
       const ch = el('div', 'rc-chips');
-      for (const s of items) ch.append(el('span', 'rc-chip', s));
-      sec.append(ch);
+      for (const x of items) ch.append(el('span', 'rc-chip', x));
+      w.append(ch); ach.append(w);
     };
-    const nAlb = el('div'); nAlb.id = 'meta-recap-new';
     list(mt('recapNewAlbum'), R.newAlbum.map((id) => lname(album.entries.find((e) => e.id === id))));
     list(mt('recapNewAch'), R.newAch.map((id) => achName(defs.find((d) => d.id === id))));
-    const btns = el('div', 'rc-btns');
+    if (!ach.children.length) ach.append(el('p', 'rc-empty', t('rtNone')));
+    const open2 = el('div', 'linkrow'); const pb = el('button', 'link', '★ ' + mt('myProgress')); pb.type = 'button'; pb.addEventListener('click', () => open());
+    open2.append(pb); ach.append(open2);
+    achPane.append(ach);
+    const n = R.newAlbum.length + R.newAch.length;
+    const badge = $('rt-badge'); if (badge) { badge.textContent = String(n); badge.hidden = !n; }
     const sb = el('button', 'btn alt', '⤴ ' + mt('share')); sb.type = 'button'; sb.id = 'meta-share';
     const cb = el('button', 'btn alt', mt('copyLink')); cb.type = 'button'; cb.id = 'meta-copy';
     sb.addEventListener('click', async () => {
       sb.disabled = true;
       try { const r = await shareCard(makeCard(), mt('shareText', { pct: fmtPct(R.pctMe), score: Math.floor(res.score) })); sb.dataset.result = r; } finally { sb.disabled = false; }
     });
-    cb.addEventListener('click', async () => { const ok = await copyLink(); if (ok) toast('🔗', mt('copied'), { ms: 1800 }); });
-    btns.append(sb, cb); sec.append(btns);
-    const again = $('again'); if (again) again.before(sec); else $('results').firstElementChild.append(sec);
+    cb.addEventListener('click', async () => { const ok = await copyLink(); if (ok) toast('🔗', mt('copied'), { ms: 1800, sticky: true }); });
+    shareBox.append(sb, cb);
     recapInfo = true;
   }
   function makeCard() {
@@ -277,17 +276,20 @@ export async function initMeta({ game, world }) {
   bus.on('roundEnd', () => {
     banner.classList.remove('show');
     const res = game._res;
+    clearToasts();
     const st = load();
     R.pctAll = (100 * R.all) / total; R.pctMe = (100 * R.me) / total;
     R.won = !!res && res.rank === 1;
     R.survived = R.deaths === 0;
-    st.ctr.rounds++; if (R.won) st.ctr.wins++;
-    const best = st.best; if (R.pctMe > (best.pct || 0)) best.pct = R.pctMe;
-    if (res && res.score > (best.score || 0)) best.score = res.score;
+    if (!debugRound()) {
+      st.ctr.rounds++; if (R.won) st.ctr.wins++;
+      const best = st.best; if (R.pctMe > (best.pct || 0)) best.pct = R.pctMe;
+      if (res && res.score > (best.score || 0)) best.score = res.score;
+    }
     drawPct(); evalAch(); save();
     buildRecap();
   });
-  bus.on('introStart', () => { const old = $('meta-recap'); if (old) old.remove(); recapInfo = null; });
+  bus.on('introStart', () => { clearToasts(); for (const id of ['rt-map', 'rt-ach', 'r-share']) { const e = $(id); if (e) e.replaceChildren(); } const bd = $('rt-badge'); if (bd) bd.hidden = true; recapInfo = null; });
 
   // ---- "My progress" panel + entry buttons ---------------------------------------------------------------------------
   const panel = el('div', 'panel hidden'); panel.id = 'meta-panel'; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true');
@@ -318,7 +320,7 @@ export async function initMeta({ game, world }) {
 
   const mkBtn = (id) => { const b = el('button', 'link', ''); b.type = 'button'; b.id = id; b.dataset.metaOpen = '1'; b.addEventListener('click', () => open()); return b; };
   const btns = [];
-  for (const [sel, id] of [['#start', 'open-progress'], ['#results', 'open-progress2']]) {
+  for (const [sel, id] of [['#start', 'open-progress']]) {
     const host = document.querySelector(sel); if (!host) continue;
     const row = host.querySelector('.linkrow') || (() => { const r = el('div', 'linkrow'); host.querySelector('.panel-inner').append(r); return r; })();
     const b = mkBtn(id); btns.push(b);

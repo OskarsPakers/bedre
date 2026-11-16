@@ -274,19 +274,8 @@ export class ThemeManager {
 
   // ---- start-screen picker (injected, no index.html edit) -------------------------------------------------
   mountPicker() {
-    const host = document.querySelector('#start .panel-inner');
-    const play = document.getElementById('play');
-    if (!host || !play) return;
-    if (!document.getElementById('theme-css')) {
-      const css = document.createElement('style');
-      css.id = 'theme-css';
-      css.textContent = `.themesw{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin:0 0 16px}
-.themesw .tl{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2,#6b655b);margin-right:4px}
-.themesw button{font:inherit;font-size:12px;font-weight:800;letter-spacing:.04em;padding:5px 11px;border-radius:999px;border:2px solid var(--cream2,#e6dcc6);background:transparent;color:var(--ink2,#6b655b);cursor:pointer}
-.themesw button[aria-pressed="true"]{background:var(--slate,#2b3a4a);color:var(--cream,#f6efdf);border-color:var(--slate,#2b3a4a)}
-.themecap{font-size:12px;color:var(--ink2,#6b655b);margin:-8px 0 14px;min-height:1.2em}`;
-      document.head.appendChild(css);
-    }
+    const host = document.getElementById('opts-body');
+    if (!host) return;
     const box = document.createElement('div');
     box.className = 'themesw'; box.setAttribute('role', 'group'); box.id = 'themesw';
     const lab = document.createElement('span'); lab.className = 'tl'; box.appendChild(lab);
@@ -298,7 +287,7 @@ export class ThemeManager {
       box.appendChild(b); this.pickBtns[p] = b;
     }
     const cap = document.createElement('div'); cap.className = 'themecap'; cap.id = 'themecap';
-    host.insertBefore(box, play); host.insertBefore(cap, play);
+    host.append(box, cap);
     this.pickLabel = lab; this.pickCap = cap;
     onLang(() => this._updatePicker());
   }
@@ -424,6 +413,14 @@ export class ThemeManager {
         }
       }
       this.fw.update(dt);
+    }
+    // fireworks are invisible at the steep gameplay camera: while a volley is in the sky ease the pitch / zoom a little (least intrusive option;
+    // the round-end finale gets a proper wide shot behind the results panel), then settle back
+    {
+      const ended = game.phase === 'ended' && !!this.finale || (game.phase === 'ended' && this.fw.active() > 0);
+      const want = !this.T.fireworks || game.paused ? 0 : ended ? 1.6 : (this.fw.active() > 0 ? 0.55 : 0);
+      cam.ease += (want - cam.ease) * (1 - Math.exp(-(want > cam.ease ? 2.2 : 0.9) * dt));
+      if (Math.abs(cam.ease) < 0.002) cam.ease = 0;
     }
     // flash decay + apply to light + sky
     if (this.flash > 0.001) this.flash *= Math.exp(-4.5 * dt); else this.flash = 0;

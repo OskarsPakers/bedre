@@ -23,9 +23,10 @@ const merge = (parts) => mergeGeometries(parts, false);
 
 function person(shirt, pants) {
   return merge([
-    part(new THREE.CapsuleGeometry(0.17, 0.5, 2, 6), pants, 0, 0.5, 0),
-    part(new THREE.CapsuleGeometry(0.22, 0.4, 2, 6), shirt, 0, 1.2, 0),
-    part(new THREE.SphereGeometry(0.16, 6, 5), 0xe6b99a, 0, 1.72, 0),
+    // 90 triangles (was 168): people are the most numerous prop on the dense district maps and only ~2 m tall on screen
+    part(new THREE.CapsuleGeometry(0.17, 0.5, 1, 5), pants, 0, 0.5, 0),
+    part(new THREE.CapsuleGeometry(0.22, 0.4, 1, 5), shirt, 0, 1.2, 0),
+    part(new THREE.SphereGeometry(0.16, 5, 4), 0xe6b99a, 0, 1.72, 0),
   ]);
 }
 
@@ -40,7 +41,7 @@ function car(body = WHITE, taxi = false) {
     box(2.0, 0.08, 1.5, body, -0.25, 1.62, 0),
     ...(taxi ? [box(0.55, 0.16, 0.28, 0xfff3c4, -0.25, 1.74, 0), box(4.22, 0.1, 1.82, 0x1b1b1b, 0, 0.84, 0)] : []),
     ...[[1.3, 0.85], [-1.3, 0.85], [1.3, -0.85], [-1.3, -0.85]].map(([x, z]) =>
-      part(new THREE.CylinderGeometry(0.33, 0.33, 0.25, 8), dark, x, 0.33, z, Math.PI / 2)),
+      part(new THREE.CylinderGeometry(0.33, 0.33, 0.25, 6), dark, x, 0.33, z, Math.PI / 2)),
   ]);
 }
 

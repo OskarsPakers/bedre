@@ -73,6 +73,8 @@ export class OnlineUi {
     document.body.append(p);
     this.lobby = p;
     this.leaveBtn = leave;
+    // Esc = Leave (like the other panels' Esc = close); the lobby is a modal panel
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !p.classList.contains('hidden')) { e.stopPropagation(); leave.click(); } }, true);
   }
 
   onLeave(fn) { this._build(); this.leaveBtn.addEventListener('click', fn); }
@@ -108,7 +110,7 @@ export class OnlineUi {
     } else { run.classList.add('hidden'); $('mp-note').textContent = ''; }
   }
 
-  showLobby(v) { this._build(); this.lobby.classList.toggle('hidden', !v); if (!v) this._last = null; }
+  showLobby(v) { this._build(); this.lobby.classList.toggle('hidden', !v); if (!v) this._last = null; else this.leaveBtn.focus({ preventScroll: true, focusVisible: false }); }
 
   /** Connection indicator (in-game): state 'ok' | 'warn' | 'bad'. */
   net(state, text) {

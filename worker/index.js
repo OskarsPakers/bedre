@@ -1,15 +1,16 @@
 // BEDRE — Rīga: API (Cloudflare Worker + D1). No dependencies. Everything outside /api/* is served from static
 // assets (env.ASSETS).
 //
-//   POST /api/rounds   {mode, day?}  -> {roundId, roundSeconds, mode, day?, seed, turnstileSiteKey?}
-//   POST /api/scores   {roundId,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,rankAllTime,rankToday}
-//   GET  /api/scores   ?mode=classic|quick|daily|online&period=all|week|day[&day=YYYY-MM-DD][&limit=20]
+//   POST /api/rounds   {mode, map?, day?}  -> {roundId, roundSeconds, mode, map, day?, seed, turnstileSiteKey?}   (map = slug, default 'centrs')
+//   POST /api/scores   {roundId,map?,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,map,rankAllTime,rankToday}
+//   GET  /api/scores   ?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=YYYY-MM-DD][&limit=20]
 //   POST /api/e        cookieless analytics beacon {d:{key:n}}           (worker/lib/analytics.js)
 //   GET  /api/stats    ?days=30 aggregated counters                      (public, or bearer STATS_KEY)
 //
 // Anti-cheat = plausibility + friction (worker/lib/validate.js), NOT proof: the game runs in the browser.
 // See README "Anti-cheat" for the model and what stays bypassable.
 import { MODES, CLIENT_MODES, BOARD_MODES, dailySeed, rigaDay, isDayString, shiftDay } from '../src/rules.js';
+import { MAP_SLUGS, DEFAULT_MAP, isMapSlug } from '../tools/maps.mjs';
 import { json, err, now, readJson, sameOrigin, intIn, ipHashOf } from './lib/util.js';
 import { sanitizeName, sanitizeLabel } from './lib/moderation.js';
 import { insertScore, rankOf, listScores, purgeStale } from './lib/db.js';
@@ -46,6 +47,9 @@ async function createRound(request, env) {
   }
   const mode = body.mode === undefined ? 'classic' : body.mode;
   if (typeof mode !== 'string' || !CLIENT_MODES.includes(mode)) return err(400, 'mode must be classic, quick or daily');
+  const map = body.map === undefined ? DEFAULT_MAP : body.map;
+  if (!isMapSlug(map)) return err(400, `map must be one of ${MAP_SLUGS.join(', ')}`);
+  if (mode === 'daily' && map !== DEFAULT_MAP) return err(400, 'the daily challenge is only played on the centre map');
   const t = now();
   let day = null, seed;
   if (mode === 'daily') {
@@ -62,10 +66,10 @@ async function createRound(request, env) {
   const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND created_at > ?').bind(ipHash, t - 3600).first();
   if (row.n >= envInt(env, 'RATE_ROUNDS_PER_HOUR', MAX_ROUNDS_PER_HOUR)) return err(429, 'too many rounds, try again later');
   const roundId = crypto.randomUUID();
-  await env.DB.prepare('INSERT INTO rounds (id, created_at, ip_hash, used, mode, day, seed) VALUES (?, ?, ?, 0, ?, ?, ?)')
-    .bind(roundId, t, ipHash, mode, day, seed).run();
+  await env.DB.prepare('INSERT INTO rounds (id, created_at, ip_hash, used, mode, day, seed, map) VALUES (?, ?, ?, 0, ?, ?, ?, ?)')
+    .bind(roundId, t, ipHash, mode, day, seed, map).run();
   await purgeStale(env, t);
-  const out = { roundId, roundSeconds: roundSeconds(env, mode), mode, seed };
+  const out = { roundId, roundSeconds: roundSeconds(env, mode), mode, map, seed };
   if (day) out.day = day;
   const site = turnstileSiteKey(env);
   if (site) out.turnstileSiteKey = site;
@@ -92,12 +96,14 @@ async function submitScore(request, env) {
   }
   if (typeof body.roundId !== 'string' || body.roundId.length > 64) return err(400, 'invalid roundId');
   if (body.mode !== undefined && (typeof body.mode !== 'string' || !CLIENT_MODES.includes(body.mode))) return err(400, 'mode not accepted from clients');
+  if (body.map !== undefined && !isMapSlug(body.map)) return err(400, 'invalid map');
 
   const t = now();
-  const round = await env.DB.prepare('SELECT created_at, used, mode, day, seed, ip_hash FROM rounds WHERE id = ?').bind(body.roundId).first();
+  const round = await env.DB.prepare('SELECT created_at, used, mode, day, seed, ip_hash, map FROM rounds WHERE id = ?').bind(body.roundId).first();
   if (!round) return err(403, 'unknown round');
   if (round.used) return err(409, 'round already submitted');
   if (body.mode !== undefined && body.mode !== round.mode) return err(400, 'mode does not match the round');
+  if (body.map !== undefined && body.map !== round.map) return err(400, 'map does not match the round');
   if (!CLIENT_MODES.includes(round.mode)) return err(403, 'round mode not submittable');
   const len = roundSeconds(env, round.mode);
   const age = t - round.created_at;
@@ -120,22 +126,22 @@ async function submitScore(request, env) {
   const claim = await env.DB.prepare('UPDATE rounds SET used = 1 WHERE id = ? AND used = 0').bind(body.roundId).run();
   if (!claim.meta.changes) return err(409, 'round already submitted');
 
-  const check = validateSubmission({ mode: round.mode, seconds: len, age, score, eaten, radius, rank, trace: body.trace });
-  console.log(JSON.stringify({ ev: 'score_check', mode: round.mode, verdict: check.verdict, reasons: check.reasons }));
+  const check = validateSubmission({ mode: round.mode, map: round.map, seconds: len, age, score, eaten, radius, rank, trace: body.trace });
+  console.log(JSON.stringify({ ev: 'score_check', mode: round.mode, map: round.map, verdict: check.verdict, reasons: check.reasons }));
   if (check.verdict === 'reject') return err(422, 'score failed plausibility checks', { reasons: check.reasons });
 
   const tr = body.trace;
   const { id, name: stored } = await insertScore(env, {
-    mode: round.mode, day: round.day, name, score, eaten, radius, rank, biggest,
+    mode: round.mode, map: round.map, day: round.day, name, score, eaten, radius, rank, biggest,
     suspect: check.verdict === 'suspect' ? 1 : 0, flags: check.reasons.join(',') || null,
     trace: JSON.stringify(tr), roundId: body.roundId, kills: tr.kills, deaths: tr.deaths, createdAt: t,
   });
   const dayStart = t - (t % 86400);
   let rAll, rToday;
-  if (round.mode === 'daily') rAll = rToday = await rankOf(env, { mode: 'daily', day: round.day, score });
-  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, score }), rankOf(env, { mode: round.mode, score, since: dayStart })]);
+  if (round.mode === 'daily') rAll = rToday = await rankOf(env, { mode: 'daily', map: round.map, day: round.day, score });
+  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, map: round.map, score }), rankOf(env, { mode: round.mode, map: round.map, score, since: dayStart })]);
   await purgeStale(env, t);
-  const out = { ok: true, id, name: stored, mode: round.mode, rankAllTime: rAll, rankToday: rToday };
+  const out = { ok: true, id, name: stored, mode: round.mode, map: round.map, rankAllTime: rAll, rankToday: rToday };
   if (round.day) out.day = round.day;
   return json(out, 201);
 }
@@ -143,6 +149,9 @@ async function submitScore(request, env) {
 async function getScores(url, env) {
   const mode = url.searchParams.get('mode') || 'classic';
   if (!BOARD_MODES.includes(mode)) return err(400, 'mode must be classic, quick, daily or online');
+  const map = url.searchParams.get('map') || DEFAULT_MAP;
+  if (!isMapSlug(map)) return err(400, `map must be one of ${MAP_SLUGS.join(', ')}`);
+  if ((mode === 'daily' || mode === 'online') && map !== DEFAULT_MAP) return json({ mode, map, period: url.searchParams.get('period') || 'all', scores: [] }, 200, { 'cache-control': 'public, max-age=15' });
   const period = url.searchParams.get('period') || 'all';
   if (!['all', 'week', 'day'].includes(period)) return err(400, 'period must be all, week or day');
   let limit = parseInt(url.searchParams.get('limit') || '20', 10);
@@ -155,8 +164,8 @@ async function getScores(url, env) {
     if (!isDayString(day)) return err(400, 'invalid day');
   }
   const since = period === 'day' ? t - (t % 86400) : period === 'week' ? t - 7 * 86400 : 0;
-  const scores = await listScores(env, { mode, day, since, limit });
-  const out = { mode, period, scores };
+  const scores = await listScores(env, { mode, map, day, since, limit });
+  const out = { mode, map, period, scores };
   if (day) out.day = day;
   return json(out, 200, { 'cache-control': 'public, max-age=15' });
 }

@@ -32,6 +32,8 @@ async function main() {
   });
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, acceptDownloads: true });
   await ctx.route('**/api/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  // the tests drive the game with debug hooks (which flag a round unranked): allow progress for them unless the URL says ?strictdebug=1
+  await ctx.addInitScript(() => { window.__metaAllowDebug = !location.search.includes('strictdebug'); });
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
@@ -77,9 +79,16 @@ async function main() {
   await sleep(1200);
   check('radio popup shows station + broadcaster link', (await rp.locator('#radio-pop').innerText()).includes('Latvijas Radio 2') && (await rp.locator('#radio-pop a').getAttribute('href')) === 'https://lr2.lsm.lv');
   await rp.setViewportSize({ width: 1280, height: 720 }); await sleep(300); await rp.screenshot({ path: path.join(out, 'meta-radio.png'), clip: { x: 560, y: 0, width: 520, height: 130 } });
-  await rp.click('#radio-btn'); check('radio click again stops it', await rp.evaluate(() => !window.__radio.on));
+  await rp.click('#radio-btn'); check('radio click while playing toggles the station card (still playing)', await rp.evaluate(() => window.__radio.on));
+  await rp.click('#radio-pop').catch(() => {}); await rp.evaluate(() => { document.getElementById('radio-pop').hidden = false; }); await rp.click('#radio-stop'); check('radio Stop button stops it', await rp.evaluate(() => !window.__radio.on));
   await rp.close();
 
+  // ---- debug hooks never unlock anything ---------------------------------------------------------------------------
+  await open('autostart=1&intro=0&strictdebug=1');
+  await page.evaluate(() => { try { localStorage.removeItem('bedre.meta.v1'); } catch {} });
+  await open('autostart=1&intro=0&strictdebug=1');
+  const dbg = await page.evaluate(() => { const e = window.__meta.album.entries.find((x) => x.id === 'powder') || window.__meta.album.entries[0]; window.__game.setRadius(40); window.__game.teleport(e.x, e.z); window.__game.step(1.5); const st = JSON.parse(localStorage.getItem('bedre.meta.v1') || 'null'); return { album: st ? Object.keys(st.album).length : 0, ach: st ? Object.keys(st.ach).length : 0, pct: window.__meta.pct.me, ctr: st ? st.ctr.buildings || 0 : 0 }; });
+  check('rounds flagged unranked by debug hooks unlock no album entries / achievements / progress', dbg.album === 0 && dbg.ach === 0 && dbg.pct === 0 && dbg.ctr === 0, JSON.stringify(dbg));
   // ---- gameplay: album, achievements, % meter, area banner ---------------------------------------------------------
   await open('autostart=1&intro=0');
   await page.evaluate(() => { try { localStorage.removeItem('bedre.meta.v1'); } catch {} });
@@ -142,7 +151,7 @@ async function main() {
   const first = await page.evaluate(() => { const e = window.__meta.album.entries.find((x) => x.id === 'dome') || window.__meta.album.entries[1]; return { x: e.x, z: e.z }; });
   await page.evaluate((f) => { const g = window.__game; g.setTarget(f.x + 150, f.z + 80); g.step(3); g.setRadius(45); g.teleport(f.x, f.z); g.step(2); g.setTarget(f.x - 100, f.z + 260); g.step(8); }, first);
   await page.waitForFunction(() => window.__game.state.phase === 'ended', null, { timeout: 30000 });
-  await page.waitForSelector('#meta-recap-map', { timeout: 10000 });
+  await page.waitForSelector('#meta-recap-map', { state: 'attached', timeout: 10000 });
   const rc = await page.evaluate(() => {
     const c = document.getElementById('meta-recap-map'); const g = c.getContext('2d'); const d = g.getImageData(0, 0, c.width, c.height).data;
     const set = new Set(); for (let i = 0; i < d.length; i += 4 * 37) set.add((d[i] >> 4) * 256 + (d[i + 1] >> 4) * 16 + (d[i + 2] >> 4));
@@ -152,6 +161,10 @@ async function main() {
   check('recap map renders (non-blank) with a recorded path + eaten footprints', rc.colors > 12 && rc.samples >= 4 && rc.foot > 0, JSON.stringify(rc));
   check('recap growth sparkline drawn', rc.sparkPx > 300);
   await sleep(500);
+  check('results panel has Result / Map / Progress tabs, Play again visible, no toasts over it', (await page.locator('#rtabs [data-rt]').count()) === 3 && (await page.isVisible('#again')) && (await page.locator('#meta-toasts .meta-toast').count()) === 0);
+  await shot('results-score');
+  await page.click('#rtabs [data-rt=ach]'); await sleep(150); await shot('results-progress');
+  await page.click('#rtabs [data-rt=map]'); await sleep(150);
   await page.locator('#meta-recap').scrollIntoViewIfNeeded(); await shot('results-recap');
   await page.locator('#meta-recap').screenshot({ path: path.join(out, 'meta-recap-section.png') });
 

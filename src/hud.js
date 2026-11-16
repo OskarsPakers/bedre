@@ -172,7 +172,7 @@ export class Hud {
     $('sw-t').textContent = String(Math.max(1, Math.ceil(secs)));
   }
 
-  showPause(v) { $('pause').classList.toggle('hidden', !v); }
+  showPause(v) { $('pause').classList.toggle('hidden', !v); if (v) setTimeout(() => { try { $('resume').focus({ preventScroll: true, focusVisible: false }); } catch (e) { /* ignore */ } }, 0); }
 
   showStart(v) { this.el.start.classList.toggle('hidden', !v); }
   setReady(ready, text) { this.el.play.disabled = !ready; if (text) this.el.play.textContent = text; }
@@ -208,6 +208,7 @@ export class Hud {
       }
     }
     this.el.results.classList.toggle('hidden', !v);
+    if (v) setTimeout(() => { try { $('again').focus({ preventScroll: true, focusVisible: false }); } catch (e) { /* ignore */ } }, 50); // keyboard users land on Play again
   }
 }
 

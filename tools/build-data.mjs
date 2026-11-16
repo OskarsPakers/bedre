@@ -1021,7 +1021,7 @@ async function main() {
     landmarks.push({ n: c.n, x: r1(c.pt[0]), z: r1(c.pt[1]), h: r1(Math.max(2.5, Math.min(130, h))) });
   }
   // curated additions (buildings without a usable OSM name): matched by cadastre address
-  for (const c of !IS_CENTRE ? [] : [{ n: 'Saules akmens', addr: 'Balasta dambis 2', h: 123 }, { n: 'Preses nams', addr: 'Balasta dambis 2 k-2', h: 66 }]) {
+  for (const c of !IS_CENTRE ? [] : [{ n: 'Saules akmens', addr: 'Balasta dambis 2', h: 123 }, { n: 'Preses nams', addr: 'Balasta dambis 2 k-2', h: 66 }, { n: 'Z-Towers', addr: 'Raņķa dambis 30', h: 123 }]) {
     if (landmarks.some((l) => l.n === c.n)) continue;
     const bd = buildings.find((q) => q.n === c.addr);
     if (!bd) continue;

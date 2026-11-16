@@ -154,7 +154,8 @@ export class RoomSim {
     for (let i = 0; i < nBots; i++) {
       const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true });
       h.speedMul = Math.min(1.04, CFG.bots.speedMin + (CFG.bots.speedMax - CFG.bots.speedMin) * this.rng());
-      h.brain = new BotBrain(h, this.rng, i, nBots);
+      h.brain = new BotBrain(h, this.rng, i, nBots, this.cfg.botSkill ?? 1);
+      h.speedMul *= h.brain.speedScale;
       this.holes.push(h); this.byId.set(h.id, h);
     }
     const sp = this.table.spawn;
@@ -402,7 +403,7 @@ const round1 = (v) => Math.round(v * 10) / 10;
 // ---- server bots ------------------------------------------------------------------------------------------------------
 // Lighter than src/bots.js (no staggered per-bot memo maps): same priorities (flee > hunt > roam > eat), ticked at ~4 Hz.
 class BotBrain {
-  constructor(h, rng, idx, count) {
+  constructor(h, rng, idx, count, botSkill = 1) {
     this.h = h; this.rng = rng; this.idx = idx;
     const B = CFG.bots;
     this.skill = 0.85 + rng() * 0.3;
@@ -410,6 +411,16 @@ class BotBrain {
     this.aggr = B.aggressionMin + (B.aggressionMax - B.aggressionMin) * rng();
     this.noise = B.aimNoise * (0.6 + rng() * 0.8) * 0.4;
     this.hz = 4;
+    // difficulty (MP.botSkill < 1): each bot gets its own level (+-22 % spread) that makes it slower, sloppier and slower to react
+    this.speedScale = 1;
+    if (botSkill < 1) {
+      const lvl = Math.min(1, botSkill * (0.78 + 0.44 * rng()));
+      this.speedScale = 0.2 + 0.8 * lvl;
+      this.noise *= 1.9 - lvl;
+      this.react += (1 - lvl) * 0.5;
+      this.skill *= Math.sqrt(lvl);
+      this.hz = 4 * (0.55 + 0.45 * lvl);
+    }
     this.cands = [];
     this.reset(0);
     this.nextThink = (idx / Math.max(1, count)) / this.hz + rng() * 0.1;

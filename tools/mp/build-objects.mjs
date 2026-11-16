@@ -9,6 +9,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fingerprint, STAMP } from './fingerprint.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PORT = process.env.MP_TABLE_PORT || process.env.PORT || 5186;
@@ -19,6 +20,7 @@ const outFile = path.join(root, 'public', 'mp', 'objects.bin');
 const keep = process.env.MP_KEEP_DIST ? path.resolve(root, process.env.MP_KEEP_DIST) : null;
 const run = (cmd, args) => new Promise((res, rej) => spawn(cmd, args, { cwd: root, stdio: 'inherit' }).on('exit', (c) => (c ? rej(new Error(cmd + ' failed')) : res())));
 
+const printNow = fingerprint(); // snapshot of the sources this table is built from (stamped below)
 await run('npx', ['vite', 'build', '--outDir', dist, '--emptyOutDir', '--logLevel', 'error']);
 const server = spawn('npx', ['vite', 'preview', '--outDir', dist, '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'pipe' });
 const kill = () => { try { server.kill('SIGTERM'); } catch {} };
@@ -48,7 +50,8 @@ try {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const bytes = Buffer.from(r.b64, 'base64');
   fs.writeFileSync(outFile, bytes);
-  if (keep) { fs.mkdirSync(path.join(dist, 'mp'), { recursive: true }); fs.writeFileSync(path.join(dist, 'mp', 'objects.bin'), bytes); }
+  fs.writeFileSync(STAMP, JSON.stringify({ fingerprint: printNow, hash: r.hash, objects: r.objects, built: new Date().toISOString() }) + '\n');
+  if (keep) { fs.mkdirSync(path.join(dist, 'mp'), { recursive: true }); fs.writeFileSync(path.join(dist, 'mp', 'objects.bin'), bytes); fs.writeFileSync(path.join(dist, 'mp', 'objects.stamp.json'), fs.readFileSync(STAMP)); }
   console.log(`object table: ${r.objects} objects, ${r.spawns} spawn points, hash ${r.hash}, ${bytes.length} bytes -> ${path.relative(root, outFile)}`);
   if (errors.length) console.warn('page errors:', errors.slice(0, 3));
   await browser.close();

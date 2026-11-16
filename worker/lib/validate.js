@@ -9,7 +9,7 @@
 // Thresholds come from worker/lib/limits.js: the maxima observed in many greedy-autoplayer rounds
 // (tools/gen-limits.mjs), multiplied by SOFT (suspect) and HARD (reject) safety factors.
 import { MODES, TRACE_STEP, TRACE_MAX, radiusForMode } from '../../src/rules.js';
-import { LIMITS } from './limits.js';
+import { LIMITS, limitsFor } from './limits.js';
 
 export const SOFT = 2;   // beyond empirical max x2: hidden from boards
 export const HARD = 3;   // beyond empirical max x3: rejected
@@ -28,7 +28,7 @@ export function bandOf(radius) {
 export const expectedSamples = (tf) => Math.floor((tf - 0.3) / TRACE_STEP) + 1;
 
 /**
- * @param {object} p { mode, seconds, age, score, eaten, radius, rank, trace }
+ * @param {object} p { mode, map, seconds, age, score, eaten, radius, rank, trace }
  *   seconds = server round length, age = seconds since the round was issued
  * @returns {{verdict:'ok'|'suspect'|'reject', reasons:string[]}}
  */
@@ -36,7 +36,8 @@ export function validateSubmission(p) {
   const hard = [], soft = [];
   const out = () => ({ verdict: hard.length ? 'reject' : soft.length ? 'suspect' : 'ok', reasons: [...hard, ...soft] });
   const m = MODES[p.mode];
-  const L = LIMITS.modes[p.mode];
+  const ML = limitsFor(p.map || 'centrs');   // per-map empirical ceilings (tools/gen-limits.mjs)
+  const L = ML.modes[p.mode];
   if (!m || !L) return { verdict: 'reject', reasons: ['mode'] };
   const tr = p.trace;
   if (!tr || typeof tr !== 'object') return { verdict: 'reject', reasons: ['trace_missing'] };
@@ -105,7 +106,7 @@ export function validateSubmission(p) {
 
   // ---- totals vs. what the eaten kinds can be worth (upper bound: dying halves the score, so no lower bound)
   let maxSum = 0;
-  for (const [k, v] of Object.entries(kinds)) maxSum += v * (Object.hasOwn(LIMITS.value, k) ? LIMITS.value[k][1] : LIMITS.valueOther);
+  for (const [k, v] of Object.entries(kinds)) maxSum += v * (Object.hasOwn(ML.value, k) ? ML.value[k][1] : ML.valueOther);
   maxSum += kF * L.killMax;
   if (sF > maxSum * 3 + 100) hard.push('kind_values_hard');
   else if (sF > maxSum * 1.25 + 25) soft.push('kind_values');

@@ -66,7 +66,7 @@ export const HEROES = [
   { map: 'agenskalns', slug: 'ag-baptist', name: 'Āgenskalna baptistu baznīca', ids: [49635717], source: 'mesh', style: 1, wall: 0xd8cdb2, roof: 0x7a808a, note: 'church' },
   { map: 'agenskalns', slug: 'ag-albert', name: 'Svētā Alberta baznīca', ids: [49635756], source: 'mesh', style: 1, wall: 0xc9bca6, roof: 0x7a808a, note: 'church' },
   { map: 'agenskalns', slug: 'ag-wooden', name: 'Koka nami (Kalnciema iela)', ids: [49636186], source: 'mesh', style: 0, note: 'wooden-house quarter sample' },
-  { map: 'mezaparks', slug: 'estrade', name: 'Lielā estrāde', ids: [49673065, 49673070], source: 'mesh', style: 3, wall: 0xcfcac0, roof: 0x9aa0a4, dome: 0x9aa0a4,
+  { map: 'mezaparks', slug: 'estrade', name: 'Lielā estrāde', ids: [49673065, 49673070], source: 'mesh', style: 3, fit: { tol: 0.9, minArea: 60, maxPlanes: 9, weld: 2.2, dpTol: 1.2 }, opts: { contourTol: 1.2 }, wall: 0xcfcac0, roof: 0x9aa0a4, dome: 0x9aa0a4,
     note: 'the big song-festival stage: a long concrete shell over the stage with a tiered seating bowl in front' },
   { map: 'mezaparks', slug: 'mz-church', name: 'Mežaparka baznīca', ids: [49665685], source: 'mesh', style: 1, note: 'small wooden church' },
   { map: 'mezaparks', slug: 'mz-wasa', name: "Villa 'Wasa'", ids: [49665210], source: 'mesh', style: 0, note: 'garden-city villa' },

@@ -206,6 +206,34 @@ try {
   await A.screenshot({ path: resolve(out, 'modes-top-scores-daily.png') });
   await A.click('#ts-close');
 
+  // ============ district map: ranked on its own board (migration 0004), daily is centre-only ===========
+  {
+    const D = await newPage();
+    await D.openGame('intro=0&map=agenskalns');
+    check('district: Online hidden, daily mode disabled with a note', (await D.isHidden('#play-online')) && (await D.isDisabled('#modesw [data-mode=daily]')) && /Centre map only/i.test(await D.textContent('#mode-desc')), await D.textContent('#mode-desc'));
+    await D.fill('#name', 'Agen Tester');
+    await D.click('#play');
+    await waitPlaying(D);
+    check('district: the round request carries the map', D.reqs.some((x) => x === 'POST /api/rounds'), D.reqs.join());
+    await startAutopilot(D);
+    await waitResults(D); await stopAutopilot(D);
+    const gg = await globalText(D);
+    check('district: a legit round is ranked (not "unranked")', /Global rank: #1/.test(gg), gg);
+    const ag = await scoresOf('mode=classic&map=agenskalns&period=all');
+    check('district board has the row, the centre board does not', ag.length === 1 && ag[0].name === 'Agen Tester' && !(await scoresOf('mode=classic&map=centrs&period=all')).some((x) => x.name === 'Agen Tester'), JSON.stringify(ag));
+    await D.click('#open-scores2');
+    await D.waitForSelector('#ts-body tr', { timeout: 10000 });
+    check('Top scores opens on the played map with the map switch', (await D.getAttribute('#scores [data-smap=agenskalns]', 'aria-selected')) === 'true' && (await rows(D)).length === 1);
+    await D.click('#scores [data-smap=centrs]');
+    await D.waitForFunction(() => document.querySelectorAll('#ts-body tr').length !== 1 || /Agen Tester/.test(document.getElementById('ts-body').textContent) === false, null, { timeout: 5000 });
+    check('switching the map shows the other board (centre: no Agen Tester)', !(await D.textContent('#ts-body')).includes('Agen Tester'));
+    await D.click('#scores [data-smode=daily]');
+    await sleep(400);
+    check('daily board is centre-only: map buttons locked + note', (await D.isDisabled('#scores [data-smap=agenskalns]')) && /Centre map only/i.test(await D.textContent('.ts-note')));
+    await D.screenshot({ path: resolve(out, 'modes-top-scores-map.png') });
+    await D.context().close();
+  }
+
   // ============ analytics: counters landed (DNT-free browser) ===========================================
   await sleep(500);
   await A.evaluate(() => window.dispatchEvent(new Event('pagehide')));

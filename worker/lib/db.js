@@ -1,6 +1,7 @@
 // D1 helpers for scores / rounds. `insertScore` is the ONE place that writes the scores table: the multiplayer
 // server (worker/mp/**) imports it to record finished online matches.
 import { BOARD_MODES } from '../../src/rules.js';
+import { isMapSlug, DEFAULT_MAP } from '../../tools/maps.mjs';
 import { now } from './util.js';
 import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
 
@@ -16,6 +17,7 @@ import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
  *   name      display name (cleaned + profanity-filtered here; unusable names become "Anonīms")
  *   score     integer >= 0
  *   eaten, radius, rank, biggest, kills, deaths   optional
+ *   map       map slug (default 'centrs'; online rows are always the centre)
  *   day       'YYYY-MM-DD' (Riga day), daily mode only
  *   suspect   1 hides the row from public boards (default 0)
  *   flags     comma separated reason codes, trace  JSON string, roundId  optional forensics
@@ -24,33 +26,35 @@ import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
  */
 export async function insertScore(env, row) {
   if (!BOARD_MODES.includes(row.mode)) throw new Error(`insertScore: bad mode ${row.mode}`);
+  const map = row.map ?? DEFAULT_MAP;
+  if (!isMapSlug(map)) throw new Error(`insertScore: bad map ${map}`);
   if (!Number.isInteger(row.score) || row.score < 0 || row.score > 1e8) throw new Error('insertScore: bad score');
   const name = sanitizeName(row.name) || ANON;
   const biggest = row.biggest == null ? null : sanitizeLabel(row.biggest);
   const res = await env.DB.prepare(
-    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths) ' +
-    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map) ' +
+    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).bind(
     name, row.score, row.eaten ?? 0, row.radius ?? 0, row.rank ?? null, biggest, row.createdAt ?? now(), row.mode,
     row.mode === 'daily' ? row.day ?? null : null, row.suspect ? 1 : 0, row.flags ?? null, row.trace ?? null,
-    row.roundId ?? null, row.kills ?? null, row.deaths ?? null,
+    row.roundId ?? null, row.kills ?? null, row.deaths ?? null, map,
   ).run();
   return { id: res.meta.last_row_id, name };
 }
 
-/** 1-based rank of `score` among the visible (non-suspect) rows of a board. */
-export async function rankOf(env, { mode, day = null, score, since = 0 }) {
+/** 1-based rank of `score` among the visible (non-suspect) rows of a board (one board per map x mode). */
+export async function rankOf(env, { mode, day = null, score, since = 0, map = DEFAULT_MAP }) {
   const row = mode === 'daily'
-    ? await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE mode = ? AND day = ? AND suspect = 0 AND score > ?').bind(mode, day, score).first()
-    : await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE mode = ? AND suspect = 0 AND score > ? AND created_at >= ?').bind(mode, score, since).first();
+    ? await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND score > ?').bind(map, mode, day, score).first()
+    : await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND score > ? AND created_at >= ?').bind(map, mode, score, since).first();
   return row.n + 1;
 }
 
-export async function listScores(env, { mode, day = null, since = 0, limit = 20 }) {
+export async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP }) {
   const cols = 'name, score, radius, eaten, rank, biggest, created_at AS at';
   const q = mode === 'daily'
-    ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE mode = ? AND day = ? AND suspect = 0 ORDER BY score DESC, created_at ASC LIMIT ?`).bind(mode, day, limit)
-    : env.DB.prepare(`SELECT ${cols} FROM scores WHERE mode = ? AND suspect = 0 AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(mode, since, limit);
+    ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, limit)
+    : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, since, limit);
   return (await q.all()).results;
 }
 
