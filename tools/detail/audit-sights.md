@@ -54,7 +54,7 @@ Could not make distinct: tiny Old Town houses (Trīs brāļi, guilds, Zviedru v�
 
 Every important sight / building per map: found from the album, riga.json `landmarks`, OSM names / tags, cadastre type pub / rel and every building >= 30 m. Multi-piece buildings are one sight (ids listed, lead first). Tier A = city icon, B = notable, C = minor public building.
 
-## centrs — 427 sights (A 60 / B 154 / C 213)
+## centrs — 426 sights (A 61 / B 153 / C 212)
 
 | tier | category | name | lead id | pieces | area m2 | h m | why |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ Every important sight / building per map: found from the album, riga.json `landm
 | A | market | Centrāltirgus [market] | 49614728 | 49614728 49614778 49615303 49615403 | 11415 | 20.5 | tierA |
 | A | market | Origo [origo] | 49614964 | 49614964 49611992 | 11179 | 14.8 | tierA |
 | A | station | Centrālā stacija [station] | 49614666 | 49614666 49615281 49614810 49614921 | 8909 | 14.8 | tierA |
-| A | hotel | Radisson Blu | 49629591 | 1 | 8190 | 32.3 | osm-name, tall, album:radisson |
+| A | hotel | Radisson Blu Daugava [radisson-daugava] | 49629591 | 1 | 8190 | 32.3 | tierA |
 | A | castle | Rīgas pils [castle] | 49615051 | 49615051 49614975 | 8075 | 29 | tierA |
 | A | theatre | Nacionālā opera [opera] | 49616059 | 49616059 49615786 49615783 | 6555 | 34 | tierA |
 | A | market | Galerija Centrs [galerija] | 49614491 | 49614491 49614512 | 5852 | 18 | tierA |
@@ -111,6 +111,7 @@ Every important sight / building per map: found from the album, riga.json `landm
 | A | industrial | Spīķeri | 49614657 | 1 | 576 | 8.4 | album:spikeri |
 | A | industrial | Spiķeru Koncertzāle | 49615082 | 1 | 558 | 11.6 | t:pub, osm-name, album:spikeri |
 | A | industrial | Spīķeri | 49614792 | 1 | 555 | 11.6 | album:spikeri |
+| A | church | Sv. Aleksandra Ņevska baznīca [nevsky] | 49619857 | 49619857 49619931 | 516 | 21.2 | tierA |
 | A | castle | Zviedru vārti [swedish] | 49614979 | 49614979 49615193 | 398 | 11.4 | tierA |
 | A | theatre | Rīgas Latviešu biedrības nams | 49615662 | 1 | 250 | 13.1 | tag:amenity=community_centre, osm-name, t:pub |
 | A | castle | Pulvertornis [powder] | 49615275 | 1 | 173 | 37 | tierA |
@@ -250,7 +251,6 @@ Every important sight / building per map: found from the album, riga.json `landm
 | B | gov | Lietuvas vēstniecība | 49611845 | 1 | 496 | 20.4 | tag:office=diplomatic, osm-name |
 | B | school | Paula Stradiņa Medicīnas vēstures muzeja izglītības centrs | 49616585 | 1 | 491 | 3.2 | tag:building=yes, osm-name, t:pub |
 | B | market | The Icon | 49615688 | 1 | 488 | 24.4 | osm-name |
-| B | church | Svētā labticīgā Aleksandra Ņevska pareizticīgo baznīca | 49619857 | 1 | 483 | 11.6 | tag:amenity=place_of_worship, osm-name, tag:heritage |
 | B | church | Atklāsme | 49628191 | 1 | 483 | 9.6 | tag:amenity=place_of_worship, osm-name, t:rel |
 | B | church | Latvijas Apvienotā metodistu baznīca | 49620098 | 1 | 458 | 6.4 | tag:amenity=place_of_worship, osm-name, t:rel |
 | B | church | Anglikāņu baznīca | 49614911 | 1 | 454 | 3.2 | tag:amenity=place_of_worship, osm-name, tag:heritage |
@@ -286,6 +286,7 @@ Every important sight / building per map: found from the album, riga.json `landm
 | C | public | Krišjāņa Valdemāra iela 1 | 49614690 | 1 | 2332 | 9.6 | t:pub |
 | C | hotel | Slokas iela 1 k-1 | 49629684 | 1 | 2067 | 8.4 | tag:building=hotel |
 | C | public | Rātslaukums 9 | 49614380 | 1 | 1925 | 3.2 | t:pub |
+| C | hotel | Grēcinieku iela 25 | 49614353 | 49614353 49612434 | 1868 | 21.2 | tag:building=hotel |
 | C | public | Skrindu iela 1 | 49627413 | 1 | 1810 | 3.2 | t:pub |
 | C | public | Palasta iela 4 | 49616566 | 1 | 1790 | 11.6 | t:pub |
 | C | public | Krišjāņa Valdemāra iela 1C | 49614713 | 1 | 1686 | 11.6 | t:pub |
@@ -315,7 +316,6 @@ Every important sight / building per map: found from the album, riga.json `landm
 | C | public | Palasta iela 3 | 49616536 | 1 | 1023 | 12.8 | t:pub |
 | C | public | Skolas iela 6 | 49618960 | 1 | 1009 | 14.8 | t:pub |
 | C | tower | Lastādijas iela 5 | 49614956 | 1 | 999 | 3.2 | tag:man_made=tower |
-| C | hotel | Grēcinieku iela 25 | 49614353 | 1 | 985 | 21.2 | tag:building=hotel |
 | C | public | Marijas iela 7 | 49615715 | 1 | 961 | 18 | t:pub |
 | C | public | Citadeles iela 3 | 49616058 | 1 | 955 | 8.4 | t:pub |
 | C | public | Lāčplēša iela 106 k-1 | 49627478 | 1 | 939 | 18 | t:pub |
@@ -484,9 +484,8 @@ Every important sight / building per map: found from the album, riga.json `landm
 | C | historic | Daugavgrīvas iela 11A | 49638194 | 1 | 63 | 3.2 | tag:historic=building |
 | C | historic | Aldaru iela 9 | 49615042 | 1 | 54 | 14.8 | tag:historic=yes |
 | C | church | Meža iela 2B | 49636360 | 1 | 46 | 8.4 | tag:building=chapel |
-| C | church | Brīvības iela 56 | 49619931 | 1 | 33 | 21.2 | t:rel |
 
-## agenskalns — 372 sights (A 2 / B 95 / C 275)
+## agenskalns — 373 sights (A 2 / B 96 / C 275)
 
 | tier | category | name | lead id | pieces | area m2 | h m | why |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -510,6 +509,7 @@ Every important sight / building per map: found from the album, riga.json `landm
 | B | school | Meža iela 15 | 49637856 | 1 | 1945 | 21.2 | tag:building=dormitory, tag:building=school, t:pub |
 | B | gov | Latvijas Valsts vēstures arhīvs | 49637896 | 1 | 1756 | 21.2 | tag:amenity=archive, osm-name, t:pub |
 | B | school | Kalnciema iela 10 k-3 | 49638779 | 1 | 1663 | 8.4 | tag:building=school, t:pub |
+| B | school | Jelgavas iela 86A | 51181765523 | 1 | 1529 | 8.9 | tag:building=kindergarten |
 | B | church | Svētā Alberta baznīca | 49635756 | 1 | 1521 | 3.2 | tag:amenity=place_of_worship, osm-name, t:rel |
 | B | school | Kalnciema iela 10 k-1 | 49638191 | 1 | 1519 | 8.4 | tag:building=school, t:pub |
 | B | school | Zeļļu iela 4 | 49634649 | 1 | 1496 | 14.8 | tag:building=school, t:pub |

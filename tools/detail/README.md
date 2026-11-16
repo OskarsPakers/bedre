@@ -137,6 +137,9 @@ File format `BSH1` v2: header `stride: 14`, record = `id, nv, nt, nl, src, vol, 
 Triangle classes (`mats`): 0 flat roof, 1 pitched roof, 2 wall (windows; step walls, drums, towers), 3 dome / spire (hero `dome` colour or verdigris), 5 accent (gold crosses). `style`: 0 apartment windows,
 1 church (tall narrow windows, floors 8.5 m), 2 palace (large windows, floors 5.4 m), 3 plain stone (no windows).
 
+## Spike filter (`build-meshes.mjs despike`, 2026-11)
+Thin or isolated peaks are not architecture (tree crowns, cranes, masts, antennas, mesh noise; the plane fitter made a 60 m wall of a 2 m wide spike on Rīgas pils). Before meshing, groups of cells above `base + max(6 m, 0.6 base)` (base = 85th percentile of the footprint) that are small relative to the footprint (<= 12 % / 70 m^2; rough crowns <= 30 % / 160 m^2) and THIN (<= 2.5 m, and not vertical-sided) or ROUGH (mean Laplacian >= 1 m, ordinary buildings only) are replaced by the median of the roof around them. Vertical-sided smooth shafts >= 4 cells (chimneys), tier A / B sights and church / `keepPeaks` heroes keep their peaks; small and medium buildings with mostly rough tall cells (top >= 12 m, smooth top <= half) get no shape at all (flat extrusion). `CLIP_TOP` handles named artefacts. Log: `tools/.cache/mapfix/spikes-<map>.json`.
+
 ## Roof colours: one per building
 Every building has exactly ONE roof colour. File materials 0 (flat) and 1 (pitched) both render as the building's single roof colour (src/buildings.js `buildShapeGeometry`: mostly flat roof -> flat-roof grey,
 otherwise the neighbourhood / hero tile or tin colour); shading comes from the lighting only. Step walls, drums, parapet treads and dormer cheeks are wall colour (materials 2 / 6). The only second colour is an

@@ -27,7 +27,7 @@ export const MAPS = [
   },
   {
     slug: 'mezaparks', lv: 'Mežaparks', en: 'Mežaparks', focus: [57.0040, 24.1540, 'Mežaparks'],
-    bounds: around([57.0040, 24.1540], 1300, 1300), mult: { props: 1.7, value: 0.14, trees: 2.0, bots: 2.0, botSpeed: 1.1, people: 1.25, botGain: { easy: 0.9, normal: 0.95 } },
+    bounds: around([57.0040, 24.1540], 1300, 1300), mult: { props: 1.7, value: 0.15, trees: 2.0, bots: 2.0, botSpeed: 1.1, people: 1.25, botGain: { easy: 0.9, normal: 0.95 } },
     notes: 'Garden city of villas in pine forest, Lielā estrāde, Rīgas zoo edge, Ķīšezers shore.',
   },
   {

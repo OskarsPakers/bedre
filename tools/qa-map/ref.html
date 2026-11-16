@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><title>ref</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.30/"></script>
+<style>html,body,#v{margin:0;padding:0;width:100%;height:100%;background:#889}</style></head>
+<body><div id="v"></div><script>
+require(["esri/WebScene","esri/views/SceneView","esri/Camera"],(WebScene,SceneView,Camera)=>{
+  const scene=new WebScene({portalItem:{id:"0f550060386a435da391357ccf89d269"}});
+  const view=new SceneView({container:"v",map:scene,ui:{components:[]},environment:{lighting:{type:"sun",date:new Date("2024-06-21T10:00:00Z"),directShadowsEnabled:false},atmosphereEnabled:false,starsEnabled:false},qualityProfile:"high"});
+  window.__view=view; window.__Camera=Camera;
+  view.when(()=>{window.__ready=true;});
+});
+window.__goto=async(o)=>{ // o: lon,lat,z,heading,tilt
+  const view=window.__view; view.camera=new window.__Camera({position:{longitude:o.lon,latitude:o.lat,z:o.z},heading:o.heading,tilt:o.tilt,fov:o.fov||55});
+  await new Promise(r=>setTimeout(r,500));
+  await new Promise(res=>{const t0=Date.now();const iv=setInterval(()=>{if(!view.updating||Date.now()-t0>o.timeout){clearInterval(iv);res();}},500);});
+};
+</script></body></html>

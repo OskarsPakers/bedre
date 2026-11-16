@@ -158,11 +158,31 @@ export function scatterProps(data, blockers) {
   take('tram', P.trams, 'tram');
   take('kiosk', P.kiosks, 'kiosk');
 
-  // data trees
+  // data trees: OSM + mesh-derived crowns ([x, z] or [x, z, crownHeightM, pine?]); the rng stream per tree is unchanged (yaw, size, tint)
   const trees = [];
   for (const t of data.trees) {
     if (trees.length >= P.maxTrees) break;
-    if (blockers.free(t[0], t[1], 0.5)) trees.push({ kind: 'tree', x: t[0], z: t[1], yaw: rng() * 6.28, s: 0.7 + rng() * 0.65, tint: rng() });
+    if (!blockers.free(t[0], t[1], 0.5)) continue;
+    const yaw = rng() * 6.28, r1 = rng(), tint = rng();
+    if (t.length > 2) {
+      const pine = t[3] === 1;
+      trees.push({ kind: pine ? 'tree2' : 'tree', x: t[0], z: t[1], yaw, s: pine ? Math.max(0.8, Math.min(1.5, t[2] / 14)) * (0.92 + r1 * 0.16) : Math.max(0.75, Math.min(1.45, t[2] / 8.5)) * (0.9 + r1 * 0.2), tint });
+    } else trees.push({ kind: 'tree', x: t[0], z: t[1], yaw, s: 0.7 + r1 * 0.65, tint });
+  }
+  // dense forest (Mežaparks): ground class 10 (tools/mapfix/trees.mjs: tree-like mesh volume, dense) -> jittered pines + some broadleaf, off buildings (3 m), water, roads
+  const R = data.groundRaster;
+  if (R && P.forestSpacing > 0) {
+    const bd = bounds, rx = R.W / (bd.maxX - bd.minX), rz = R.H / (bd.maxZ - bd.minZ);
+    let n10 = 0; for (let k = 0; k < R.cls.length; k++) if (R.cls[k] === 10) n10++;
+    const sp = Math.max(P.forestSpacing, Math.sqrt(n10 / (rx * rz) / (P.forestMax * 1.12))); // spacing stretches so that the budget covers the WHOLE forest, not just its first rows
+    const cell = (x, z) => { const i = Math.floor((x - bd.minX) * rx), j = Math.floor((z - bd.minZ) * rz); return i < 0 || j < 0 || i >= R.W || j >= R.H ? 0 : R.cls[j * R.W + i]; };
+    let n = 0;
+    for (let z = bd.minZ; z < bd.maxZ && n < P.forestMax; z += sp) for (let x = bd.minX; x < bd.maxX && n < P.forestMax; x += sp) {
+      const px = x + (rng() - 0.5) * sp * 0.95, pz = z + (rng() - 0.5) * sp * 0.95, q = rng(), r1 = rng(), tint = rng(), yaw = rng() * 6.28;
+      if (cell(px, pz) !== 10 || !blockers.free(px, pz, 2.2)) continue;
+      const pine = q < 0.86;
+      trees.push({ kind: pine ? 'tree2' : 'tree', x: px, z: pz, yaw, s: pine ? 0.85 + r1 * 0.65 : 0.8 + r1 * 0.6, tint }); n++;
+    }
   }
   return out.concat(trees);
 }

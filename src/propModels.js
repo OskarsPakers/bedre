@@ -271,11 +271,31 @@ function railarch() {
   return merge(parts);
 }
 
-function tree() {
+function tree(low = false) {
+  if (low) return merge([ // phone tier: 30 triangles
+    part(new THREE.CylinderGeometry(0.2, 0.2, 2.6, 4, 1, true), 0x6b4a33, 0, 1.3, 0),
+    part(new THREE.IcosahedronGeometry(2.3, 0), WHITE, 0, 4.0, 0),
+  ]);
   return merge([
+    // 70 triangles (was 110): street / yard / park trees went from ~6 k to ~20 k per map (review M-08)
     part(new THREE.CylinderGeometry(0.2, 0.2, 2.6, 5, 1, true), 0x6b4a33, 0, 1.3, 0),
-    part(new THREE.IcosahedronGeometry(2.1, 1), WHITE, 0, 4.0, 0),
-    part(new THREE.IcosahedronGeometry(1.4, 0), 0xe9f2d8, 0.7, 5.2, 0.4),
+    part(new THREE.IcosahedronGeometry(2.2, 0), WHITE, 0, 3.9, 0),
+    part(new THREE.IcosahedronGeometry(1.5, 0), 0xe9f2d8, 0.9, 4.9, 0.5),
+    part(new THREE.IcosahedronGeometry(1.3, 0), 0xdde9cc, -0.9, 4.5, -0.6),
+  ]);
+}
+
+/** Scots pine (kind 'tree2'; the trace key is still 'tree'): tall slim bare trunk, a narrow dark layered crown. 28 triangles. */
+function pine(low = false) {
+  if (low) return merge([ // phone tier: 16 triangles
+    part(new THREE.CylinderGeometry(0.2, 0.28, 6, 4, 1, true), 0x6e4b34, 0, 3, 0),
+    part(new THREE.ConeGeometry(2.7, 5.2, 5, 1, true), 0x305a3b, 0, 4.2 + 2.6, 0),
+    part(new THREE.ConeGeometry(1.7, 4.4, 5, 1, true), 0x3d6f47, 0, 7.8 + 2.2, 0),
+  ]);
+  const crown = (r, h, y, c) => part(new THREE.ConeGeometry(r, h, 6, 1, true), c, 0, y + h / 2, 0);
+  return merge([
+    part(new THREE.CylinderGeometry(0.18, 0.28, 7, 5, 1, true), 0x6e4b34, 0, 3.5, 0),
+    crown(2.7, 3.6, 4.4, 0x2b5236), crown(2.15, 3.4, 6.5, 0x33603e), crown(1.45, 3.2, 8.6, 0x3d6f47),
   ]);
 }
 
@@ -400,6 +420,7 @@ Object.assign(PROP_DEFS, {
   pylon: { cls: 'monument', make: pylon, fit: 9, h: 98, value: CFG.value.pylon, tint: false },
   railarch: { cls: 'monument', make: railarch, fit: 13, h: 10, value: CFG.value.railarch, tint: false },
   tree: { cls: 'tree', make: tree, fit: 1.9, h: 6.3, value: CFG.value.tree, tint: true },
+  tree2: { cls: 'tree', make: pine, fit: 1.5, h: 11.6, value: CFG.value.tree, tint: true },
   bench: { cls: 'bench', make: bench, fit: 0.85, h: 1.1, value: CFG.value.bench, tint: false },
   lamp: { cls: 'lamp', make: lamp, fit: 0.55, h: 5.3, value: CFG.value.lamp, tint: false },
   bin: { cls: 'bin', make: bin, fit: 0.35, h: 1.0, value: CFG.value.bin, tint: false },
@@ -413,6 +434,7 @@ export const CAR_TINTS = [0xc9402f, 0x2f6fb5, 0xe9e5da, 0x2d3338, 0xb9bec2, 0x4b
 export const BUS_TINTS = [0xd9a53a, 0x3b7fc4, 0xc9402f, 0x4b9a68];
 export const TRAM_TINTS = [0xc9402f, 0xe4dcc5];
 export const TREE_TINTS = [0x7fa65a, 0x6c9a4e, 0x8fb061, 0x5f8f50, 0xa3a85a, 0x7aa069];
+export const PINE_TINTS = [0xffffff, 0xeaf2e4, 0xd9e6d2, 0xf4f4ea, 0xc9dcc4];
 export const PARASOL_TINTS = [0xd9533a, 0x2f6fb5, 0xe8b83a, 0x4b9a68, 0xe9e5da, 0xc9402f];
 export const STALL_TINTS = [0xd9533a, 0xe8b83a, 0x4b9a68, 0xc9a24a, 0xe4a0b8, 0x7fa0b6];
 export const BIKE_TINTS = [0x2b6cb0, 0xc9402f, 0x2d3338, 0xe0b53c, 0x4b9a68, 0xb9bec2];

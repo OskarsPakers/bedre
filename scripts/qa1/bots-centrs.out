@@ -1,0 +1,8 @@
+BOT centrs/hard Laima: path=4281m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.2->145.5 score=82298.71035335082 kills=0 deaths=0 modes={"eat":112,"roam":133,"flee":7}
+BOT centrs/hard Uldis: path=4283m idle=0s maxIdleRun=0s reversals=4 edgeTime=0s r 2.2->131.7 score=65610.48250915097 kills=0 deaths=0 modes={"eat":128,"roam":124}
+BOT centrs/hard Čiekurs: path=3157m idle=0s maxIdleRun=0s reversals=1 edgeTime=0s r 2.4->67.7 score=14494.076241134393 kills=0 deaths=0 modes={"eat":142,"roam":64,"flee":46}
+BOT centrs/hard Vāvere: path=3102m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.5->65.2 score=13266.119978555349 kills=0 deaths=0 modes={"eat":106,"roam":136,"flee":10}
+BOT centrs/hard Ezis: path=2645m idle=0s maxIdleRun=0s reversals=0 edgeTime=0s r 2.2->32.6 score=2751.3722076905888 kills=0 deaths=0 modes={"eat":92,"roam":140,"flee":20}
+BOT centrs/hard Pūce: path=3893m idle=0s maxIdleRun=0s reversals=4 edgeTime=0s r 2.2->103.3 score=37781.6093939708 kills=0 deaths=0 modes={"eat":116,"roam":136}
+BOT centrs/hard Kurmis: path=2407m idle=0s maxIdleRun=0s reversals=1 edgeTime=0s r 2.2->28.8 score=2064.441998389957 kills=0 deaths=0 modes={"eat":72,"roam":180}
+bounds {"minX":-2100,"maxX":1200,"minZ":-1200,"maxZ":1500}

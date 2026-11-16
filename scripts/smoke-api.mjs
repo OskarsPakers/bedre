@@ -159,11 +159,13 @@ async function main() {
   // ---- good submissions + sanitising + per-mode boards
   r = await post('/api/scores', { ...body('classic', R.okA, okScore('classic')), name: '  <b>Ann\u0007a</b>\n  "Z"  ' });
   j = await r.json();
-  check('valid classic submit succeeds, name sanitised', r.status === 201 && j.ok && j.mode === 'classic' && j.name === 'bAnn a/b Z', JSON.stringify(j));
+  check('valid classic submit succeeds, name sanitised', r.status === 201 && j.ok && j.mode === 'classic' && j.name === 'bAnn a/b "Z"', JSON.stringify(j));
   r = await post('/api/scores', body('classic', R.okA, okScore('classic'))); check('replay of same roundId rejected', r.status === 409, `${r.status}`);
   r = await post('/api/scores', { ...body('classic', R.prof, 5), name: 'F u c k er' }); j = await r.json();
   check('profanity -> "Anonīms"', r.status === 201 && j.name === 'Anonīms', JSON.stringify(j));
   check('moderation unit: names', sanitizeName('Pizdets') === 'Anonīms' && sanitizeName('Хуй') === 'Anonīms' && sanitizeName('Jānis Bērziņš') === 'Jānis Bērziņš' && sanitizeName('') === null);
+  check('name policy: & " \' kept, angle brackets and invisibles dropped, same on every path',
+    sanitizeName('<b>Ann</b>&"x') === 'bAnn/b&"x' && sanitizeName("O'Neil & Co") === "O'Neil & Co" && sanitizeName('A\u200bB\u202eC') === 'A B C' && sanitizeName('<>') === null && sanitizeName('x'.repeat(17)) === null && sanitizeName('😀 Ann') === '😀 Ann');
   r = await post('/api/scores', { ...body('classic', R.modeMis, 5), mode: 'daily' }); check('mode field != round mode -> 400', r.status === 400, `${r.status}`);
 
   r = await post('/api/scores', { ...body('quick', R.quick, okScore('quick')), name: 'Quicky' }); j = await r.json();
@@ -174,7 +176,7 @@ async function main() {
   sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode) VALUES ('Net Nina', 999, 5, 9.5, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'online')`);
   const names = (j2) => j2.scores.map((s) => s.name);
   const c = await scores('mode=classic&period=all'), q = await scores('mode=quick&period=all'), d = await scores(`mode=daily&day=${today}`), o = await scores('mode=online&period=all');
-  check('classic board: only classic rows, suspect row hidden (3 rows)', c.scores.length === 3 && ['bAnn a/b Z', 'Anna', 'Anonīms'].every((x) => names(c).includes(x)), JSON.stringify(names(c)));
+  check('classic board: only classic rows, suspect row hidden (3 rows)', c.scores.length === 3 && ['bAnn a/b "Z"', 'Anna', 'Anonīms'].every((x) => names(c).includes(x)), JSON.stringify(names(c)));
   check('quick board has only the quick score', names(q).join() === 'Quicky', JSON.stringify(names(q)));
   check('daily board (today) has only the daily score', names(d).join() === 'Daily Dan' && d.day === today, JSON.stringify(d));
   check('daily board of yesterday is empty', (await scores(`mode=daily&day=${yesterday}`)).scores.length === 0);

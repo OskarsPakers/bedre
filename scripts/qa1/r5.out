@@ -1,0 +1,26 @@
+[r5 +4s] UI {"map":"centrs","mode":["daily"],"diff":["normal"],"play":"Spēlēt — Dienas izaicinājums","bodyClass":"mode-daily"}
+[r5 +22s] t=285 score=122 eaten=37 r=5.7 pos=45,-194 rank=1 unranked=null
+[r5 +37s] t=269 score=230 eaten=69 r=7.3 pos=57,-214 rank=1 unranked=null
+[r5 +53s] t=254 score=399 eaten=126 r=9.2 pos=224,-293 rank=1 unranked=null
+[r5 +68s] t=239 score=838 eaten=264 r=12.7 pos=52,-123 rank=1 unranked=null
+[r5 +83s] t=224 score=2145 eaten=300 r=19.0 pos=165,24 rank=1 unranked=null
+[r5 +98s] t=209 score=4643 eaten=388 r=26.7 pos=112,16 rank=1 unranked=null
+[r5 +113s] t=194 score=8057 eaten=502 r=34.0 pos=-278,120 rank=1 unranked=null
+[r5 +128s] t=179 score=15774 eaten=629 r=45.6 pos=-371,337 rank=1 unranked=null
+[r5 +143s] t=164 score=27198.6004385991 eaten=811 r=58.1 pos=84,192 rank=1 unranked=null
+[r5 +158s] t=149 score=39657.6004385991 eaten=1032 r=68.5 pos=520,473 rank=1 unranked=null
+[r5 +174s] t=133 score=45780.6004385991 eaten=1131 r=72.8 pos=183,534 rank=1 unranked=null
+[r5 +189s] t=118 score=52437.6004385991 eaten=1241 r=77.5 pos=-315,509 rank=1 unranked=null
+[r5 +204s] t=103 score=61266.6004385991 eaten=1411 r=83.0 pos=-751,-29 rank=1 unranked=null
+[r5 +219s] t=88 score=71380.6004385991 eaten=1689 r=88.7 pos=-447,-430 rank=1 unranked=null
+[r5 +234s] t=73 score=80855.6004385991 eaten=2052 r=93.7 pos=-336,-88 rank=1 unranked=null
+[r5 +249s] t=58 score=91188.6004385991 eaten=2530 r=98.8 pos=351,-374 rank=1 unranked=null
+[r5 +264s] t=43 score=101703.6004385991 eaten=2721 r=103.7 pos=160,-843 rank=1 unranked=null
+[r5 +279s] t=28 score=112335.6004385991 eaten=3055 r=108.2 pos=567,-1011 rank=1 unranked=null
+[r5 +294s] t=13 score=126019.6004385991 eaten=3457 r=113.8 pos=1138,-838 rank=1 unranked=null
+[r5 +307s] FRAME {"n":18292,"avg":16.71793133610603,"p50":16.69999999999709,"p95":16.79999999998836,"p99":16.800000000017462,"max":816.6999999999999,"long":[[912,817]]}
+[r5 +307s] maxR=119.1 deaths=0
+[r5 +309s] RESULTS {"place":"1. vieta no 8","score":"139 696","global":"Dienas tabulā: #1","eaten":"3931","kills":"1","deaths":"0","biggest":"Torņa iela 4","size":"Ø 238.3 m (izmērs 10)","table":["♛QAr5139 696","2Pelmeņš24 731","3Dzeguze23 445","4Ieva23 224","5Rasa3974","6Čiekurs2927","7Ezis1533","8Kaķis530"],"unranked":null,"vis":true}
+[r5 +315s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":154.6,"z":-151.64000000000001,"radius":2.2,"targetRadius":2.2},"counts":{"props":15624,"buildings":5276,"remainingProps":15624,"remainingBuildings":5276,"falling":0}}
+[r5 +326s] MEM 225000000 -> 225000000
+[r5 +326s] ERRS 0

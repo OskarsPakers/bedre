@@ -8,6 +8,7 @@ import { RoomSim, speedOf, radiusOf } from '../worker/mp/sim.js';
 import { parseTable, encodeTable, F_MOVER, F_BUILDING } from '../worker/mp/table.js';
 import { readTableBytes } from '../tools/mp/load-table.mjs';
 import { mpConfig, parseClientMessage, RateLimiter } from '../worker/mp/protocol.js';
+import { CFG } from '../src/config.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let fails = 0;
@@ -203,6 +204,40 @@ check('rate limiter caps a burst', allowed === 80, `allowed ${allowed}`);
   check('bot hunts a human prey when there is no grace (control)', huntedBy(0, 30) === true);
   check('bot ignores human prey inside the grace period', huntedBy(60, 30) === false);
   check('bot hunts humans again after the grace period', huntedBy(60, 75) === true);
+}
+
+// ---- absent humans: grace period, ranking, silent sockets, equal spawns ----
+{
+  const c2 = { ...cfg, testCloseSpawn: false };
+  const mk2 = () => { const sim = new RoomSim(table, c2, 777); const a = sim.addHuman('Away', 'tokaway12345678'), b = sim.addHuman('Stay', 'tokstay12345678'); sim.start(1000, 3700, 300000); let now = 1000 + 3700; sim.tick(now); return { sim, a, b, now }; };
+  check('grace period default is 45 s', cfg.removeAfterMs === 45000 && cfg.silentAfterMs === 10000);
+  let { sim, a, b, now } = mk2();
+  a.score = 500; a.r = radiusOf(500); b.score = 100;
+  a.connected = false; a.discAt = now; b.lastMsgAt = now;
+  for (let t = 0; t < 44; t++) { now += 1000; b.lastMsgAt = now; sim.tick(now); }
+  check('disconnected human still in the arena after 44 s (idle, edible, can resume)', sim.byId.has(a.id) && !a.dead);
+  for (let t = 0; t < 3; t++) { now += 1000; b.lastMsgAt = now; sim.tick(now); }
+  check('...removed from the arena after 45 s but kept in the ranking with its score (left: true)', !sim.byId.has(a.id) && sim.humans().length === 1 && (() => { const r = sim.ranking().find((x) => x.id === a.id); return r && r.left === true && r.score === 500 && r.rank === 1; })());
+  check('left player is found by token for a late resume', !!sim.left.find((x) => x.token === 'tokaway12345678'));
+  ({ sim, a, b, now } = mk2());
+  a.score = 300;
+  for (let t = 0; t < 12; t++) { now += 1000; b.lastMsgAt = now; sim.tick(now); }   // A sent nothing for 12 s (dead network): counts as disconnected
+  check('a silent socket (> 10 s without any message) starts the grace period', a.connected === false && a.discAt > 0 && sim.byId.has(a.id));
+  for (let t = 0; t < 50; t++) { now += 1000; b.lastMsgAt = now; sim.tick(now); }
+  check('...and the hole leaves after silent + grace (~55 s)', !sim.byId.has(a.id));
+  // equal spawns
+  const food = (x, z, sm) => { let v = 0; const lim = CFG.hole.startRadius * CFG.swallow.fitRatio; sm.index.query(x, z, 60, sm.eaten, (id) => { if (table.fit[id] < lim) v += table.value[id]; }); return v; };
+  let worst = 1;
+  for (const nh of [2, 5, 12]) for (let sd = 1; sd <= 25; sd++) {
+    const s2 = new RoomSim(table, c2, sd * 104729);
+    for (let i = 0; i < nh; i++) s2.addHuman('H' + i, 'tok' + i + '12345678', i, i);
+    s2.start(1000, 3700, 300000);
+    const vs = s2.humans().map((h) => Math.max(1, food(h.x, h.z, s2)));
+    worst = Math.max(worst, (Math.max(...vs) / Math.min(...vs)) / (nh <= 5 ? 1.3 / 1.8 : 2.5 / 1.8));   // normalised: <= 1.3x up to 5 humans, <= 2.5x with 12 (the map only has so many rich spots)
+    const ps = s2.humans().map((h) => [h.x, h.z]); let minSep = 1e9; for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) minSep = Math.min(minSep, Math.hypot(ps[i][0] - ps[j][0], ps[i][1] - ps[j][1]));
+    if (minSep < 30) { worst = 99; }
+  }
+  check('human start points are equally rich (richest/poorest food within 60 m <= 1.3x up to 5 humans, <= 2.5x with 12) and not on top of each other', worst <= 1.8, `worst ${worst.toFixed(2)}`);
 }
 
 console.log(fails ? `${fails} FAILED` : 'all passed');

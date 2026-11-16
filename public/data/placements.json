@@ -3,43 +3,43 @@
  "maps": {
   "centrs": {
    "file": "data/riga-objects.bin.gz",
-   "hash": "4fa488758265f362",
-   "objects": 20900,
-   "buildings": 5276,
+   "hash": "8e346842798a0e62",
+   "objects": 36193,
+   "buildings": 5241,
    "movers": 1076,
-   "spawns": 1239,
-   "bytes": 441504,
-   "gz": 196432
+   "spawns": 230,
+   "bytes": 706706,
+   "gz": 323793
   },
   "agenskalns": {
    "file": "data/agenskalns/riga-objects.bin.gz",
-   "hash": "078a26bb8bed6013",
-   "objects": 27514,
-   "buildings": 7165,
+   "hash": "cb5d2fa17a88d8fc",
+   "objects": 41874,
+   "buildings": 7162,
    "movers": 1349,
-   "spawns": 2077,
-   "bytes": 581416,
-   "gz": 256860
+   "spawns": 943,
+   "bytes": 828564,
+   "gz": 375554
   },
   "mezaparks": {
    "file": "data/mezaparks/riga-objects.bin.gz",
-   "hash": "b421c02226d16b4c",
-   "objects": 29093,
-   "buildings": 1870,
+   "hash": "4aa0aef2e9364b20",
+   "objects": 45862,
+   "buildings": 1868,
    "movers": 1713,
-   "spawns": 1226,
-   "bytes": 618746,
-   "gz": 277224
+   "spawns": 845,
+   "bytes": 916784,
+   "gz": 422984
   },
   "purvciems": {
    "file": "data/purvciems/riga-objects.bin.gz",
-   "hash": "5f19bd8da0b2cd67",
+   "hash": "84cdb2514bfdd088",
    "objects": 37933,
-   "buildings": 3379,
+   "buildings": 3375,
    "movers": 2446,
-   "spawns": 3523,
-   "bytes": 835922,
-   "gz": 367971
+   "spawns": 3022,
+   "bytes": 830910,
+   "gz": 364214
   }
  }
 }

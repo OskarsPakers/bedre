@@ -1,0 +1,17 @@
+DEATH#1 at t=222 score=543 r=9.8 overlay={"swallowedVisible":true,"by":"Jānis","t":"4"}
+  +0s ph=playing dying=true alive=true score=543 r=2.9 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"4"} pos=3,472
+  +0.5s ph=playing dying=false alive=false score=543 r=1.1 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"3"} pos=0,470
+  +1s ph=playing dying=false alive=false score=543 r=1.1 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"2"} pos=0,470
+  +1.5s ph=playing dying=false alive=false score=543 r=1.1 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"2"} pos=0,470
+  +2s ph=playing dying=false alive=false score=543 r=1.1 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"1"} pos=0,470
+  +2.5s ph=playing dying=false alive=false score=543 r=1.1 protect=0 overlay={"swallowedVisible":true,"by":"Jānis","t":"1"} pos=0,470
+DEATH#2 at t=196 score=330.5 r=7.1 overlay={"swallowedVisible":true,"by":"Gundega","t":"4"}
+  +0s ph=playing dying=true alive=true score=330.5 r=1.4 protect=0 overlay={"swallowedVisible":true,"by":"Gundega","t":"4"} pos=-241,298
+  +0.5s ph=playing dying=false alive=false score=330.5 r=0.9 protect=0 overlay={"swallowedVisible":true,"by":"Gundega","t":"3"} pos=-239,296
+  +1s ph=playing dying=false alive=false score=330.5 r=0.9 protect=0 overlay={"swallowedVisible":true,"by":"Gundega","t":"2"} pos=-239,296
+  +1.5s ph=playing dying=false alive=false score=330.5 r=0.9 protect=0 overlay={"swallowedVisible":true,"by":"Gundega","t":"2"} pos=-239,296
+  +2s ph=playing dying=false alive=false score=330.5 r=0.9 protect=0 overlay={"swallowedVisible":true,"by":"Gundega","t":"1"} pos=-239,296
+  +2.5s ph=playing dying=false alive=true score=165.25 r=6.4 protect=3 overlay={"swallowedVisible":false,"by":"Gundega","t":"1"} pos=205,-258
+hunt done deaths=2
+RESULTS {"place":"1st of 8","deaths":"0","kills":"0","score":"0"}
+FRAME {"n":9539,"avg":16.80926721878561,"p50":16.69999999999709,"p95":16.70000000001164,"p99":16.80000000000291,"max":1116.6,"long":[[1309,1117],[1892,117],[2142,117]]}

@@ -43,6 +43,7 @@ export const CIVIC_SHOTS = [
   { map: 'purvciems', slug: 'pv-slab-1', ids: [49645710, 49646937, 49648832], name: 'Plātņu nams' },
 ];
 export const CIVIC = [
+  { slug: 'radisson-daugava', name: 'Radisson Blu Daugava', ids: [49629591], source: 'mesh', style: 4, wall: 0xb9c4cc, roof: 0x7a7e82, dome: 0x7a7e82, note: 'long 8-10 floor slab, measured from the mesh (top 38.5 m)' },
   { slug: 'opera', name: 'Nacionālā opera', ids: [49616059, 49615786, 49615783], source: 'auto', features: 'opera', style: 2, wall: 0xf1ede2, roof: 0x6f9486, dome: 0x6f9486,
     note: 'white neo-classical opera: columned portico with pediment (added feature), tall stage tower, green roofs' },
   // --- Centrālā stacija: head building + clock tower, main hall, east wing (three objects; the old 'station' hero covered the two cadastre pieces of hall + wing only)

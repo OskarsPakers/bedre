@@ -6,7 +6,7 @@ import { groundTier } from './quality.js';
 import { buildBuildings } from './buildings.js';
 import { Blockers, scatterProps } from './scatter.js';
 import {
-  PROP_DEFS, CAR_TINTS, BUS_TINTS, TRAM_TINTS, TREE_TINTS, KIOSK_TINTS, PARASOL_TINTS, STALL_TINTS, BIKE_TINTS, SCOOTER_TINTS, BIRD_TINTS,
+  PROP_DEFS, CAR_TINTS, BUS_TINTS, TRAM_TINTS, TREE_TINTS, PINE_TINTS, KIOSK_TINTS, PARASOL_TINTS, STALL_TINTS, BIKE_TINTS, SCOOTER_TINTS, BIRD_TINTS,
 } from './propModels.js';
 import { mulberry32 } from './rng.js';
 import { LIFE } from './config.js';
@@ -191,28 +191,29 @@ export class World {
     this.propMeshes = [];
     this.treeMeshes = [];
     const geoOfKind = new Map();
+    const lowTier = groundTier() === 0; // phones / low-memory tier: simpler tree crowns
     const col = new THREE.Color();
-    const tintsFor = { car: CAR_TINTS, van: CAR_TINTS, bus: BUS_TINTS, tram: TRAM_TINTS, tree: TREE_TINTS, kiosk: KIOSK_TINTS, parasol: PARASOL_TINTS, stall: STALL_TINTS, bike: BIKE_TINTS, scooter: SCOOTER_TINTS, pigeon: BIRD_TINTS };
+    const tintsFor = { car: CAR_TINTS, van: CAR_TINTS, bus: BUS_TINTS, tram: TRAM_TINTS, tree: TREE_TINTS, tree2: PINE_TINTS, kiosk: KIOSK_TINTS, parasol: PARASOL_TINTS, stall: STALL_TINTS, bike: BIKE_TINTS, scooter: SCOOTER_TINTS, pigeon: BIRD_TINTS };
     for (const [, list] of groups) {
       const kind = list[0].kind;
       const def = PROP_DEFS[kind];
-      let geo = geoOfKind.get(kind); if (!geo) geoOfKind.set(kind, (geo = def.make())); // one geometry per kind, shared by every chunk
+      let geo = geoOfKind.get(kind); if (!geo) geoOfKind.set(kind, (geo = def.make(kind === 'tree' || kind === 'tree2' ? lowTier : undefined))); // one geometry per kind, shared by every chunk
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       const chunked = !list[0].m;
       mesh.frustumCulled = false;
       mesh.castShadow = !['bike', 'scooter', 'pigeon', 'swan', 'bench', 'bin', 'cafeset'].includes(kind);
-      if (kind === 'tree') this.treeMeshes.push(mesh);
-      mesh.receiveShadow = kind === 'tree' || def.cls === 'car' ? false : true;
+      if (kind === 'tree' || kind === 'tree2') this.treeMeshes.push(mesh);
+      mesh.receiveShadow = kind === 'tree' || kind === 'tree2' || def.cls === 'car' ? false : true;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       list.forEach((p, i) => {
         if (def.tint) {
           const tints = tintsFor[kind];
           if (tints) col.set(tints[Math.floor((p.tint ?? rng()) * tints.length) % tints.length]);
           else col.set(0xffffff);
-          if (kind === 'tree') col.multiplyScalar(0.85 + rng() * 0.3);
+          if (kind === 'tree' || kind === 'tree2') col.multiplyScalar(0.85 + rng() * 0.3);
           mesh.setColorAt(i, col);
         }
-        const val = def.value * (kind === 'tree' ? Math.max(1, Math.round(p.s * 1.5)) : kind === 'monument' ? p.s : 1);
+        const val = def.value * (kind === 'tree2' ? Math.max(2, Math.round(p.s * 2.4)) : kind === 'tree' ? Math.max(1, Math.round(p.s * 1.5)) : kind === 'monument' ? p.s : 1);
         const o = this._add({
           kind, cls: def.cls, x: p.x, z: p.z, fit: p.fit ?? def.fit * p.s, value: p.value ?? Math.max(1, Math.round(val)), h: def.h * p.s,
           name: p.name || null, landmark: !!p.landmark, yaw: p.yaw, s: p.s, mesh, idx: i, isBuilding: false, moverM: p.m || null, p: this.generate ? p : null,

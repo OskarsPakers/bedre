@@ -130,6 +130,8 @@ export const TIER_A = [
   { key: 'circus', lv: 'Rīgas cirks', en: 'Riga Circus', cat: 'theatre', ids: [49615676], album: 'circus' },
   { key: 'splendid', lv: 'Splendid Palace', en: 'Splendid Palace', cat: 'theatre', ids: [49619824], album: 'splendid' },
   { key: 'congress', lv: 'Rīgas Kongresu nams', en: 'Riga Congress House', cat: 'theatre', ids: [49616534] },
+  { key: 'nevsky', lv: 'Sv. Aleksandra Ņevska baznīca', en: 'St Alexander Nevsky Church', cat: 'church', ids: [49619857, 49619931] },
+  { key: 'radisson-daugava', lv: 'Radisson Blu Daugava', en: 'Radisson Blu Daugava', cat: 'hotel', ids: [49629591] },
   { key: 'saeima', lv: 'Saeima', en: 'Saeima (Parliament)', cat: 'gov', ids: [49614901] },
   { key: 'bank', lv: 'Latvijas Banka', en: 'Bank of Latvia', cat: 'gov', ids: [49615814] },
   { key: 'occupation', lv: 'Okupācijas muzejs', en: 'Occupation Museum', cat: 'museum', ids: [49614381] },
@@ -167,27 +169,27 @@ export const TIER_A = [
  * per-piece [wall, roof] for multi-piece sights. Curated heroes (tools/detail/heroes*.mjs: churches, Art Museum, Art Academy, castle, town hall ... ) keep their approved
  * wall / roof colours: an override only applies to a field the hero record does not set.
  */
-const TILE_RED = 0xa8503a, TILE_DARK = 0x9c4a35, TIN = 0x7b8084, TAR = 0x6d6f73;
+const SLATE = 0x4f5358, COPPER_ROOF = 0x5f8f7c, TILE_RED = 0xa8503a, TILE_DARK = 0x9c4a35, TIN = 0x7b8084, TAR = 0x6d6f73;
 export const TREAT_A = {
   castle: { feats: [{ kind: 'castle' }] },
   blackheads: { feats: [{ kind: 'gabletrim' }] },
   townhall: { feats: [{ kind: 'clocktower', h: 17, cap: 0x3f8a76 }, { kind: 'flagpole' }] },
   brothers: { pieces: [[0xe8c27a, TILE_RED], [0xd9917a, TILE_DARK], [0x9fc0a4, TILE_RED]], feats: [{ kind: 'pgable', w: 5.5 }] },
-  'guild-great': { wall: 0xe0bf72, roof: TILE_DARK, feats: [{ kind: 'stepgable' }, { kind: 'turret1' }] },
-  'guild-small': { wall: 0xf0e4c4, roof: TILE_DARK, feats: [{ kind: 'pgable', w: 9 }, { kind: 'turret1' }] },
-  cathouse: { wall: 0xe8c040, roof: TILE_DARK, feats: [{ kind: 'cat2' }] },
+  'guild-great': { wall: 0xe0bf72, roof: SLATE, feats: [{ kind: 'stepgable' }, { kind: 'turret1' }] },
+  'guild-small': { wall: 0xcfcabc, roof: SLATE, feats: [{ kind: 'pgable', w: 9 }, { kind: 'turret1' }] },
+  cathouse: { wall: 0xe8c040, roof: COPPER_ROOF, feats: [{ kind: 'cat2' }] },
   swedish: { wall: 0xe0c27a, roof: TILE_DARK, feats: [{ kind: 'gatearch' }] },
   powder: { feats: [] },
-  university: { feats: [{ kind: 'portico', w: 16 }, { kind: 'dome' }] },
+  university: { feats: [{ kind: 'portico', w: 16 }] }, // review M-22: the invented blue dome is gone
   theatre: { feats: [{ kind: 'fly' }, { kind: 'portico', w: 12 }] },
-  daile: { wall: 0xa6a69c, roof: TAR, feats: [{ kind: 'fly', big: true }, { kind: 'canopy' }] },
+  daile: { wall: 0x8a6a54, roof: TAR, feats: [{ kind: 'fly', big: true }, { kind: 'canopy' }] },
   artmuseum: { feats: [] },
   artacademy: { feats: [] },
-  circus: { wall: 0xd8c9a4, roof: TIN, feats: [{ kind: 'dome', r: 0.34 }] },
+  circus: { wall: 0xd8c9a4, roof: TIN, dome: 0x7d9488, feats: [] }, // review M-11: one dome (the measured one), not two
   splendid: { wall: 0xcfb08a, roof: TIN, feats: [{ kind: 'portico', w: 10 }, { kind: 'cornice' }] },
   congress: { wall: 0xb7b2a6, roof: TAR, feats: [{ kind: 'canopy', w: 18 }, { kind: 'flagpole' }] },
-  saeima: { feats: [{ kind: 'flagpole' }, { kind: 'clocktower', h: 9 }] },
-  bank: { wall: 0xcfc6b0, roof: TIN, feats: [{ kind: 'portico', w: 10 }, { kind: 'flagpole' }] },
+  saeima: { roof: TIN, feats: [{ kind: 'flagpole' }] }, // review M-22: no invented clock tower
+  bank: { wall: 0xcfc6b0, roof: 0x6aa08a, feats: [{ kind: 'portico', w: 10 }, { kind: 'flagpole' }] },
   occupation: { wall: 0x2f3236, roof: 0x4a4c50, style: STYLE.blind, feats: [{ kind: 'cornice', dark: true }], dark: true },
   radio: { wall: 0xb8c0c4, roof: TAR, feats: [{ kind: 'mast' }, { kind: 'canopy' }] },
   library: { feats: [{ kind: 'crown', glass: true }] },
@@ -206,7 +208,9 @@ export const TREAT_A = {
   'ag-market': { feats: [{ kind: 'ridge', long: true }] },
   'ag-wooden': { feats: [{ kind: 'porch' }] },
   estrade: { feats: [{ kind: 'wave' }] },
-  tropu: { wall: 0xc8dcc6, roof: TIN, feats: [{ kind: 'dome', r: 0.3 }] },
+  tropu: { wall: 0xc8dcc6, roof: TIN, feats: [{ kind: 'tent', col: 0xb5523a }] }, // review M-14: low red conical tent roof
+  nevsky: { feats: [{ kind: 'dome', R: 7.4, col: 0x4f8a6c, drum: 0xe6cf80, cross: true }] }, // review M-10: one large green dome
+  'radisson-daugava': { feats: [] }, // review M-09: no +13 m lantern; the body is the measured 8-10 floor slab
 };
 
 /** feature hints from OSM tags (client file 5th element): water towers and chimneys */

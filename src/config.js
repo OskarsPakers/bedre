@@ -56,7 +56,8 @@ export const CFG = {
   props: {
     // iteration 5: the map grew from 5.8 to ~8.9 km^2 (left bank) -> ~+40 % props
     people: 3300, lamps: 980, benches: 360, bins: 450, cars: 1550, vans: 240,
-    buses: 62, trams: 39, kiosks: 62, maxTrees: 12000, parkExtraTrees: 0,
+    buses: 62, trams: 39, kiosks: 62, maxTrees: 40000, parkExtraTrees: 0,
+    forestSpacing: 8, forestMax: 28000, // dense pine forest on ground class 10 (src/scatter.js); 0 = off
   },
 
   groundUrl: '/data/riga-ground.png', // optional: class raster measured from an open orthophoto (tools/surface); stylised flat colours

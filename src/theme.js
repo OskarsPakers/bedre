@@ -304,7 +304,7 @@ export class ThemeManager {
       b.setAttribute('aria-pressed', String(p === this.pick));
     }
     this.pickCap.textContent = this.pick === 'auto' ? t('themeNow', { name: t(this.T.key) }) : '';
-    if (this.T.festive && this.pick === 'auto') this.pickCap.textContent = t('themeNov18Cap');
+    if (this.T.festive && this.pick === 'auto') this.pickCap.textContent = t(new Date().getDate() === 18 ? 'themeNov18CapDay' : 'themeNov18CapWeek');   // 11-17 Nov: Lāčplēša Day week; 18 Nov: the proclamation of the Republic
   }
 
   // ---- fireworks ------------------------------------------------------------------------------------------

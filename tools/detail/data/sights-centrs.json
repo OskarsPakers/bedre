@@ -1,7 +1,7 @@
 {
  "map": "centrs",
  "generated": "2026-11-16",
- "count": 427,
+ "count": 426,
  "sights": [
   {
    "hint": null,
@@ -113,9 +113,9 @@
   },
   {
    "hint": null,
-   "key": null,
-   "name": "Radisson Blu",
-   "en": "Radisson Blu",
+   "key": "radisson-daugava",
+   "name": "Radisson Blu Daugava",
+   "en": "Radisson Blu Daugava",
    "cat": "hotel",
    "tier": "A",
    "lead": 49629591,
@@ -127,11 +127,9 @@
    "x": -1178,
    "z": 851,
    "why": [
-    "osm-name",
-    "tall",
-    "album:radisson"
+    "tierA"
    ],
-   "album": "radisson"
+   "album": null
   },
   {
    "hint": null,
@@ -1102,6 +1100,27 @@
     "album:spikeri"
    ],
    "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": "nevsky",
+   "name": "Sv. Aleksandra Ņevska baznīca",
+   "en": "St Alexander Nevsky Church",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49619857,
+   "ids": [
+    49619857,
+    49619931
+   ],
+   "area": 516,
+   "h": 21.2,
+   "x": 494,
+   "z": -503,
+   "why": [
+    "tierA"
+   ],
+   "album": null
   },
   {
    "hint": null,
@@ -4110,30 +4129,6 @@
   {
    "hint": null,
    "key": null,
-   "name": "Svētā labticīgā Aleksandra Ņevska pareizticīgo baznīca",
-   "en": null,
-   "cat": "church",
-   "tier": "B",
-   "lead": 49619857,
-   "ids": [
-    49619857
-   ],
-   "area": 483,
-   "h": 11.6,
-   "x": 494,
-   "z": -503,
-   "why": [
-    "tag:amenity=place_of_worship",
-    "osm-name",
-    "tag:heritage",
-    "t:rel",
-    "landmark"
-   ],
-   "album": null
-  },
-  {
-   "hint": null,
-   "key": null,
    "name": "Atklāsme",
    "en": null,
    "cat": "church",
@@ -4876,6 +4871,27 @@
   {
    "hint": null,
    "key": null,
+   "name": "Grēcinieku iela 25",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614353,
+   "ids": [
+    49614353,
+    49612434
+   ],
+   "area": 1868,
+   "h": 21.2,
+   "x": -351,
+   "z": 509,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
    "name": "Skrindu iela 1",
    "en": null,
    "cat": "public",
@@ -5452,26 +5468,6 @@
    "z": 1039,
    "why": [
     "tag:man_made=tower"
-   ],
-   "album": null
-  },
-  {
-   "hint": null,
-   "key": null,
-   "name": "Grēcinieku iela 25",
-   "en": null,
-   "cat": "hotel",
-   "tier": "C",
-   "lead": 49614353,
-   "ids": [
-    49614353
-   ],
-   "area": 985,
-   "h": 21.2,
-   "x": -351,
-   "z": 509,
-   "why": [
-    "tag:building=hotel"
    ],
    "album": null
   },
@@ -8851,26 +8847,6 @@
    "z": 830,
    "why": [
     "tag:building=chapel"
-   ],
-   "album": null
-  },
-  {
-   "hint": null,
-   "key": null,
-   "name": "Brīvības iela 56",
-   "en": null,
-   "cat": "church",
-   "tier": "C",
-   "lead": 49619931,
-   "ids": [
-    49619931
-   ],
-   "area": 33,
-   "h": 21.2,
-   "x": 503,
-   "z": -490,
-   "why": [
-    "t:rel"
    ],
    "album": null
   }

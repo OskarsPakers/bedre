@@ -78,6 +78,47 @@ class Field {
   }
 }
 
+
+// ------------------------------------------------------------------ spike filter
+/**
+ * Thin / isolated peaks in a measured height field are not architecture: tree crowns, cranes, masts, antennas, mesh noise (the plane fitter turns a 1-2 m wide
+ * spike into a wall: a 60 m wedge on Rīgas pils). A connected group of cells higher than `base + max(6, 0.6 base)` (base = 85th percentile of the footprint) is a spike when it is small
+ * relative to the footprint (<= 12 % and <= 70 m^2; rough crowns <= 30 % and <= 160 m^2) and either THIN (shorter side <= 2.5 m: mast / wedge) or ROUGH (mean Laplacian >= 1.0 m: crown / noise; ordinary
+ * buildings only). Smooth, compact peaks (chimneys, turrets, tower roofs) and anything a hero list marks as a tower (`keepPeaks`) stay. Replaced by the median of the ring around the peak.
+ */
+function despike(F, { rough = true } = {}) {
+  const { w, h, H } = F, valid = [];
+  for (let k = 0; k < H.length; k++) if (!Number.isNaN(H[k]) && H[k] >= OPEN) valid.push(H[k]);
+  if (valid.length < 12) return 0;
+  valid.sort((a, b) => a - b);
+  const base = valid[Math.floor(valid.length * 0.85)], T = base + Math.max(6, 0.6 * base), cellA = F.cell * F.cell;
+  const lab = new Int32Array(w * h).fill(-1); let removed = 0;
+  const NB = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+  for (let k0 = 0; k0 < H.length; k0++) {
+    if (lab[k0] >= 0 || !(H[k0] > T)) continue;
+    const comp = [k0]; lab[k0] = k0;
+    for (let q = 0; q < comp.length; q++) { const k = comp[q], i = k % w, j = (k / w) | 0; for (const [a, c] of NB) { const ii = i + a, jj = j + c; if (ii < 0 || jj < 0 || ii >= w || jj >= h) continue; const kk = jj * w + ii; if (lab[kk] < 0 && H[kk] > T) { lab[kk] = k0; comp.push(kk); } } }
+    const area = comp.length * cellA, fp = valid.length * cellA;
+    if (area > Math.max(Math.min(70, 0.12 * fp), rough ? Math.min(160, 0.3 * fp) : 0)) continue; // thin / compact peaks: <= 12 % of the footprint; rough crowns (ordinary buildings): up to 30 %
+    let i0 = 1e9, i1 = -1, j0 = 1e9, j1 = -1, lap = 0, nl = 0;
+    for (const k of comp) { const i = k % w, j = (k / w) | 0; i0 = Math.min(i0, i); i1 = Math.max(i1, i); j0 = Math.min(j0, j); j1 = Math.max(j1, j);
+      if (i > 0 && j > 0 && i < w - 1 && j < h - 1) { const c = H[k], a = H[k - 1], b = H[k + 1], u = H[k - w], v = H[k + w]; if (![a, b, u, v].some(Number.isNaN)) { lap += Math.min(3, Math.abs(a + b - 2 * c) + Math.abs(u + v - 2 * c)); nl++; } } }
+    const dimI = (i1 - i0 + 1) * F.cell, dimJ = (j1 - j0 + 1) * F.cell, thin = Math.min(dimI, dimJ) <= 2.5, rgh = nl >= 4 && lap / nl >= 1.0;
+    let top = 0; for (const k of comp) top = Math.max(top, H[k]);
+    let upper = 0; for (const k of comp) if (H[k] > T + 0.5 * (top - T)) upper++;
+    const shaft = comp.length >= 4 && upper / comp.length >= 0.5 && !rgh; // vertical-sided and smooth: a chimney / shaft, not a mast or a wedge
+    if (!((thin && !shaft) || (rough && rgh))) continue;
+    // replacement level: median of the cells in a 3-cell ring around the group that are not part of it
+    const ring = [];
+    for (let j = Math.max(0, j0 - 3); j <= Math.min(h - 1, j1 + 3); j++) for (let i = Math.max(0, i0 - 3); i <= Math.min(w - 1, i1 + 3); i++) { const kk = j * w + i; if (lab[kk] === k0 || Number.isNaN(H[kk]) || H[kk] > T) continue; ring.push(H[kk]); }
+    if (ring.length < 4) continue;
+    ring.sort((a, b) => a - b); const lvl = ring[Math.floor(ring.length / 2)];
+    for (const k of comp) H[k] = Math.min(H[k], lvl);
+    removed++;
+  }
+  return removed;
+}
+
 // ------------------------------------------------------------------ OSM parts -> field
 function ringGauge(ring, cx, cz) { // gauge function: |p| / ring radius in the direction of p
   return (x, z) => {
@@ -576,6 +617,10 @@ for (const hh of HEROES_SYNTH()) { // grid-less churches (outside the reality-me
   detail.heights[hh.ids[0]] = sg.h90; detail.heightsP50[hh.ids[0]] = sg.h90 * 0.7;
   heightsRec.push(hh.ids[0], Math.round(sg.h90 * 10), Math.round(sg.h90 * 7));
 }
+const spikeLog = [];
+// explicit height clips (m above ground) for known mesh artefacts a generic filter cannot tell from architecture (review M-02: a 57 m mast / crane spike on Rīgas pils, real castle <= ~32 m)
+const CLIP_TOP = { 49615051: 33 };
+const sightIds = new Set(Object.entries((() => { try { return JSON.parse(fs.readFileSync(path.join(pub, 'sights.json'), 'utf8')).s || {}; } catch { return {}; } })()).filter(([, v]) => v[1] <= 1 || v[1] === 'A' || v[1] === 'B').map(([k]) => +k)); // tier A / B sights keep rough tops (towers, spires)
 const stats = { mesh: 0, osm: 0, osmRejected: 0, failed: 0, tris: 0, verts: 0, contour: 0 };
 const t0 = Date.now();
 const ids = Object.keys(detail.buildings).filter((k) => !only.length || only.includes(+k));
@@ -600,6 +645,23 @@ for (const key of ids) {
   }
   const notable = d.grid.cell < 0.75;
   const mesh = Field.fromGrid(d.grid);
+  if (CLIP_TOP[+key]) { // cells above the clip (and the flanks of the spike down to clip - 12 m) are replaced by the median of the surrounding roof
+    const lim = CLIP_TOP[+key], H = mesh.H, flank = lim - 12, hot = [];
+    for (let k = 0; k < H.length; k++) if (H[k] > flank && (H[k] > lim || (() => { const i = k % mesh.w, j = (k / mesh.w) | 0; for (let dj = -4; dj <= 4; dj++) for (let di = -4; di <= 4; di++) { const ii = i + di, jj = j + dj; if (ii >= 0 && jj >= 0 && ii < mesh.w && jj < mesh.h && H[jj * mesh.w + ii] > lim) return true; } return false; })())) hot.push(k);
+    if (hot.length) {
+      const hs = new Set(hot), ring = []; for (let k = 0; k < H.length; k++) if (!hs.has(k) && !Number.isNaN(H[k]) && H[k] >= OPEN && H[k] <= lim && hot.some((q) => Math.abs((q % mesh.w) - (k % mesh.w)) <= 6 && Math.abs(((q / mesh.w) | 0) - ((k / mesh.w) | 0)) <= 6)) ring.push(H[k]);
+      ring.sort((a, b) => a - b); const lvl = ring.length ? ring[Math.floor(ring.length / 2)] : flank;
+      for (const k of hot) H[k] = Math.min(H[k], lvl);
+      stats.clipped = (stats.clipped || 0) + 1; spikeLog.push([+key, 'clip', hot.length, +lvl.toFixed(1)]);
+    }
+  }
+  if (!hero && !sightIds.has(+key) && area < 5000) { // a small building whose whole footprint is tree crown in the mesh: the volume is not a roof (review M-15: 20 m blades in the forest) -> flat extrusion from the cadastre height
+    const H = mesh.H; let n = 0, rough = 0, top = 0; const smooth = [];
+    for (let j = 1; j < mesh.h - 1; j++) for (let i = 1; i < mesh.w - 1; i++) { const k = j * mesh.w + i, c = H[k]; if (Number.isNaN(c) || c < 3) continue; const a = H[k - 1], b = H[k + 1], u = H[k - mesh.w], v = H[k + mesh.w]; if ([a, b, u, v].some(Number.isNaN)) continue; n++; top = Math.max(top, c); if (Math.abs(a + b - 2 * c) + Math.abs(u + v - 2 * c) > 1.3) rough++; else smooth.push(c); }
+    smooth.sort((p, q) => p - q); const sTop = smooth.length >= 4 ? smooth[Math.floor(smooth.length * 0.95)] : 0;
+    if (n >= 8 && rough / n >= (area < 400 ? 0.5 : 0.65) && top >= 12 && sTop <= 0.5 * top) { stats.treeCovered = (stats.treeCovered || 0) + 1; spikeLog.push([+key, 'tree-covered', n, rough]); continue; }
+  }
+  { const nsp = despike(mesh, { rough: !(hero && (hero.keepPeaks || hero.church)) && !sightIds.has(+key) }); if (nsp) { stats.spikes = (stats.spikes || 0) + nsp; spikeLog.push([+key, nsp]); } }
   let F = mesh, src = 1, roofRGB = 0, partsRes = null;
   const mode = hero ? hero.source : 'auto';
   if (hero && hero.barrel) { // parametric barrel vault from the footprint's oriented box and the measured height
@@ -668,6 +730,7 @@ for (const key of ids) {
     const f = FEATURES_CIVIC[hero.features](hero, { ring: ring0, key: +key, d }), nv0 = res.verts.length;
     res = { ...res, verts: res.verts.concat(f.verts), tris: res.tris.concat(f.tris.map(([a1, b1, c1, m1]) => [a1 + nv0, b1 + nv0, c1 + nv0, m1])), hmax: Math.max(res.hmax, f.hmax), vol: res.vol + f.vol * 0.3 };
   }
+  if (res && process.env.DBG_ID === key) { const hi = res.verts.filter((v) => v[1] > 40); console.log('DBG hi verts', hi.length, JSON.stringify(hi.slice(0, 6))); }
   if (!res) { stats.failed++; if (process.argv.includes('--why')) console.log('failed', key, area.toFixed(0), d.grid.w, d.grid.h); continue; }
   if (process.argv.includes('--verbose') && only.length) console.log(key, res.planar ? 'planar' : 'tin', 'tris', res.tris.length, 'verts', res.verts.length, JSON.stringify(res.info || {}));
   if (res.info && res.planar) (globalThis.__rep ||= []).push([key, +(res.info.rms || 0).toFixed(2), res.info.planes, res.tris.length, res.info.dropped, res.info.lathes, Math.round(area)]);
@@ -719,4 +782,5 @@ if (!only.length) {
   fs.writeFileSync(OUT, zlib.gzipSync(raw, { level: 9 }));
   console.log(`wrote ${OUT}: raw ${raw.length} B, gz ${fs.statSync(OUT).size} B`);
 }
+fs.mkdirSync(path.join(here, '../.cache/mapfix'), { recursive: true }); fs.writeFileSync(path.join(here, '../.cache/mapfix', `spikes-${MAP}.json`), JSON.stringify(spikeLog));
 console.log(JSON.stringify(stats), 'rejected OSM:', JSON.stringify(rejected.slice(0, 20)), `${((Date.now() - t0) / 1000).toFixed(1)} s`);

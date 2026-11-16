@@ -238,6 +238,22 @@ const RE_CHURCH = /baznīca|katedrāle|doms|sinagoga|church|cathedral|bazn/i;
 const RE_TOWER = /torn/i;
 const RE_MONUMENT = /piemineklis|pulkstenis/i;
 
+/**
+ * Roof material mix per neighbourhood of the Centre map (review M-04: real roofs are mostly grey zinc / tin / slate with green copper on monuments, clay tile is the minority).
+ * Shares are set per building from its position (deterministic, no rng draw): Old Town: 90 % of the pitched roofs keep the clay tile (kept predominantly red on purpose; rendered area share red 48.5 -> 47 %, grey 44 -> 46 %),
+ * 8 % grey zinc / slate, 2 % verdigris (orthophoto measurement: 17-25 % red / 70-78 % grey / 5 % green); the surrounding centre grid 18 % tile, 74 % grey, 8 % green (measured ~5 % red / 93 % grey: the detector under-reads dull rusty tile; rendered 37 / 48.5 / 14 -> 13 / 72 / 15 %).
+ * Returns a hex colour, or 0 = keep the building's own (tile) colour. Districts keep their palettes.
+ */
+const GREY_ROOFS = [0x6b6f72, 0x7b8084, 0x62676c, 0x707a82, 0x7f868c, 0x5e646a, 0x74726e];
+const GREY_OLD = [0x6b6f72, 0x62676c, 0x707a82, 0x5e646a, 0x5f6368];
+const VERDIGRIS = [0x6a9484, 0x78a090, 0x5f8f7c];
+export function zoneRoof(slug, zone, x, z) {
+  if (slug !== 'centrs') return 0;
+  const u = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1, v = Math.abs(Math.sin(x * 4.1414 + z * 9.2653) * 24634.6345) % 1;
+  if (zone === 'old') return u < 0.9 ? 0 : u < 0.98 ? GREY_OLD[Math.floor(v * GREY_OLD.length)] : VERDIGRIS[Math.floor(v * VERDIGRIS.length)];
+  return u < 0.18 ? 0 : u < 0.92 ? GREY_ROOFS[Math.floor(v * GREY_ROOFS.length)] : VERDIGRIS[Math.floor(v * VERDIGRIS.length)];
+}
+
 /** Neighbourhood palettes: Old Town (warm, saturated) south-west of the canal, Art Nouveau centre (pastel). */
 export function zoneOf(x, z) {
   const a = (x + 400) / 520, b = (z - 260) / 380;
@@ -341,7 +357,7 @@ export function flatHeight(b, area, hs) {
   if (!hs || b.t === 'aux') return rh;
   const [p90, p50] = hs;
   if (!(p90 >= 2)) return rh;
-  if (area < 60 && p90 > rh * 1.8 + 3) return rh; // small + much taller than the survey says: tree canopy in the mesh
+  if ((area < 60 && p90 > rh * 1.8 + 3) || (area < 250 && p90 > rh * 1.5 + 4)) return rh; // small + much taller than the survey says: tree canopy / crane in the mesh (review M-15: tall thin blades in the forest)
   const d = p90 - p50;
   let h;
   if (p50 < 0.5 * p90) h = p90 * 0.85;       // footprint mostly open ground around a taller core
@@ -551,6 +567,7 @@ export function buildBuildings(data) {
     const wallCol = pickCol(walls);
     wallCol.multiplyScalar(0.92 + rng() * 0.14);
     const roofCol = pickCol(roofs);
+    if (t === 'res' || t === 'pub' || t === 'oth' || t === 'rel') { const zr = zoneRoof(slug, zone, it.x, it.z); if (zr) roofCol.setHex(zr); }
     const rule = it.rule;
     if (rule) {
       if (rule.wall) wallCol.setHex(rule.wall);
@@ -592,8 +609,8 @@ export function buildBuildings(data) {
       let pitchCol;
       if (rec.roofRGB) pitchCol = new THREE.Color(rec.roofRGB);
       else if (rule && rule.roof) pitchCol = roofCol.clone();
-      else if (zone === 'old') pitchCol = new THREE.Color(P.oldTownRoof[hash % P.oldTownRoof.length]);
-      else { const r = rng(); pitchCol = new THREE.Color(r < 0.62 ? TILE[hash % TILE.length] : r < 0.93 ? TIN[hash % TIN.length] : TIN_GREEN[hash % TIN_GREEN.length]); }
+      else if (zone === 'old') { const zr = t === 'res' || t === 'pub' || t === 'oth' || t === 'rel' ? zoneRoof(slug, zone, it.x, it.z) : 0; pitchCol = new THREE.Color(zr || P.oldTownRoof[hash % P.oldTownRoof.length]); }
+      else { const r = rng(); const zr = t === 'res' || t === 'pub' || t === 'oth' || t === 'rel' ? zoneRoof(slug, zone, it.x, it.z) : 0; pitchCol = new THREE.Color(slug === 'centrs' && (t === 'res' || t === 'pub' || t === 'oth' || t === 'rel') ? zr || TILE[hash % TILE.length] : r < 0.62 ? TILE[hash % TILE.length] : r < 0.93 ? TIN[hash % TIN.length] : TIN_GREEN[hash % TIN_GREEN.length]); }
       if (panel || bigFlat || (T && T.roof != null)) pitchCol = roofCol.clone();
       const flatCol = panel || bigFlat || (T && T.roof != null) ? roofCol.clone() : rec.roofRGB ? pitchCol.clone() : new THREE.Color(TAR[hash % TAR.length]);
       const specialCol = new THREE.Color(T && T.dome ? T.dome : T && !rec.domeRGB ? pitchCol.getHex() : rec.domeRGB ? rec.domeRGB : orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x5a6a74 : 0x5f9d89));

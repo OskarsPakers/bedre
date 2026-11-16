@@ -1,0 +1,270 @@
+{
+ "lat": [
+  {
+   "fast": {
+    "sc": 89,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 1
+   },
+   "lag": {
+    "sc": 45,
+    "opt": 7,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  },
+  {
+   "fast": {
+    "sc": 137,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 1
+   },
+   "lag": {
+    "sc": 167,
+    "opt": 6,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  },
+  {
+   "fast": {
+    "sc": 203,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 0
+   },
+   "lag": {
+    "sc": 301,
+    "opt": 4,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  },
+  {
+   "fast": {
+    "sc": 294,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 0
+   },
+   "lag": {
+    "sc": 531,
+    "opt": 20,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  },
+  {
+   "fast": {
+    "sc": 378,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 1
+   },
+   "lag": {
+    "sc": 680,
+    "opt": 3,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  },
+  {
+   "fast": {
+    "sc": 517,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 1
+   },
+   "lag": {
+    "sc": 755,
+    "opt": 1,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 703
+   }
+  },
+  {
+   "fast": {
+    "sc": 634,
+    "opt": 0,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 1
+   },
+   "lag": {
+    "sc": 843,
+    "opt": 8,
+    "rb": 0,
+    "rej": 0,
+    "alive": true,
+    "rtt": 704
+   }
+  }
+ ],
+ "seen": [
+  {
+   "id": 5,
+   "x": 357.8017138671875,
+   "z": -197.63009602864582
+  },
+  {
+   "id": 6,
+   "x": -455.26533365885416,
+   "z": 117.16533365885417
+  },
+  {
+   "id": 7,
+   "x": -709.8318098958333,
+   "z": 162.33295247395833
+  },
+  {
+   "id": 8,
+   "x": -269.53180989583336,
+   "z": 160.46590494791667
+  },
+  {
+   "id": 9,
+   "x": 96.53180989583333,
+   "z": 460.16590494791666
+  },
+  {
+   "id": 10,
+   "x": -694.2670475260417,
+   "z": 85.6017138671875
+  },
+  {
+   "id": 11,
+   "x": -131.16533365885417,
+   "z": 612.0994287109376
+  }
+ ],
+ "bSelf": {
+  "me": 5,
+  "x": 361.9576330926178,
+  "z": -186.14340406228357
+ },
+ "badgeLag": {
+  "t": "704 ms",
+  "w": 81.078125,
+  "h": 24
+ },
+ "s6_a": {
+  "v": 1,
+  "serverTime": 1794857035478,
+  "max": 12,
+  "open": null,
+  "running": [
+   {
+    "timeLeft": 12,
+    "top": [
+     {
+      "n": "Lag700",
+      "s": 856,
+      "b": 0
+     },
+     {
+      "n": "Fast",
+      "s": 638,
+      "b": 0
+     },
+     {
+      "n": "Māris",
+      "s": 291,
+      "b": 1
+     },
+     {
+      "n": "Kārlis",
+      "s": 240,
+      "b": 1
+     },
+     {
+      "n": "Zaķis",
+      "s": 200,
+      "b": 1
+     }
+    ],
+    "humans": 2
+   }
+  ]
+ },
+ "s6_b": {
+  "v": 1,
+  "serverTime": 1794857038022,
+  "max": 12,
+  "open": null,
+  "running": [
+   {
+    "timeLeft": 10,
+    "top": [
+     {
+      "n": "Lag700",
+      "s": 861,
+      "b": 0
+     },
+     {
+      "n": "Fast",
+      "s": 638,
+      "b": 0
+     },
+     {
+      "n": "Māris",
+      "s": 314,
+      "b": 1
+     },
+     {
+      "n": "Kārlis",
+      "s": 260,
+      "b": 1
+     },
+     {
+      "n": "Zaķis",
+      "s": 205,
+      "b": 1
+     }
+    ],
+    "humans": 2
+   }
+  ]
+ },
+ "s6_c": {
+  "v": 1,
+  "serverTime": 1794857053026,
+  "max": 12,
+  "open": null,
+  "running": []
+ },
+ "errs": [
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state.",
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state.",
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state.",
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state.",
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state.",
+  "[lag] console: WebSocket is already in CLOSING or CLOSED state."
+ ]
+}

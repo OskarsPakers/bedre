@@ -11,6 +11,7 @@ import { buildAlbum, collect, collectedCount, renderAlbum } from './album.js';
 import { makeDefs, evaluate, renderAchievements, achName } from './achievements.js';
 import { drawRecapMap, drawSpark, areaRows } from './recap.js';
 import { renderCard, shareCard, copyLink, SITE } from './share.js';
+import { getMode } from '../modes.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
@@ -67,7 +68,15 @@ export async function initMeta({ game, world }) {
   };
   resetRound();
   // rounds that used debug hooks / URL overrides never unlock anything (free roam and daily practice still count)
-  const debugRound = () => !!game.unranked && game.unranked !== 'free' && game.unranked !== 'practice' && !window.__metaAllowDebug;
+  const debugRound = () => !!game.unranked && game.unranked !== 'free' && game.unranked !== 'practice' && game.unranked !== 'online' && !window.__metaAllowDebug;
+  // Eligibility rule (docs/qa/playtest-desktop.md QA1-06): collection / swallow / size achievements count in every mode (free roam, daily practice and
+  // online included - they only depend on what you swallowed). Placement ('win'), survival ('survivor') and the rounds counter need a REAL round:
+  // opponents on the map, not free roam, and at least min(60 s, half the round) played.
+  const realRound = () => {
+    if (document.body.classList.contains('mode-free') || game.unranked === 'free') return false;
+    const opp = game.holes.filter((h) => !h.isPlayer).length;
+    return opp > 0 && (game.playT || 0) >= Math.min(60, (game.roundSeconds || 300) * 0.5);
+  };
   const defs = makeDefs({ R, album, churchIds, oldTown: oldTown && oldTown.id, levelMax: CFG.levels.length });
 
   // ---- DOM: HUD meter, area banner, toasts -------------------------------------------------------------------
@@ -127,6 +136,7 @@ export async function initMeta({ game, world }) {
   // ---- events --------------------------------------------------------------------------------------------------------
   const normKind = (k) => String(k || '').replace(/^person\d+$/, 'person');
   bus.on('roundStart', () => { resetRound(); drawPct(); });
+  bus.on('introStart', () => { resetRound(); drawPct(); });   // the fly-in after "Play again" must not show the last round's % / share bar
   bus.on('swallow', (o, hole) => {
     R.all += o.value;
     const ai = objArea[o.id];
@@ -259,11 +269,28 @@ export async function initMeta({ game, world }) {
     const cb = el('button', 'btn alt', mt('copyLink')); cb.type = 'button'; cb.id = 'meta-copy';
     sb.addEventListener('click', async () => {
       sb.disabled = true;
-      try { const r = await shareCard(makeCard(), mt('shareText', { pct: fmtPct(R.pctMe), score: Math.floor(res.score) })); sb.dataset.result = r; } finally { sb.disabled = false; }
+      try {
+        const r = await shareCard(makeCard(), mt('shareText', { pct: fmtPct(R.pctMe), score: Math.floor(res.score) }));
+        sb.dataset.result = r;
+        if (r === 'shared') flash(sb, '✓ ' + mt('shared')); else if (r === 'downloaded') flash(sb, '✓ ' + mt('downloaded'));
+      } finally { sb.disabled = false; }
     });
-    cb.addEventListener('click', async () => { const ok = await copyLink(); if (ok) toast('🔗', mt('copied'), { ms: 1800, sticky: true }); });
+    cb.addEventListener('click', async () => { const ok = await copyLink(shareUrl()); flash(cb, ok ? '✓ ' + mt('copied') : mt('copyFail')); });
     shareBox.append(sb, cb);
     recapInfo = true;
+  }
+  /** Visible confirmation on the button itself (the toast lane is hidden while the results panel is up). */
+  function flash(btn, text) {
+    if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+    btn.textContent = text; btn.classList.add('done'); btn.setAttribute('role', 'status');
+    clearTimeout(btn._ft); btn._ft = setTimeout(() => { btn.textContent = btn.dataset.label; btn.classList.remove('done'); btn.removeAttribute('role'); }, 2200);
+  }
+  /** Link for a friend: same map + game mode (never the name or anything personal). */
+  function shareUrl() {
+    const u = new URL(SITE + '/');
+    u.searchParams.set('map', (CFG.map && CFG.map.slug) || 'centrs');
+    u.searchParams.set('mode', getMode());
+    return u.toString();
   }
   function makeCard() {
     const res = game._res;
@@ -280,10 +307,11 @@ export async function initMeta({ game, world }) {
     clearToasts();
     const st = load();
     R.pctAll = (100 * R.all) / total; R.pctMe = (100 * R.me) / total;
-    R.won = !!res && res.rank === 1;
-    R.survived = R.deaths === 0;
+    const real = realRound();
+    R.won = !!res && res.rank === 1 && real;
+    R.survived = R.deaths === 0 && real;
     if (!debugRound()) {
-      st.ctr.rounds++; if (R.won) st.ctr.wins++;
+      if (real) { st.ctr.rounds++; if (R.won) st.ctr.wins++; }
       const best = st.best; if (R.pctMe > (best.pct || 0)) best.pct = R.pctMe;
       if (res && res.score > (best.score || 0)) best.score = res.score;
     }

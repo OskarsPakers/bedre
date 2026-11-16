@@ -10,7 +10,7 @@ const rgb = (c) => { const k = new THREE.Color(c); return [k.r, k.g, k.b]; };
 const sh = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const LIGHT = rgb(0xeee6d2), DARK = rgb(0x2b2f35), GLASS = rgb(0xa9cde0), COPPER = rgb(0x3f8a76), WHITE = rgb(0xf4f2ea), RED = rgb(0xc8322d);
-export const SF_KINDS = new Set(['canopy', 'portico', 'fly', 'cupola', 'redcross', 'flagpole', 'clocktower', 'ridge', 'crown', 'cote', 'stepgable', 'pgable', 'roundtowers', 'masts', 'chimney', 'watertower', 'porch', 'cornice', 'dome', 'mast', 'gatearch', 'turret1', 'wave', 'cat2', 'gabletrim']);
+export const SF_KINDS = new Set(['canopy', 'portico', 'fly', 'cupola', 'redcross', 'flagpole', 'clocktower', 'ridge', 'crown', 'cote', 'stepgable', 'pgable', 'roundtowers', 'masts', 'chimney', 'watertower', 'porch', 'cornice', 'dome', 'mast', 'gatearch', 'turret1', 'wave', 'cat2', 'gabletrim', 'tent']);
 
 function frame(ring) { const mb = minBox(ring); return { ux: mb.ux, uz: mb.uz, vx: -mb.uz, vz: mb.ux, cu: mb.cu, cv: mb.cv, L: mb.L, W: mb.W }; }
 const at = (f, u, v) => [f.ux * u + f.vx * v, f.uz * u + f.vz * v];
@@ -252,11 +252,17 @@ export function addSightFeature(b, d, ring, wallCol, roofCol) {
       return 0.8;
     }
     case 'dome': { // low copper dome on a drum at the middle
-      const c = at(f, f.cu, f.cv), [x, z] = inside(ring, c[0], c[1]), R = clamp(Math.min(f.L, f.W) * (d.r || 0.2), 2.5, 9);
-      lathe(b, x, z, [[R, y], [R, y + R * 0.5]], sh(wall, 1.05), 14);
-      lathe(b, x, z, [[R * 1.05, y + R * 0.5], [R * 1.0, y + R * 0.6], [R * 0.85, y + R * 1.1], [R * 0.5, y + R * 1.55], [R * 0.15, y + R * 1.85], [0.02, y + R * 2.0]], COPPER, 14);
+      const c = at(f, f.cu, f.cv), [x, z] = inside(ring, c[0], c[1]), R = d.R ? Math.min(d.R, Math.min(f.L, f.W) * 0.45) : clamp(Math.min(f.L, f.W) * (d.r || 0.2), 2.5, 9);
+      const dcol = d.col != null ? rgb(d.col) : COPPER;
+      lathe(b, x, z, [[R, y], [R, y + R * 0.5]], d.drum != null ? rgb(d.drum) : sh(wall, 1.05), 14);
+      lathe(b, x, z, [[R * 1.05, y + R * 0.5], [R * 1.0, y + R * 0.6], [R * 0.85, y + R * 1.1], [R * 0.5, y + R * 1.55], [R * 0.15, y + R * 1.85], [0.02, y + R * 2.0]], dcol, 14);
       lathe(b, x, z, [[0.1, y + R * 1.95], [0.1, y + R * 2.0 + 1.6]], rgb(0xe3b53c), 4);
       return R * 2 + 1.6;
+    }
+    case 'tent': { // low conical tent roof over the middle of the footprint (Tropu māja)
+      const c = at(f, f.cu, f.cv), [x, z] = inside(ring, c[0], c[1]), R = Math.min(f.L, f.W) * 0.48;
+      lathe(b, x, z, [[R, y - 0.3], [R * 0.98, y + 0.4], [R * 0.5, y + R * 0.22], [0.05, y + R * 0.42]], rgb(d.col || 0xb5523a), 18);
+      return R * 0.42 + 0.4;
     }
     case 'gatearch': { // dark arched passage in the street front
       const p = F(0, 0.12), w = 2.6;

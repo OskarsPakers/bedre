@@ -28,6 +28,7 @@ const placements = () => {
 // Start the selected map's data files downloading while the JS bundle is still downloading / parsing: an inline script in <head> picks the map
 // exactly like src/maps.js (?map= > localStorage > centre), adds <link rel=preload as=fetch> for its four files and publishes the decoded byte
 // sizes (window.__DATA) so src/loadProgress.js can show one real progress bar over all of them. Skipped for ?sample=1 / ?placements=generate.
+// No <link rel=preload> on WebKit (Safari / every iOS browser): it never matched them with the later fetch() and logged "preloaded but not used" x4 (the sizes are still published).
 const dataPreload = () => {
   const table = () => {
     const ph = placements();
@@ -42,7 +43,7 @@ const dataPreload = () => {
   return {
     name: 'bedre-data-preload',
     transformIndexHtml(html) {
-      const js = `(function(){try{var T=${JSON.stringify(table())},u=new URLSearchParams(location.search);if(u.get('sample')==='1'||u.get('placements')==='generate')return;var s=u.get('map');if(!s){try{s=localStorage.getItem('bedre.map')}catch(e){}}if(!T[s])s='centrs';var f=T[s];window.__DATA={slug:s,files:f};f.forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='fetch';l.crossOrigin='anonymous';l.href=x[0];document.head.appendChild(l)})}catch(e){}})();`;
+      const js = `(function(){try{var T=${JSON.stringify(table())},u=new URLSearchParams(location.search);if(u.get('sample')==='1'||u.get('placements')==='generate')return;var s=u.get('map');if(!s){try{s=localStorage.getItem('bedre.map')}catch(e){}}if(!T[s])s='centrs';var f=T[s];window.__DATA={slug:s,files:f};var ua=navigator.userAgent,wk=/AppleWebKit/.test(ua)&&!/Chrome\\/|Chromium\\/|Edg\\/|OPR\\//.test(ua);if(!wk)f.forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='fetch';l.crossOrigin='anonymous';l.href=x[0];document.head.appendChild(l)})}catch(e){}})();`;
       return html.replace('</head>', `<script>${js}</script>\n</head>`);
     },
   };

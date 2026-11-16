@@ -355,6 +355,12 @@ async function staleStage() {
         await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 240000 });
         const hNew = await page.evaluate(() => window.__mpHash());
         check(`${eng}: after the offered reload the page runs build B (hash ${hNew})`, hNew === B.newHash);
+        // a stored online session from before the deploy (its room died with the old server): the rejoin offer resolves into a plain message, never a stuck screen
+        await page.evaluate(() => { const rec = { v: 1, room: 'zzzzzzzzzz', token: 'tok_' + Math.random().toString(36).slice(2, 14), name: 'Stale', hash: window.__mpHash(), id: 2, endAt: Date.now() + 30000, ended: false, exp: Date.now() + 120000, tab: 'old', hb: 0, last: { score: 321, rank: 3, total: 8 } }; const j = JSON.stringify(rec); sessionStorage.setItem('bedre.mp.session', j); localStorage.setItem('bedre.mp.session', j); });
+        await page.reload(); await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 240000 });
+        const offeredRejoin = await until(page, () => !!document.getElementById('mp-rejoin'), null, 6000, 100);
+        const resolved = await until(page, () => window.__online.state === 'idle' && /over|closed/i.test(document.getElementById('mp-status').textContent) && !window.__online.session, null, 20000, 150);
+        check(`${eng}: stored session + new build: rejoin offered, then resolves to "round over" (record dropped)`, offeredRejoin && resolved, await page.evaluate(() => document.getElementById('mp-status').textContent));
         await page.evaluate(() => document.getElementById('play-online').click());
         const joined = await until(page, () => window.__online.state === 'lobby', null, 25000);
         check(`${eng}: online accepted after the reload (recovered, not stuck)`, joined);

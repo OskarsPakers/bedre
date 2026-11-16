@@ -7,7 +7,10 @@ extendStrings({
   mpNewVersion: 'Ir pieejama jauna spēles versija.', mpReload: 'Jauna versija — pārlādēt', mpNoData: 'Tiešsaiste nav pieejama, kamēr nav ielādēti pilsētas dati. Viena spēlētāja režīms darbojas.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
   mpStartsIn: 'Kārta sākas pēc {n} s', mpNextIn: 'Nākamā kārta sākas pēc {n} s', mpFillBots: 'Visi sāk vienlaikus. Pretinieku bedres (AI) aizpildīs istabu līdz {n} bedrēm.',
   mpPlayers: 'Spēlētāji {n}/{max}', mpYou: 'tu', mpLeave: 'Atstāt', mpRunning: 'Notiek kārta · atlikušas {t}', mpRunningHint: 'Pievienoties var tikai nākamajai kārtai. Pa to laiku vari skatīties līderus.',
-  mpReconnecting: 'Savienojums pārtrūka. Atjauno…', mpLost: 'Savienojums zaudēts.', mpSaved: 'Rezultāts saglabāts tiešsaistes tabulā.', mpSaving: 'Saglabā rezultātu…',
+  mpReconnecting: 'Savienojums pārtrūka — atjauno…', mpOtherTab: 'Šī kārta ir atvērta citā cilnē — spēle turpinās tur.',
+  mpRejoinRun: 'Tava tiešsaistes kārta vēl notiek · atlikušas {t}', mpRejoinEnded: 'Tava tiešsaistes kārta ir beigusies. Skatīt rezultātus?', mpRejoinOther: 'Šī kārta ir atvērta citā cilnē.',
+  mpRejoinYes: 'Atgriezties kārtā', mpRejoinResults: 'Skatīt rezultātus', mpRejoinTake: 'Pārņemt šeit', mpRejoinNo: 'Nē, paldies',
+  mpLeft: 'Tu biji atvienots pārāk ilgi — kārta turpinās bez tevis.', mpOver: 'Kārta jau beigusies, istaba ir aizvērta.', mpOverLast: 'Kārta beigusies. Pēdējais zināmais rezultāts: {score} punkti, {rank}. vieta no {total}.', mpLost: 'Savienojums zaudēts.', mpSaved: 'Rezultāts saglabāts tiešsaistes tabulā.', mpSaving: 'Saglabā rezultātu…',
   mpNotSaved: 'Rezultāts netika saglabāts.', mpMenu: 'Uz izvēlni', mpGone: 'Istaba ir aizvērta. Mēģini vēlreiz.', mpStarted: 'Kārta jau notiek. Mēģini vēlreiz.', mpFull: 'Istaba ir pilna. Mēģini vēlreiz.',
   mpPing: '{n} ms', mpAi: 'AI',
 }, {
@@ -15,7 +18,10 @@ extendStrings({
   mpNewVersion: 'A new game version is available.', mpReload: 'New version — reload', mpNoData: 'Online play is unavailable until the city data has loaded. Single-player still works.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
   mpStartsIn: 'Round starts in {n} s', mpNextIn: 'Next round starts in {n} s', mpFillBots: 'Everybody starts together. AI holes fill the room up to {n} holes.',
   mpPlayers: 'Players {n}/{max}', mpYou: 'you', mpLeave: 'Leave', mpRunning: 'Round in progress · {t} left', mpRunningHint: 'You can only join the next round. Meanwhile, watch the leaderboard.',
-  mpReconnecting: 'Connection lost. Reconnecting…', mpLost: 'Connection lost.', mpSaved: 'Result saved to the online leaderboard.', mpSaving: 'Saving result…',
+  mpReconnecting: 'Connection lost — reconnecting…', mpOtherTab: 'This round is open in another tab — the game continues there.',
+  mpRejoinRun: 'Your online round is still running · {t} left', mpRejoinEnded: 'Your online round has finished. See the results?', mpRejoinOther: 'This round is open in another tab.',
+  mpRejoinYes: 'Rejoin round', mpRejoinResults: 'See results', mpRejoinTake: 'Take over here', mpRejoinNo: 'No thanks',
+  mpLeft: 'You were disconnected for too long — the round goes on without you.', mpOver: 'The round is already over and the room has closed.', mpOverLast: 'Round over. Last known result: {score} points, place {rank} of {total}.', mpLost: 'Connection lost.', mpSaved: 'Result saved to the online leaderboard.', mpSaving: 'Saving result…',
   mpNotSaved: 'Result was not saved.', mpMenu: 'Back to menu', mpGone: 'The room has closed. Please try again.', mpStarted: 'The round has already started. Please try again.', mpFull: 'The room is full. Please try again.',
   mpPing: '{n} ms', mpAi: 'AI',
 });
@@ -66,6 +72,34 @@ export class OnlineUi {
       s.append(' ', b);
     }
   }
+
+  /** Start-screen card "your round is still running": [Rejoin] counts down `auto` seconds (0 = no auto), [No thanks] dismisses. */
+  showRejoin({ text, label, no, auto, alive, onYes, onNo }) {
+    this.hideRejoin();
+    const st = $('mp-status'); if (!st) return;
+    const card = mk('div', 'mp-rejoin', '');
+    card.setAttribute('role', 'alert');
+    const p = mk('p', null, '', text);
+    const row = mk('div', null, 'row');
+    const yes = mk('button', 'mp-rejoin-yes', 'btn small'); yes.type = 'button';
+    const nob = mk('button', 'mp-rejoin-no', 'btn small ghost', no); nob.type = 'button';
+    row.append(yes, nob); card.append(p, row);
+    st.after(card);
+    let n = auto;
+    const paint = () => { yes.textContent = n > 0 ? `${label} (${n})` : label; };
+    paint();
+    const done = () => { clearInterval(this._rejoinT); this._rejoinT = null; };
+    yes.addEventListener('click', () => { done(); onYes(); });
+    nob.addEventListener('click', () => { done(); this.hideRejoin(); onNo(); });
+    if (auto > 0) {
+      this._rejoinT = setInterval(() => {
+        if (!alive()) { done(); this.hideRejoin(); onNo(); return; }   // started a solo round meanwhile: drop the offer
+        if (document.hidden) return;
+        if (--n <= 0) { done(); onYes(); } else paint();
+      }, 1000);
+    }
+  }
+  hideRejoin() { clearInterval(this._rejoinT); this._rejoinT = null; const c = $('mp-rejoin'); if (c) c.remove(); }
 
   _build() {
     if (this.lobby) return;

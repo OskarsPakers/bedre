@@ -5,14 +5,14 @@
 import * as THREE from 'three';
 import { CFG } from './config.js';
 import { patchGroundMaterial, holeUniforms } from './holeView.js';
-import { cleanRing, bbox, pointInPoly } from './geo.js';
+import { cleanRing, bbox, pointInPoly, minBox } from './geo.js';
 import { zoneOf } from './buildings.js';
 
 const ROAD_ORDER = ['service', 'residential', 'tertiary', 'secondary', 'primary', 'motorway'];
 const VEHICLE = new Set(ROAD_ORDER);
 
 // ---- class raster (public/data/riga-ground.png): palette index -> game colour. Index 0 / unknown = paving.
-export const GROUND_CLASS = { OTHER: 0, GRASS: 1, CANOPY: 2, ASPHALT: 3, PAVING: 4, GRAVEL: 5, WATER: 6, BALLAST: 7, SETT: 8 };
+export const GROUND_CLASS = { OTHER: 0, GRASS: 1, CANOPY: 2, ASPHALT: 3, PAVING: 4, GRAVEL: 5, WATER: 6, BALLAST: 7, SETT: 8, TRACK: 9, FOREST: 10 };
 const CLASS_RGB = [
   [218, 213, 202], // 0 other -> light paving
   [166, 200, 124], // 1 lawn
@@ -23,6 +23,8 @@ const CLASS_RGB = [
   [95, 134, 163],  // 6 water (vectors are authoritative; only a fallback colour)
   [160, 152, 140], // 7 ballast
   [168, 158, 142], // 8 sett (patterned at runtime)
+  [176, 98, 72],   // 9 running track (stadium)
+  [52, 88, 55],    // 10 dense forest floor under conifer canopy (Mežaparks): dark, the pines are placed on these cells
 ];
 
 /** Fetch + decode the class raster: { W, H, cls: Uint8Array } or null. Never throws. */
@@ -603,6 +605,97 @@ function plainWater(data, gp, x0, z0, w, h) {
   return true;
 }
 
+/**
+ * "The city continues": beyond the playable box the old plain tan slab is replaced by a mirrored, hazed copy of the map's own edge (ground class raster reflected across each
+ * edge, 700 m deep, low resolution, desaturated and lightened with distance, a pale band + line at the boundary as the "map ends here" cue) plus simple non-swallowable building
+ * mass (the mirrored footprints as flat grey-beige boxes, ONE merged static mesh, no shadows, never part of world.objects / the placement files). Texture: 16 / 6 / 4 m per pixel on
+ * low / medium / high (<= ~7 MB on high), buildings on medium and high only (<= ~130 k triangles). Water and forest continue because they are mirrored.
+ */
+function buildSkirt(data, L, tier) {
+  const R = data.groundRaster, b = data.meta.bounds;
+  if (!R) return null;
+  const M = 720, S = [16, 6, 4][tier] ?? 4;
+  const X0 = L.minX - M, Z0 = L.minZ - M, TW = L.W + 2 * M, TH = L.H + 2 * M;
+  const pw = Math.ceil(TW / S), ph = Math.ceil(TH / S);
+  const refl = (t, lo, hi) => { const w = hi - lo, u = ((t - lo) % (2 * w) + 2 * w) % (2 * w); return lo + (u <= w ? u : 2 * w - u); };
+  const cv = document.createElement('canvas'); cv.width = pw; cv.height = ph;
+  const cx = cv.getContext('2d'), img = cx.createImageData(pw, ph), d = img.data;
+  const rx = R.W / (b.maxX - b.minX), rz = R.H / (b.maxZ - b.minZ), HAZE = [212, 207, 192];
+  for (let j = 0; j < ph; j++) {
+    const z = Z0 + (j + 0.5) * S, zm = refl(z, b.minZ, b.maxZ), dz = Math.max(L.minZ - z, z - (L.minZ + L.H), 0);
+    for (let i = 0; i < pw; i++) {
+      const x = X0 + (i + 0.5) * S, xm = refl(x, b.minX, b.maxX), dx = Math.max(L.minX - x, x - (L.minX + L.W), 0);
+      const ii = Math.min(R.W - 1, Math.max(0, Math.floor((xm - b.minX) * rx))), jj = Math.min(R.H - 1, Math.max(0, Math.floor((zm - b.minZ) * rz)));
+      const c = CLASS_RGB[R.cls[jj * R.W + ii]] || CLASS_RGB[0], dist = Math.hypot(dx, dz), f = Math.min(1, dist / M);
+      const lum = 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2], sat = 0.62 - 0.25 * f, haze = 0.2 + 0.45 * f;
+      let r = lum + (c[0] - lum) * sat, g = lum + (c[1] - lum) * sat, bl = lum + (c[2] - lum) * sat;
+      r += (HAZE[0] - r) * haze; g += (HAZE[1] - g) * haze; bl += (HAZE[2] - bl) * haze;
+      const cue = dist < 46 ? (1 - dist / 46) * 0.2 + (dist < 2.5 ? 0.35 : 0) : 0; // pale band + line at the boundary
+      r += (255 - r) * cue; g += (255 - g) * cue; bl += (255 - bl) * cue;
+      const o = (j * pw + i) * 4; d[o] = r; d[o + 1] = g; d[o + 2] = bl; d[o + 3] = 255;
+    }
+  }
+  cx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 2; tex.onUpdate = () => { tex.onUpdate = null; cv.width = cv.height = 1; };
+  const hw = L.W / 2, hh = L.H / 2, ox = L.minX + hw, oz = L.minZ + hh;
+  const shape = new THREE.Shape();
+  shape.moveTo(X0 - ox, Z0 - oz); shape.lineTo(X0 + TW - ox, Z0 - oz); shape.lineTo(X0 + TW - ox, Z0 + TH - oz); shape.lineTo(X0 - ox, Z0 + TH - oz); shape.closePath();
+  const hole = new THREE.Path(); hole.moveTo(-hw, -hh); hole.lineTo(-hw, hh); hole.lineTo(hw, hh); hole.lineTo(hw, -hh); hole.closePath(); shape.holes.push(hole);
+  const geo = new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, uv = new Float32Array(pos.count * 2);
+  for (let k = 0; k < pos.count; k++) { uv[k * 2] = (pos.getX(k) + ox - X0) / TW; uv[k * 2 + 1] = 1 - (pos.getZ(k) + oz - Z0) / TH; }
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  const mat = patchGroundMaterial(new THREE.MeshLambertMaterial({ map: tex, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), { detailMap: true });
+  const mesh = new THREE.Mesh(geo, mat); mesh.position.set(ox, 0.06, oz); mesh.receiveShadow = false;
+  const grp = new THREE.Group(); grp.add(mesh); let tris = 0;
+  if (tier >= 1) { // mirrored building mass
+    const P = [], N = [], C = [], flips = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+    const inSkirt = (x, z) => x > X0 + 20 && x < X0 + TW - 20 && z > Z0 + 20 && z < Z0 + TH - 20 && !(x > L.minX && x < L.minX + L.W && z > L.minZ && z < L.minZ + L.H);
+    for (const mx of [-1, 0, 1]) for (const mz of [-1, 0, 1]) {
+      if (!mx && !mz) continue;
+      const fx = (x) => (mx < 0 ? 2 * b.minX - x : mx > 0 ? 2 * b.maxX - x : x), fz = (z) => (mz < 0 ? 2 * b.minZ - z : mz > 0 ? 2 * b.maxZ - z : z);
+      for (const bd of data.buildings) {
+        const ring = bd._r || (bd._r = cleanRing(bd.p || [])); if (ring.length < 3) continue;
+        const c0 = ring[0], cxm = fx(c0[0]), czm = fz(c0[1]); if (!inSkirt(cxm, czm)) continue;
+        if (mx && Math.abs(c0[0] - (mx < 0 ? b.minX : b.maxX)) > M) continue; if (mz && Math.abs(c0[1] - (mz < 0 ? b.minZ : b.maxZ)) > M) continue;
+        const mb = minBox(ring); if (!mb.ux || mb.L * mb.W < 50) continue;
+        const h = Math.max(5, Math.min(34, (bd.h || 9) * 0.9));
+        // box centre / axes in the mirrored frame (reflection flips an axis sign only; the box is symmetric, so rebuild from reflected centre)
+        const ccx = fx(mb.ux * mb.cu - mb.uz * mb.cv), ccz = fz(mb.uz * mb.cu + mb.ux * mb.cv);
+        const ux = (mx ? -1 : 1) * mb.ux, uz = (mz ? -1 : 1) * mb.uz, vx = -uz, vz = ux, hl = Math.max(2, mb.L / 2), hwd = Math.max(2, mb.W / 2);
+        const sh = 0.93 + ((Math.abs(Math.floor(c0[0] * 7 + c0[1] * 13)) % 9) / 9) * 0.1, col = [0.80 * sh, 0.77 * sh, 0.71 * sh];
+        const corner = (a, bb, y) => [ccx + ux * a * hl + vx * bb * hwd, y, ccz + uz * a * hl + vz * bb * hwd];
+        const cs = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+        const tri = (p, q, r, n, k) => {
+          const ax = q[0] - p[0], ay = q[1] - p[1], az = q[2] - p[2], bx = r[0] - p[0], by = r[1] - p[1], bz = r[2] - p[2];
+          if ((ay * bz - az * by) * n[0] + (az * bx - ax * bz) * n[1] + (ax * by - ay * bx) * n[2] < 0) { const t = q; q = r; r = t; } // wind counter-clockwise seen from outside
+          for (const v of [p, q, r]) { P.push(v[0], v[1], v[2]); N.push(n[0], n[1], n[2]); C.push(col[0] * k, col[1] * k, col[2] * k); } tris++; };
+        for (let k = 0; k < 4; k++) {
+          const [a0, b0] = cs[k], [a1, b1] = cs[(k + 1) % 4], p0 = corner(a0, b0, 0), p1 = corner(a1, b1, 0), q0 = corner(a0, b0, h), q1 = corner(a1, b1, h);
+          const nx = (p1[2] - p0[2]), nz = -(p1[0] - p0[0]), nl = Math.hypot(nx, nz) || 1, n = [nx / nl, 0, nz / nl], kk = 0.86 + 0.14 * Math.abs(n[0]);
+          tri(p0, p1, q1, n, kk); tri(p0, q1, q0, n, kk);
+        }
+        const t0 = corner(-1, -1, h), t1 = corner(1, -1, h), t2 = corner(1, 1, h), t3 = corner(-1, 1, h);
+        tri(t0, t1, t2, [0, 1, 0], 1.08); tri(t0, t2, t3, [0, 1, 0], 1.08);
+      }
+    }
+    if (P.length) {
+      const g2 = new THREE.BufferGeometry();
+      g2.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g2.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g2.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
+      const bmat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+      bmat.onBeforeCompile = (shader) => { // theme.js chains its ground night / snow code onto every material under the ground group: it reads vWXZ
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vWXZ;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+        shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vWXZ;');
+      };
+      bmat.customProgramCacheKey = () => 'skirt-bld';
+      const bm = new THREE.Mesh(g2, bmat);
+      bm.castShadow = false; bm.receiveShadow = false; bm.frustumCulled = true; grp.add(bm);
+    }
+  }
+  grp.userData.stats = { skirtTexMB: Math.round(pw * ph * 4 * 1.33 / 1048576 * 10) / 10, skirtTris: tris * 1, px: [pw, ph] };
+  return grp;
+}
+
 export function createGround(data, tier = 2) {
   const { bounds } = data.meta;
   const L = groundLayout(bounds, tier);
@@ -658,6 +751,7 @@ export function createGround(data, tier = 2) {
   frame.position.set(cx, 0, cz);
   frame.receiveShadow = true;
   group.add(frame);
+  { const sk = buildSkirt(data, L, tier); if (sk) { group.add(sk); group.userData.skirt = sk.userData.stats; } }
   group.userData.extent = { minX: L.minX, minZ: L.minZ, size: Math.max(L.W, L.H), W: L.W, H: L.H };
   const detPx = CFG.ground.detailPx[tier];
   group.userData.detail = new DetailLayer(data, detPx);

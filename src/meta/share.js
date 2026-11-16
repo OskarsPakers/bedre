@@ -86,8 +86,8 @@ export async function shareCard(canvas, text) {
   return 'downloaded';
 }
 
-export async function copyLink() {
-  try { await navigator.clipboard.writeText(SITE); return true; } catch {
-    try { const i = document.createElement('input'); i.value = SITE; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); return true; } catch { return false; }
+export async function copyLink(url = SITE) {
+  try { await navigator.clipboard.writeText(url); return true; } catch {
+    try { const i = document.createElement('input'); i.value = url; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); return true; } catch { return false; }
   }
 }

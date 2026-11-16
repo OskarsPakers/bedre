@@ -1,0 +1,8 @@
+BOT mezaparks/hard Dzeguze: path=4037m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.3->65.9 score=13595.195725325353 kills=0 deaths=0 modes={"eat":38,"roam":115,"flee":101}
+BOT mezaparks/hard Pūce: path=4388m idle=0s maxIdleRun=0s reversals=8 edgeTime=0s r 2.7->96.2 score=32123.379585886076 kills=0 deaths=0 modes={"eat":62,"roam":159,"flee":12,"hunt":21}
+BOT mezaparks/hard Ieva: path=4306m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.2->92.7 score=29603.337659306693 kills=0 deaths=0 modes={"eat":87,"roam":146,"flee":21}
+BOT mezaparks/hard Vāvere: path=3623m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.2->58.8 score=10552.63905136343 kills=0 deaths=0 modes={"eat":72,"roam":139,"flee":43}
+BOT mezaparks/hard Līga: path=3476m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.2->59.8 score=10932.574236865104 kills=0 deaths=0 modes={"eat":63,"roam":157,"flee":34}
+BOT mezaparks/hard Lācis: path=5800m idle=0s maxIdleRun=0s reversals=6 edgeTime=0s r 2.2->145.7 score=82575.87915693452 kills=0 deaths=0 modes={"eat":90,"roam":164}
+BOT mezaparks/hard Ūdris: path=4444m idle=0s maxIdleRun=0s reversals=1 edgeTime=0s r 2.3->84.8 score=24177.450082639738 kills=0 deaths=0 modes={"eat":72,"roam":143,"flee":24,"hunt":15}
+bounds {"minX":1171,"maxX":3771,"minZ":-7144,"maxZ":-4544}

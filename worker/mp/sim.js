@@ -117,6 +117,7 @@ export class RoomSim {
     this.ev = { e: [], k: [], r: [], d: [] };
     this.maxSpawnDens = 0;
     this.eatenList = [];            // ids in eating order (for reconnect sync)
+    this.left = [];                 // humans whose hole was removed after the grace period: kept for the final ranking (not for play)
   }
 
   // ---- membership ----------------------------------------------------------------------------------------------
@@ -141,6 +142,13 @@ export class RoomSim {
     this.byId.delete(id);
     h.dead = true;
     this.ev.d.push(id);
+  }
+  /** A human that never came back inside the grace period: the hole leaves the arena but stays in the final ranking with what it had. */
+  leaveHuman(id) {
+    const h = this.byId.get(id);
+    if (!h || h.bot) return;
+    this.removeHole(id);
+    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r });
   }
 
   // ---- round start ----------------------------------------------------------------------------------------------
@@ -169,14 +177,59 @@ export class RoomSim {
       for (let k = 1; k < humans.length && near.length; k++) { const i = near[(k - 1) * 3 % near.length][1]; placed.push({ x: sp.x[i], z: sp.z[i] }); }
       for (const p of this.pickSpawns(this.holes.length - placed.length, placed)) placed.push(p);
     } else {
-      for (const p of this.pickSpawns(this.holes.length, [])) placed.push(p);
+      // humans first: equally rich start points (fairness), then the bots on whatever else is spread out
+      for (const p of this.pickHumanSpawns(humans.length)) placed.push(p);
+      for (const p of this.pickSpawns(this.holes.length - placed.length, placed)) placed.push(p);
     }
-    // humans get the first (densest) spots in a random order, bots the rest
+    // humans get the first spots in a random order, bots the rest
     // seeded Fisher-Yates within each group (humans first), never a random comparator
     const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(this.rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const order = [...shuffle(this.holes.filter((h) => !h.bot)), ...shuffle(this.holes.filter((h) => h.bot))];
     order.forEach((h, i) => { const p = placed[i % placed.length]; h.x = p.x; h.z = p.z; h.tx = p.x; h.tz = p.z; });
-    for (const h of this.holes) { h.lastPosAt = this.playAt; h.budget = 0; h.claimBudget = this.cfg.claimBurst; h.moverBudget = this.cfg.moverPointsBurst; }
+    for (const h of this.holes) { h.lastMsgAt = now; h.lastPosAt = this.playAt; h.budget = 0; h.claimBudget = this.cfg.claimBurst; h.moverBudget = this.cfg.moverPointsBurst; }
+  }
+
+  /**
+   * Start points for the humans of one room, EQUALLY rich: find the richest density level T at which n points >= sep apart still exist,
+   * then pick them (random, seeded) from the band [T, T * 1.08] - nobody gets the best spot while another starts in a poor one
+   * (the old "densest first" greedy gave a 2.4x (2 humans) to 4.7x (12 humans) spread of food within 60 m).
+   */
+  pickHumanSpawns(n) {
+    const sp = this.table.spawn;
+    if (n <= 0 || sp.n < n) return this.pickSpawns(Math.max(0, n), []);
+    // real food around each candidate (value of what a start-size hole can swallow within 60 m), computed once per isolate
+    if (!this.table._spawnFood) {
+      const f = new Float32Array(sp.n), lim = H.startRadius * S.fitRatio;
+      for (let i = 0; i < sp.n; i++) { let v = 0; this.index.query(sp.x[i], sp.z[i], 60, this.eaten, (id) => { if (this.table.fit[id] < lim) v += this.table.value[id]; }); f[i] = v; }
+      this.table._spawnFood = f;
+    }
+    const dens = this.table._spawnFood;
+    const idx = Array.from({ length: sp.n }, (_, i) => i).sort((a, b) => dens[b] - dens[a] || a - b);
+    let sep = 0;
+    const ok = (out, i) => out.every((a) => Math.hypot(a.x - sp.x[i], a.z - sp.z[i]) >= sep);
+    const greedy = (list) => { const out = []; for (const i of list) { if (out.length >= n) break; if (ok(out, i)) out.push({ x: sp.x[i], z: sp.z[i], i }); } return out; };
+    // richest level T per minimum separation; a larger separation wins only when it costs very little richness
+    let pick = null;
+    for (const sp0 of [200, 150, 110, 80, 60]) {
+      sep = sp0;
+      let found = -1;
+      for (let k = n - 1; k < Math.min(idx.length, 1500); k++) { if (greedy(idx.slice(0, k + 1)).length >= n) { found = k; break; } }
+      if (found < 0) continue;
+      const T = dens[idx[found]], score = T * (1 + 0.0015 * (sp0 - 60));
+      if (!pick || score > pick.score) pick = { sep: sp0, found, T, score };
+    }
+    if (pick) {
+      sep = pick.sep;
+      const { found, T } = pick;
+      const band = idx.slice(0, found + 1).filter((i) => dens[i] <= T * 1.08 + 1);
+      for (let a = band.length - 1; a > 0; a--) { const j = Math.floor(this.rng() * (a + 1)); [band[a], band[j]] = [band[j], band[a]]; }
+      const out = greedy(band);
+      let res = out;
+      if (res.length < n) res = greedy([...out.map((q) => q.i), ...idx.slice(0, found + 1).reverse()]);   // short band: fill with the candidates closest above T
+      if (res.length < n) res = greedy(idx.slice(0, found + 1));                                            // (always feasible by construction of `found`)
+      return res.slice(0, n).map(({ x, z }) => ({ x, z }));
+    }
+    return this.pickSpawns(n, []);
   }
 
   /** Greedy spread of n start points over dense street points near the centre, `avoid` = already taken [{x,z}]. */
@@ -305,10 +358,13 @@ export class RoomSim {
     this.lastTick = now;
     const sec = now / 1000;
     for (const h of this.holes.slice()) {
-      if (!h.bot && !h.connected && now - h.discAt > this.cfg.removeAfterMs) { this.removeHole(h.id); continue; }
+      // a socket that went silent (dead network, frozen / evicted tab: no ping for silentAfterMs) starts the grace period too
+      if (!h.bot && h.connected && h.lastMsgAt && now - h.lastMsgAt > this.cfg.silentAfterMs) { h.connected = false; h.discAt = now; }
+      if (!h.bot && !h.connected && now - h.discAt > this.cfg.removeAfterMs) { this.leaveHuman(h.id); continue; }
       if (h.state === 1) { if (now >= h.dyingEnd) h.state = 2; continue; }
       if (h.state === 2) { if (now >= h.respawnAt) this.respawn(h, now); continue; }
       if (h.bot) {
+        if (now < this.playAt + 600) continue;   // nobody scores in the first moments: bots hold still until the humans' first position updates can have arrived
         h.brain.maybeThink(this, sec);
         this.moveBot(h, dt);
         this.botEat(h);
@@ -393,9 +449,9 @@ export class RoomSim {
   }
 
   ranking() {
-    return this.holes.slice().sort((a, b) => b.score - a.score || a.id - b.id).map((h, i) => ({
+    return [...this.holes, ...this.left].sort((a, b) => b.score - a.score || a.id - b.id).map((h, i) => ({
       rank: i + 1, id: h.id, name: h.name, slot: h.slot, bot: h.bot, score: Math.round(h.score), eaten: h.eaten,
-      kills: h.kills, deaths: h.deaths, radius: Math.round(h.r * 100) / 100,
+      kills: h.kills, deaths: h.deaths, radius: Math.round(h.r * 100) / 100, ...(h.left ? { left: true } : null),
     }));
   }
 }

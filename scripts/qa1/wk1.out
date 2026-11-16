@@ -1,0 +1,30 @@
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga.json was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-shapes.bin.gz was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-ground.png was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-objects.bin.gz?v=4fa488758265f362 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] REQFAIL http://127.0.0.1:8801/api/e cancelled
+[wk1 +7s] UI {"map":"centrs","mode":["quick"],"diff":["normal"],"play":"Spēlēt — Ātrā 2:00","bodyClass":"mode-quick"}
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga.json was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-shapes.bin.gz was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-ground.png was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1] console.warning: The resource http://127.0.0.1:8801/data/riga-objects.bin.gz?v=4fa488758265f362 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing.
+[wk1 +19s] t=112 score=74 eaten=21 r=6.7 pos=106,-168 rank=1 unranked=null
+[wk1 +27s] t=104 score=137 eaten=36 r=8.9 pos=6,-141 rank=1 unranked=null
+[wk1 +35s] t=96 score=215 eaten=58 r=10.7 pos=-93,-145 rank=1 unranked=null
+[wk1 +43s] t=88 score=265 eaten=78 r=11.7 pos=-7,-29 rank=3 unranked=null
+[wk1 +52s] t=80 score=1785 eaten=134 r=26.9 pos=54,-118 rank=1 unranked=null
+[wk1 +60s] t=71 score=3599 eaten=236 r=35.4 pos=213,-199 rank=1 unranked=null
+[wk1 +68s] t=63 score=8218 eaten=319 r=52.5 pos=300,-398 rank=1 unranked=null
+[wk1 +76s] t=55 score=14837 eaten=416 r=68.3 pos=541,-264 rank=1 unranked=null
+[wk1 +84s] t=47 score=22378 eaten=541 r=81.7 pos=766,-304 rank=1 unranked=null
+[wk1 +92s] t=39 score=32087 eaten=718 r=96.0 pos=706,19 rank=1 unranked=null
+[wk1 +100s] t=31 score=42972 eaten=945 r=109.3 pos=529,366 rank=1 unranked=null
+[wk1 +108s] t=23 score=56745 eaten=1335 r=122.7 pos=160,306 rank=1 unranked=null
+[wk1 +116s] t=15 score=63884 eaten=1550 r=128.5 pos=418,626 rank=1 unranked=null
+[wk1 +124s] t=7 score=70607 eaten=1801 r=136.0 pos=303,748 rank=1 unranked=null
+[wk1 +132s] FRAME {"n":7395,"avg":17.228532792427316,"p50":17,"p95":20,"p99":29,"max":1010,"long":[[262,135],[1355,1010],[1679,324],[3263,567]]}
+[wk1 +132s] maxR=138.8 deaths=0
+[wk1 +134s] RESULTS {"place":"1. vieta no 8","score":"73 999","global":"Globālā vieta: #1 visu laiku · #1 šodien","eaten":"2054","kills":"0","deaths":"0","biggest":"13. janvāra iela 8","size":"Ø 277.6 m (izmērs 11)","table":["♛QAwk173 999","2Lāsma29 110","3Dzintars8589","4Līga7187","5Pūce5406","6Mežavīrs3594","7Laima1553","8Jānis1287"],"unranked":null,"vis":true}
+[wk1 +139s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":154.6,"z":-151.64000000000001,"radius":2.2,"targetRadius":2.2},"counts":{"props":15624,"buildings":5276,"remainingProps":15624,"remainingBuildings":5276,"falling":0}}
+[wk1 +149s] MEM undefined -> undefined
+[wk1 +149s] ERRS 9

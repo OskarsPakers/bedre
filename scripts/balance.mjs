@@ -84,9 +84,23 @@ if (has('--spawn-only')) { await browser.close(); kill(); process.exit(0); }
 const greedy = [];
 for (let i = 0; i < GREEDY; i++) {
   if (i === 0) await open('bots=0');
-  const gr = await G(() => { const g = window.__G; try { g.start(); } catch (e) { console.warn('start:', e.message); } const m = []; for (let k = 0; k < 5; k++) { g.autoplay(k < 4 ? 60 : 61); m.push(Math.round(g.player.score)); } return m; });
-  greedy.push(gr[4]);
-  console.log('greedy per-minute:', gr.join(' '));
+  const gr = await G(() => {
+    const g = window.__G, w = window.__W, C = window.__CFG;
+    try { g.start(); } catch (e) { console.warn('start:', e.message); }
+    const m = []; let late = null;
+    for (let k = 0; k < 5; k++) {
+      g.autoplay(k < 4 ? 60 : 61); m.push(Math.round(g.player.score));
+      if (k === 3) { // t = 240 s: what is still there to eat within 300 m of the player (fit < r * fitRatio now / < 1.5x bigger = soon)
+        const p = g.player, f = p.radius * C.swallow.fitRatio; let n = 0, v = 0, n2 = 0, v2 = 0;
+        w.query(p.x, p.z, 300, (o) => { if (o.state !== 0 || o.mover) return; if (o.fit < f) { n++; v += o.value; } if (o.fit < f * 1.5) { n2++; v2 += o.value; } });
+        late = { r: +p.radius.toFixed(1), edibleN: n, edibleValue: Math.round(v), within1_5xN: n2, within1_5xValue: Math.round(v2) };
+      }
+    }
+    return { m, late, r: +g.player.radius.toFixed(1) };
+  });
+  greedy.push(gr.m[4]);
+  console.log('greedy per-minute:', gr.m.join(' '), '| final r', gr.r);
+  console.log('late round (t=240 s, 300 m around the player):', JSON.stringify(gr.late));
 }
 if (GREEDY) console.log('greedy autoplayer (no bots):', greedy.join(' '));
 

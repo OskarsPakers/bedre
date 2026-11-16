@@ -141,3 +141,40 @@ body.tui #scores .panel-inner, body.tui #about .panel-inner, body.tui #pause .pa
 
 /* never let a fixed overlay be pinned to opposite edges by rules from different stylesheets: intrinsic height / width */
 body.tui #radio-pop, body.tui #mp-net, body.tui #daily-intro { height: auto; }
+
+/* ================= QA2 fixes ================= */
+/* tap targets: inline links in panels get a >= 44 px hit area without changing the text layout (vertical padding on an inline box is
+   part of its rect and its hit area, but not of the line height) */
+body.touch .panel .link { min-width: 44px; }
+body.touch .panel a[href] { padding: 15px 4px; margin: -15px -4px; }
+body.touch .about-list li, body.touch .credits { line-height: 1.7; }
+/* results on the smallest phones: one-line head, compact tab row, the table gets the room (>= 5 rows), Play again always visible */
+@media (max-width: 480px) and (max-height: 700px) {
+  body.tui #results { padding-bottom: max(8px, var(--sab)); padding-top: max(8px, var(--sat)); }
+  body.tui #results .panel-inner { max-height: calc(100dvh - var(--sat) - var(--sab) - 16px); }
+  body.tui:has(#results:not(.hidden)) #hud-btns { display: none; }
+  .results-card { padding: 10px 12px 8px; }
+  .results-card .r-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 0 10px; }
+  .results-card .r-head .sub { display: none; }
+  .results-card .place { font-size: 22px; } .results-card .result-score { font-size: 24px; margin-top: 0; }
+  .results-card .result-score small { font-size: 10px; margin-left: 5px; }
+  .results-card .globalrank { flex: 0 0 100%; margin: 0 0 4px; font-size: 12px; min-height: 0; }
+  .results-card .globalrank:empty { display: none; }
+  .results-card .rtabs { flex-wrap: nowrap; gap: 4px; margin-bottom: 6px; }
+  .results-card .rtabs button { flex: 1 1 0; min-width: 0; position: relative; padding: 0 4px; font-size: 12px; white-space: nowrap; overflow: visible; }
+  .results-card .rtabs .badge { position: absolute; top: -4px; right: -2px; margin: 0; padding: 0 5px; font-size: 10px; line-height: 16px; }
+  .results-card .rpanes { min-height: 150px; margin-bottom: 6px; }
+  .results-card .rank td { padding: 2px 5px; }
+  .results-card .r-actions { gap: 4px; }
+  .results-card .r-actions > .btn { padding: 8px 20px; font-size: 18px; min-height: 44px; }
+  .results-card .r-share .btn-mini, .results-card .r-share button { min-height: 44px; }
+  .results-card > .linkrow { display: none; }   /* Top scores stays one tap away on the start screen */
+}
+/* landscape phones: transient lines stay out of the hole's zone (centre) - toasts move to the left lane beside the minimap chip */
+@media (max-height: 520px) {
+  body.tui #meta-toasts { left: calc(var(--L) + 62px); right: auto; transform: none; top: var(--lane); width: min(230px, calc(50vw - var(--L) - 86px)); align-items: flex-start; }
+  body.tui #meta-area { top: calc(var(--lane) + 28px); }
+  body.tui .lab { top: calc(var(--lane) + 20px); }
+  body.tui #feed { left: calc(50% + 70px); max-width: calc(50vw - 150px - var(--sar)); }   /* right of the toast lane, still clear of the hole */
+  body.tui.lefty #meta-toasts { left: auto; right: calc(var(--R) + 62px); }
+}

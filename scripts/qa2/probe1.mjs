@@ -1,0 +1,11 @@
+import * as L from './lib.mjs';
+const p = await L.open({ eng: 'webkit', dev: 'iPhone 13', name: 'wk13' }, { name: 'Probe' });
+await L.load(p);
+await L.shot(p, 'start');
+console.log(await p.evaluate(() => ({ vw: innerWidth, vh: innerHeight, cls: document.body.className, play: document.getElementById('play').textContent, ids: Object.keys(window).filter(k => k.startsWith('__')) })));
+await L.T.tapEl(p, '#play'); await L.sleep(3000); await L.shot(p, 'intro');
+await L.sleep(6000); await L.shot(p, 'play0');
+console.log(await L.gstate(p));
+await L.stickDrive(p, 8000);
+await L.shot(p, 'play1'); console.log(await L.gstate(p), L.log.errs);
+await L.closeAll();

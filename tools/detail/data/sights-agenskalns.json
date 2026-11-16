@@ -1,7 +1,7 @@
 {
  "map": "agenskalns",
  "generated": "2026-11-16",
- "count": 372,
+ "count": 373,
  "sights": [
   {
    "hint": null,
@@ -429,6 +429,26 @@
    "why": [
     "tag:building=school",
     "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jelgavas iela 86A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 51181765523,
+   "ids": [
+    51181765523
+   ],
+   "area": 1529,
+   "h": 8.9,
+   "x": -1266,
+   "z": 2980,
+   "why": [
+    "tag:building=kindergarten"
    ],
    "album": null
   },

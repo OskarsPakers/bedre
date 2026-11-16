@@ -74,7 +74,7 @@ export class SpawnPicker {
 
   _count(x, z, R, maxFit) {
     let n = 0;
-    this.world.query(x, z, R, (o) => { if (o.state === 0 && o.fit < maxFit) n++; });
+    this.world.query(x, z, R, (o) => { if (o.state === 0 && o.fit < maxFit && o.cls !== 'tree') n++; }); // trees are cheap food: a start deep in a forest is a poor start
     return n;
   }
 

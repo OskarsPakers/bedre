@@ -30,15 +30,20 @@ export function isProfane(name) {
   return words.some((w) => WORD.includes(w));
 }
 
+/**
+ * Name policy (client preview + scores API + multiplayer all use this one function): names are only ever rendered with textContent, so
+ * ordinary punctuation (& " ' ` \\ ...) is allowed. Removed: control / zero-width / bidi characters (-> space), and ANGLE BRACKETS only
+ * (names also end up in logs, CSV / e-mail exports and admin tools where "<b>" could be interpreted as markup; nobody needs them in a nick).
+ * Whitespace is collapsed, 1-16 characters, a small profanity filter replaces the name by "Anonīms".
+ */
+export function cleanName(raw) {
+  return String(raw).normalize('NFC').replace(INVISIBLE, ' ').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 /** Clean + validate a display name. Returns the (possibly replaced by "Anonīms") name, or null if unusable. */
 export function sanitizeName(raw) {
   if (typeof raw !== 'string') return null;
-  const s = raw
-    .normalize('NFC')
-    .replace(INVISIBLE, ' ')
-    .replace(/[<>&"'`\\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const s = cleanName(raw);
   const chars = [...s];
   if (chars.length < 1 || chars.length > 16) return null;
   return isProfane(s) ? ANON : s;
@@ -47,6 +52,6 @@ export function sanitizeName(raw) {
 /** Free text like "biggest thing": strip, collapse, cap; profanity -> null. */
 export function sanitizeLabel(raw, max = 40) {
   if (typeof raw !== 'string') return null;
-  const s = [...raw.replace(INVISIBLE, ' ').replace(/[<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim()].slice(0, max).join('');
+  const s = [...cleanName(raw)].slice(0, max).join('');
   return s && !isProfane(s) ? s : null;
 }

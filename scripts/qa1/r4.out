@@ -1,0 +1,30 @@
+[r4 +4s] UI {"map":"centrs","mode":["quick"],"diff":["hard"],"play":"Play — Quick 2:00","bodyClass":"mode-quick"}
+[r4 +13s] t=115 score=14 eaten=5 r=3.7 pos=154,-208 rank=8 unranked=null
+[r4 +18s] t=110 score=17 eaten=7 r=4.0 pos=148,-279 rank=8 unranked=null
+[r4 +23s] t=104 score=33 eaten=11 r=4.9 pos=149,-354 rank=8 unranked=null
+[r4 +28s] t=99 score=53 eaten=17 r=6.0 pos=151,-437 rank=8 unranked=null
+[r4 +33s] t=94 score=62 eaten=20 r=6.4 pos=145,-522 rank=8 unranked=null
+[r4 +38s] t=89 score=64 eaten=21 r=6.5 pos=135,-606 rank=8 unranked=null
+[r4 +43s] t=84 score=64 eaten=21 r=6.5 pos=129,-695 rank=8 unranked=null
+[r4 +48s] t=79 score=74 eaten=23 r=6.9 pos=132,-784 rank=8 unranked=null
+[r4 +53s] t=74 score=74 eaten=23 r=6.9 pos=144,-873 rank=8 unranked=null
+[r4 +59s] t=69 score=78 eaten=24 r=6.9 pos=135,-959 rank=8 unranked=null
+[r4 +64s] t=64 score=101 eaten=32 r=7.7 pos=127,-1050 rank=8 unranked=null
+[r4 +69s] t=59 score=110 eaten=35 r=8.1 pos=108,-1137 rank=8 unranked=null
+[r4 +74s] t=54 score=110 eaten=35 r=8.1 pos=106,-1200 rank=8 unranked=null
+[r4 +79s] t=49 score=110 eaten=35 r=8.1 pos=120,-1200 rank=8 unranked=null
+[r4 +84s] t=43 score=110 eaten=35 r=8.1 pos=136,-1200 rank=8 unranked=null
+[r4 +89s] t=38 score=110 eaten=35 r=8.1 pos=152,-1200 rank=8 unranked=null
+[r4 +94s] t=33 score=114 eaten=36 r=8.2 pos=169,-1200 rank=8 unranked=null
+[r4 +99s] t=28 score=118 eaten=37 r=8.3 pos=186,-1200 rank=8 unranked=null
+[r4 +104s] t=23 score=118 eaten=37 r=8.3 pos=185,-1200 rank=8 unranked=null
+[r4 +109s] t=18 score=118 eaten=37 r=8.3 pos=184,-1200 rank=8 unranked=null
+[r4 +114s] t=13 score=118 eaten=37 r=8.3 pos=185,-1200 rank=8 unranked=null
+[r4 +120s] t=8 score=118 eaten=37 r=8.3 pos=185,-1200 rank=8 unranked=null
+[r4 +125s] t=2 score=118 eaten=37 r=8.3 pos=185,-1200 rank=8 unranked=null
+[r4 +128s] FRAME {"n":7491,"avg":16.80615405152848,"p50":16.69999999999709,"p95":16.79999999998836,"p99":16.80000000000291,"max":900,"long":[[994,900]]}
+[r4 +128s] maxR=8.3 deaths=0
+[r4 +129s] RESULTS {"place":"8th of 8","score":"118","global":"Global rank: #2 all-time · #2 today","eaten":"37","kills":"0","deaths":"0","biggest":"Zaļā iela 9","size":"Ø 16.7 m (size 4)","table":["♛Čiekurs65,116","2Vāvere54,383","3Māris36,462","4Dzeguze34,886","5Bebrs28,655","6Līga7,185","7Ieva383","8QAr4118"],"unranked":null,"vis":true}
+[r4 +135s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":7.074999999999999,"z":268.35,"radius":2.2,"targetRadius":2.2},"counts":{"props":15624,"buildings":5276,"remainingProps":15624,"remainingBuildings":5276,"falling":0}}
+[r4 +146s] MEM 225000000 -> 225000000
+[r4 +146s] ERRS 0

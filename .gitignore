@@ -21,3 +21,4 @@ tools/out/*.partial.json
 .secrets/
 scripts/.state-eng*
 scripts/.worker-eng*
+scripts/tmp-*/

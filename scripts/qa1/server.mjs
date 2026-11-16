@@ -1,0 +1,10 @@
+import { build } from 'vite';
+import { writeConfig, migrate, startWorker, freshDir, resolve, root } from '../lib-test.mjs';
+const dist = resolve(root, 'scripts/.dist-qa1');
+await build({ root, logLevel: 'error', build: { outDir: dist, emptyOutDir: true, chunkSizeWarningLimit: 5000 } });
+const config = writeConfig('qa1', dist);
+const persist = freshDir(resolve(root, 'scripts/.qa1-state'));
+migrate(config, persist);
+const w = await startWorker({ config, persist, port: 8801, vars: { RATE_ROUNDS_PER_HOUR: 1000 } });
+console.log('READY ' + w.base);
+setInterval(() => {}, 1e9);

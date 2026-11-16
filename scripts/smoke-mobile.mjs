@@ -390,8 +390,11 @@ async function suite(cfg) {
       const px = cx - 40, py = V.h * 0.75;
       await T.down(page, 1, px, py); await T.drag(page, 1, [px, py], [px + 64, py], 3);
       await sleep(700);
-      const s0 = await hole(page); await sleep(500); const s1 = await hole(page);
-      const v0 = Math.hypot(s1.x - s0.x, s1.z - s0.z) / ((s1.t - s0.t) / 1000), a0 = Math.atan2(s1.z - s0.z, s1.x - s0.x);
+      // heading / speed are read from the hole's own velocity (game time), not from displacement over wall-clock time: under CPU load frames are
+      // dropped and dt is clamped, which made the wall-clock figures wobble (an unrelated flake) while the steering itself was unchanged
+      const vel = () => page.evaluate(() => { const p = window.__life.game.player; return { vx: p.vx, vz: p.vz }; });
+      await sleep(500); const w0 = await vel();
+      const v0 = Math.hypot(w0.vx, w0.vz), a0 = Math.atan2(w0.vz, w0.vx);
       const z0 = await page.evaluate(() => window.__life.game.cam.zoom);
       // second finger lands 150 px above and pinches towards the first
       await T.down(page, 2, px + 64, py - 160);
@@ -401,8 +404,8 @@ async function suite(cfg) {
         await sleep(30);
       }
       const z1 = await page.evaluate(() => window.__life.game.cam.zoom);
-      const s2 = await hole(page); await sleep(500); const s3 = await hole(page);
-      const v1 = Math.hypot(s3.x - s2.x, s3.z - s2.z) / ((s3.t - s2.t) / 1000), a1 = Math.atan2(s3.z - s2.z, s3.x - s2.x);
+      await sleep(500); const w1 = await vel();
+      const v1 = Math.hypot(w1.vx, w1.vz), a1 = Math.atan2(w1.vz, w1.vx);
       await T.up(page, 2); await T.up(page, 1); await sleep(700);
       check(`pinch (${mode}): zoom changes (${z0.toFixed(2)} -> ${z1.toFixed(2)})`, z1 > z0 * 1.1, `${z0} ${z1}`);
       check(`pinch (${mode}): no steering jump (heading ${deg(a0).toFixed(0)} -> ${deg(a1).toFixed(0)}, speed ${v0.toFixed(1)} -> ${v1.toFixed(1)})`, angDiff(a0, a1) < 0.35 && v1 < v0 * 1.5 + 1 && v1 > v0 * 0.4, `v ${v0.toFixed(2)} ${v1.toFixed(2)}`);

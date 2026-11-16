@@ -14,14 +14,39 @@ const TABBABLE = 'button:not([disabled]), a[href], input:not([disabled]), select
 
 extendStrings({
   modeLbl: 'Spēles režīms', qualLbl: 'Grafika', qualAuto: 'Auto', qualLow: 'Zema', qualMedium: 'Vidēja', qualHigh: 'Augsta',
-  dailyDot: 'Šodienas izaicinājums vēl nav spēlēts',
+  dailyDot: 'Šodienas izaicinājums vēl nav spēlēts', optsCount1: '{n} izmaiņa', optsCount: '{n} izmaiņas',
 }, {
   modeLbl: 'Game mode', qualLbl: 'Graphics', qualAuto: 'Auto', qualLow: 'Low', qualMedium: 'Medium', qualHigh: 'High',
-  dailyDot: "Today's daily challenge is not played yet",
+  dailyDot: "Today's daily challenge is not played yet", optsCount1: '{n} change', optsCount: '{n} changes',
 });
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 
+/** No round button / ping badge may sit on top of an open panel's controls or text (small phones in landscape, small desktop windows):
+ *  when the geometry says they would meet, they are hidden (body.hud-guard) for as long as that panel is open. */
+function initHudGuard() {
+  const SEL = '#start:not(.hidden) .panel-inner, #results:not(.hidden) .panel-inner, #scores:not(.hidden) .panel-inner, #about:not(.hidden) .panel-inner, #meta-panel:not(.hidden) .panel-inner, #mp-lobby:not(.hidden) .panel-inner, #pause:not(.hidden) .panel-inner';
+  const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  let last = false;
+  const check = () => {
+    const panels = [...document.querySelectorAll(SEL)];
+    let bad = false;
+    if (panels.length) {
+      body: for (const c of document.querySelectorAll('#hud-btns > button, #mp-net')) {
+        const cr = c.getBoundingClientRect();
+        if (cr.width < 2) continue;
+        const cs = getComputedStyle(c); if (cs.display === 'none') continue;
+        for (const p of panels) if (hit(cr, p.getBoundingClientRect())) { bad = true; break body; }
+      }
+    }
+    if (bad !== last) { last = bad; document.body.classList.toggle('hud-guard', bad); }
+  };
+  // the guard itself hides the buttons (visibility), so measuring is unaffected: they keep their boxes
+  setInterval(check, 400);
+  window.addEventListener('resize', check); window.addEventListener('orientationchange', () => setTimeout(check, 300));
+}
+
 export function initUi() {
+  initHudGuard();
   // ---- start screen: "Advanced" disclosure + a chip that names every choice that differs from the defaults ------------------
   const toggle = $('opts-toggle'), body = $('opts-body'), val = $('opts-val'), dot = $('opts-dot');
   const summary = () => {
@@ -34,8 +59,15 @@ export function initUi() {
     if (th && th.dataset.theme !== 'auto') parts.push(th.textContent);
     const q = qualityChoice();
     if (q) parts.push(t('qual' + cap(q)));
-    val.textContent = parts.join(' · ');
+    const full = parts.join(' · ');
+    val.textContent = full; val.title = full;
     val.classList.toggle('on', parts.length > 0);
+    // the chip is one line: when the list does not fit (long Latvian names on a 320 px phone) it shows a count, the full list is its tooltip
+    if (parts.length > 1 && val.scrollWidth > val.clientWidth + 1) {
+      val.textContent = t('optsCount', { n: parts.length });
+      if (val.scrollWidth > val.clientWidth + 1) val.textContent = String(parts.length);   // narrowest phones: just the number (the full list is the tooltip / aria-label)
+    }
+    val.setAttribute('aria-label', full);
     // a quiet dot while today's daily challenge is still unplayed (centre map only)
     const open = isCentre() && getMode() !== 'daily' && !dailyUsed(dailyInfo(todayRiga()).day);
     if (dot) { dot.hidden = !open; dot.title = open ? t('dailyDot') : ''; }

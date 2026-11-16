@@ -62,9 +62,9 @@ export const CHURCH_LIST = [
 //   style 6 gothic brick | 7 plastered baroque / classicist (round-arched tall windows) | 8 wooden | 9 Orthodox | 1 church (old) | 3 plain
 const GREY = 0x7a808a, GREEN = 0x6a8a7c, TILE = 0x9c4a35;
 export const TREAT = {
-  stpeter: { style: 6, wall: 0xc9b9a0, roof: 0x74797f, dome: GREEN, kit: { helm: [[0.02, 0.95], [0.12, 0.62], [0.16, 0.78], [0.2, 0.74], [0.3, 0.46], [0.34, 0.56], [0.4, 0.3], [0.55, 0.22], [0.8, 0.12]] }, note: 'brick gothic hall church, 123 m three-tier baroque copper steeple (square shaft, galleries, lantern)' },
-  dome: { style: 7, wall: 0xcdb38c, roof: 0xb0553b, dome: GREEN, kit: { helm: [[0.03, 1.1], [0.1, 0.9], [0.22, 0.95], [0.34, 0.78], [0.42, 0.5], [0.5, 0.34], [0.56, 0.36], [0.66, 0.24], [0.8, 0.13]] }, note: 'Dome cathedral: long nave under a steep red-tile roof, west tower with baroque copper cupola, polygonal apse, cloister wing' },
-  stjacob: { style: 6, wall: 0xd8c8a0, roof: 0x7a808a, dome: GREEN, kit: {}, note: 'Catholic cathedral: yellowish stucco, slim gothic needle spire, steep nave roof' },
+  stpeter: { style: 6, wall: 0xa65c44, roof: 0x74797f, dome: 0x56655f, kit: { helm: [[0.02, 0.95], [0.12, 0.62], [0.16, 0.78], [0.2, 0.74], [0.3, 0.46], [0.34, 0.56], [0.4, 0.3], [0.55, 0.22], [0.8, 0.12]] }, note: 'brick gothic hall church, 123 m three-tier baroque copper steeple (square shaft, galleries, lantern)' },
+  dome: { style: 7, wall: 0xcdb38c, roof: 0x5d6168, dome: GREEN, kit: { helm: [[0.03, 1.1], [0.1, 0.9], [0.22, 0.95], [0.34, 0.78], [0.42, 0.5], [0.5, 0.34], [0.56, 0.36], [0.66, 0.24], [0.8, 0.13]] }, note: 'Dome cathedral: long nave under a steep red-tile roof, west tower with baroque copper cupola, polygonal apse, cloister wing' },
+  stjacob: { style: 6, wall: 0xd8c8a0, roof: 0x6f9d8a, dome: GREEN, kit: {}, note: 'Catholic cathedral: yellowish stucco, slim gothic needle spire, steep nave roof' },
   stjohn: { style: 6, wall: 0xc9a79a, roof: 0x8c4632, dome: GREEN, kit: {}, note: 'small gothic brick church squeezed in a block' },
   magdalene: { style: 7, wall: 0xe0cf9a, roof: 0x7d838c, dome: GREEN, kit: {}, note: 'Catholic church with a west tower' },
   reformed: { style: 7, wall: 0xe8dfc8, roof: 0x7a8a82, dome: GREEN, kit: {}, note: 'classicist church, cream walls, west tower with spire' },
@@ -73,7 +73,7 @@ export const TREAT = {
   peterpaul: { style: 6, wall: 0xb4573e, roof: 0x6f747c, dome: GREEN, kit: {}, note: 'neo-gothic brick church with a spire' },
   vilande: { style: 7, wall: 0xd8cba8, roof: GREY, dome: GREY, kit: {}, note: 'Baptist church, plain plastered hall' },
   synagogue: { style: 7, wall: 0xe6dcb8, roof: GREY, dome: GREY, kit: {}, note: 'Peitav-Shul synagogue, pale plastered hall' },
-  nevsky: { style: 9, wall: 0xe0d2b4, roof: 0x5f7a6c, dome: 0x49705f, kit: { towerMargin: 2.5, crosses: true }, note: 'Orthodox church with a dome and bell tower' },
+  nevsky: { style: 9, wall: 0xe6cf80, roof: 0x4f8a6c, dome: 0x4f8a6c, kit: { towerMargin: 2.5, crosses: true }, note: 'yellow round church with one large green dome (runtime feature, src/sightFeatures.js dome R) and a separate green bell tower' },
   oldgertrude: { style: 6, wall: 0xb0553b, roof: 0x7a808a, dome: 0x6b747e, kit: {}, note: 'red-brick neo-gothic church, one tall slim spire' },
   jesus: { style: 8, wall: 0xd9d0a6, roof: 0x6e7f78, dome: 0x6e7f78, kit: {}, note: 'large octagonal wooden hall church, painted pale, steep octagonal roof with a lantern' },
   annunciation: { style: 7, wall: 0xe0c4a8, roof: GREY, dome: GREEN, kit: {}, note: 'church with a tower' },

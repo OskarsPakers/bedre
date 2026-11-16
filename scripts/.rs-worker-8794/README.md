@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "bedre-rs-test" generated at 2026-11-16T23:31:26.979Z.

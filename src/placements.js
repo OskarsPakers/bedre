@@ -57,8 +57,9 @@ export function dumpPlacements(world, picker) {
   const best = new Map();
   for (const c of picker.pts) {
     let n = 0;
-    world.query(c.x, c.z, 55, (o) => { if (!o.mover && o.state === 0 && o.fit < maxFit) n++; });
+    world.query(c.x, c.z, 55, (o) => { if (!o.mover && o.state === 0 && o.fit < maxFit) if (o.cls !== 'tree') n++; }); // trees are cheap (1-2 points) and a dense forest is full of them: deep forest must not count as a rich start
     if (n < 30) continue;
+    { let bv = 0; world.query(c.x, c.z, 130, (o) => { if (o.isBuilding && o.state === 0) bv += o.value; }); if (bv < 450) continue; } // a start needs real buildings within reach, not just a forest full of cheap trees (map-review M-01 follow-up: slow starts deep in the Mežaparks forest)
     const key = Math.floor(c.x / 30) * 100003 + Math.floor(c.z / 30);
     const cur = best.get(key);
     if (!cur || cur.dens < n) best.set(key, { x: c.x, z: c.z, dens: n });

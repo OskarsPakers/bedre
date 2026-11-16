@@ -17,7 +17,8 @@
 //    {t:'rb', x, z}                               rubber-band: position update rejected (speed), snap back
 //    {t:'sync', eaten:[id..], ...}                after a reconnect: everything eaten so far
 //    {t:'end', rank:[...], saved}                 final ranking (server authoritative)
-//    {t:'err', code}                              version | started | full | room | gone | ratelimit | name
+//    {t:'err', code}                              version | started | full | room | gone | ratelimit | name | left (grace period over)
+//    {t:'left', you, ended}                       resume of a human that already left the arena (round over: followed by 'end')
 
 export const PROTOCOL_VERSION = 2;   // 2: handshake id = hash of the placement file bytes (was: hash over the client's float-built world)
 
@@ -33,7 +34,9 @@ export const MP = {
   resultsSeconds: 60,        // room lives this long after the round ends, then closes
   simHz: 20,
   snapEvery: 2,              // snapshot every N sim ticks  => 10 Hz
-  removeAfterMs: 15000,      // a disconnected hole idles (and can be resumed with its session token), then is removed
+  removeAfterMs: 45000,      // a disconnected hole idles (edible, can be resumed with its session token: covers an iOS tab reload / app switch / short outage), then leaves the arena
+                             // (it keeps its place in the final ranking with the score it had, but the result is not written to the online leaderboard)
+  silentAfterMs: 10000,      // a socket that sent nothing for this long (dead network, frozen tab) counts as disconnected; the client pings every 2.5 s
   maxMsgBytes: 2048,
   msgRate: 40,               // messages per second per socket (token bucket) ...
   msgBurst: 80,              // ... with this burst
@@ -63,6 +66,8 @@ export function mpConfig(env) {
     maxHumans: num(e.MP_MAX_HUMANS, MP.maxHumans, 1, 12),
     botSkill: num(e.MP_BOT_SKILL, MP.botSkill, 0.2, 1),
     botHumanGrace: num(e.MP_BOT_GRACE, MP.botHumanGrace, 0, 300),
+    removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1000, 300000),
+    silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3000, 120000),
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === '1' || e.MP_TEST_CLOSE_SPAWN === 1,
   };
 }

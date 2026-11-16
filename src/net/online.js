@@ -13,12 +13,14 @@ import { t, kindName } from '../i18n.js';
 import { MpClient, fetchStatus } from './client.js';
 import { expectedHash } from '../placements.js';
 import { OnlineUi } from './ui.js';
+import { loadSession, saveSession, clearSession, ownedElsewhere, RESULTS_MARGIN_MS } from './session.js';
 import { MP } from '../../worker/mp/protocol.js';
 
 export const MP_COLORS = [...CFG.holeColors, 0x2fa0b5, 0xff8a5c, 0x6c7be0, 0xb0a02f];
 const INTERP_MS = 130;       // remote holes are drawn this far in the past (smooth between 10 Hz snapshots)
 const SEND_MS = 80;          // ~12 Hz position + claims
-const RECONNECT_GIVE_UP_MS = 14000;
+const RECONNECT_GIVE_UP_MS = 42000;   // just under the server's grace period (MP.removeAfterMs = 45 s): after that the hole is gone anyway
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const hexOf = (n) => '#' + n.toString(16).padStart(6, '0');
 const r1 = (v) => Math.round(v * 10) / 10;
 
@@ -35,7 +37,7 @@ export class OnlineMode {
     this.world = world;
     this.client = new MpClient();
     this.ui = new OnlineUi();
-    this.state = 'idle';   // idle | matching | connecting | lobby | intro | playing | ended | error
+    this.state = 'idle';   // idle | matching | connecting | rejoining | lobby | intro | playing | ended | error
     this.room = null; this.me = -1;
     this.byId = new Map();            // server hole id -> Hole (player + remotes)
     this.remotes = [];
@@ -56,6 +58,40 @@ export class OnlineMode {
     this.ui.onLeave(() => this.leave());
     this._menuBtn = null;
     if (!this._hash && !(CFG.map && CFG.map.slug !== 'centrs')) this.ui.setStatus(t('mpNoData')); // fallback world (placement file missing / stale): solo only, no blame
+    this._hbT = null; this._rejoinRec = null;
+    setTimeout(() => this.checkSession(), 0);
+  }
+
+  // ---- session record (reload / evicted tab -> back into the running round) ---------------------------------------------
+  _persist() {
+    if (!this.room || this.state === 'idle' || this.state === 'matching' || this.state === 'lobby' || this.state === 'connecting') return;
+    const g = this.game, rows = g.rows || [], me = rows.find((r) => r.isPlayer);
+    const endAt = this.round ? this.round.endAt : (this._rejoinRec ? this._rejoinRec.endAt : 0);
+    saveSession({
+      room: this.room, token: this.client.token, name: g.player.name, hash: this._hash, id: this.me, endAt, ended: this.state === 'ended',
+      exp: endAt - this.client.offset + RESULTS_MARGIN_MS,   // round end (local clock) + the room's results time + slack
+      last: { score: Math.round(g.player.score), rank: me ? me.rank : 0, total: rows.length },
+    });
+  }
+  _startBeat() { clearInterval(this._hbT); this._hbT = setInterval(() => this._persist(), 2000); }
+
+  /** Page load: a live session record -> offer (and after ~3 s do) the rejoin. */
+  checkSession() {
+    const rec = loadSession();
+    if (!rec || !this._hash || this.state !== 'idle' || this.game.phase !== 'menu') return;
+    this._prompt(rec);
+  }
+
+  _prompt(rec) {
+    const owned = ownedElsewhere(rec);
+    const left = rec.endAt ? Math.max(0, Math.round((rec.endAt - Date.now()) / 1000)) : 0;
+    const ended = !!rec.ended || (rec.endAt && left <= 0);
+    const text = owned ? t('mpRejoinOther') : ended ? t('mpRejoinEnded') : t('mpRejoinRun', { t: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` });
+    this.ui.showRejoin({
+      text, label: owned ? t('mpRejoinTake') : ended ? t('mpRejoinResults') : t('mpRejoinYes'), no: t('mpRejoinNo'), auto: owned ? 0 : 3,
+      alive: () => this.state === 'idle' && this.game.phase === 'menu',
+      onYes: () => this.rejoin(rec), onNo: () => clearSession(),
+    });
   }
 
   get active() { return this.state !== 'idle'; }
@@ -64,15 +100,10 @@ export class OnlineMode {
   async begin() {
     if (this.state !== 'idle' && this.state !== 'error') return;
     if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; } // world not built from the canonical placement file: online would desync
+    const rec = loadSession();
+    if (rec) return this.rejoin(rec);   // a round of ours is still running (or just ended): back into it, never into the next lobby
     const g = this.game;
-    if (!this._enter) {
-      this._enter = true;
-      this._solo = { holes: g.holes, k: CFG.growth.k, id: g.player.id, color: g.player.color, name: g.player.name };
-      CFG.growth.k = 16; // online rooms always use the classic growth curve (the server's numbers)
-    }
-    g.online = this;
-    document.body.classList.add('mp-online');
-    this.ui.setButtonBusy(true);
+    this._enterOnline();
     this.ui.setStatus(t('mpConnecting'), true);
     this.state = 'matching';
     try {
@@ -89,8 +120,51 @@ export class OnlineMode {
     }
   }
 
-  /** Back to the single-player menu (also used after errors). */
-  leave() {
+  _enterOnline() {
+    const g = this.game;
+    if (!this._enter) {
+      this._enter = true;
+      this._solo = { holes: g.holes, k: CFG.growth.k, id: g.player.id, color: g.player.color, name: g.player.name };
+      CFG.growth.k = 16; // online rooms always use the classic growth curve (the server's numbers)
+    }
+    g.online = this;
+    document.body.classList.add('mp-online');
+    this.ui.setButtonBusy(true);
+  }
+
+  /** Rejoin the round of a stored session (same token -> the server hands back the same hole and its score). */
+  async rejoin(rec) {
+    if (this.state !== 'idle' && this.state !== 'error') return;
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; }
+    this.ui.hideRejoin();
+    this._enterOnline();
+    this._rejoinRec = rec;
+    this.client.setToken(rec.token);
+    this.room = rec.room;
+    this.state = 'rejoining';
+    this.ui.setStatus(t('mpConnecting'), true);
+    for (let i = 0; i < 3 && this.state === 'rejoining'; i++) {
+      try { await this.client.connect(rec.room, { name: rec.name || this.game.hud.getName(CFG.playerName), hash: this._hash }); return; } // answered by {t:'resume'} / {t:'left'} / {t:'err'}
+      catch { if (this.state === 'rejoining') await sleep(1200); }
+    }
+    if (this.state !== 'rejoining') return;
+    if (navigator.onLine === false) return this._fail('mpUnavailable', true);   // no network: keep the record, try again later
+    this._rejoinOver('room');
+  }
+
+  /** The stored round cannot be rejoined: say why (with the last known result when we have one), drop the record. */
+  _rejoinOver(kind) {
+    const rec = this._rejoinRec; this._rejoinRec = null;
+    const last = rec && rec.last;
+    const text = kind === 'left' ? t('mpLeft') : last && last.rank ? t('mpOverLast', { score: last.score, rank: last.rank, total: last.total }) : t('mpOver');
+    this.leave();
+    this.ui.setStatus(text);
+  }
+
+  /** Back to the single-player menu (also used after errors). keepSession: leave the stored session record alone (connection lost, other tab). */
+  leave(keepSession = false) {
+    if (!keepSession) clearSession();
+    clearInterval(this._hbT); this._hbT = null; this._rejoinRec = null;
     const g = this.game;
     try { this.client.send({ t: 'bye' }); } catch { /* */ }
     this.client.close(true);
@@ -127,6 +201,7 @@ export class OnlineMode {
   }
 
   async playAgain() {
+    clearSession();
     this.client.close(true);
     this.saved = null;
     this._removeMenuBtn();
@@ -136,13 +211,13 @@ export class OnlineMode {
     await this.begin();
   }
 
-  _fail(key, ms) {
+  _fail(key, keepSession = false) {
     this.client.close(true);
     clearInterval(this.lobbyTimer); clearInterval(this.statusT);
     this.ui.showLobby(false);
     const wasGame = this.game.phase === 'intro' || this.game.phase === 'playing';
     const text = t(key);
-    this.leave();
+    this.leave(keepSession);
     this.ui.setStatus(text);
     this.state = 'idle';
     if (wasGame) this.game.hud.clearTransient();
@@ -154,6 +229,13 @@ export class OnlineMode {
       case 'lobby': return this._onLobby(m);
       case 'start': return this._onStart(m);
       case 'resume': return this._onResume(m);
+      case 'left': { // rejoined after the grace period, round already over: only the final ranking follows
+        if (this.state !== 'rejoining') return;
+        const g = this.game;
+        this.me = m.you; this._rejoinRec = null; this.round = { startAt: 0, playAt: 0, endAt: 0, holes: [] };
+        g.hud.showStart(false); g.hud.showResults(false); g.holes = [g.player]; this._clearHoles(); this._overviewCam();
+        return;
+      }
       case 's': return this._onSnapshot(m);
       case 'a': return this._onAck(m);
       case 'rb': {
@@ -173,7 +255,9 @@ export class OnlineMode {
 
   _onErr(m) {
     if (m.code === 'version') return this._versionRefused();
-    const map = { started: 'mpStarted', full: 'mpFull', room: 'mpGone', gone: 'mpGone', name: 'mpUnavailable', ratelimit: 'mpUnavailable' };
+    if (this.state === 'rejoining') return this._rejoinOver(m.code === 'left' || m.code === 'started' ? 'left' : 'room');
+    const inRound = this.state === 'intro' || this.state === 'playing';
+    const map = { left: 'mpLeft', started: inRound ? 'mpLeft' : 'mpStarted', full: 'mpFull', room: 'mpGone', gone: 'mpGone', name: 'mpUnavailable', ratelimit: 'mpUnavailable' };
     const retry = m.code === 'full' || m.code === 'started' || m.code === 'gone' || (m.code === 'room' && this.state !== 'intro' && this.state !== 'playing');
     if (retry && (this._retries = (this._retries || 0) + 1) <= 3 && (this.state === 'connecting' || this.state === 'lobby' || this.state === 'matching')) {
       this._badRoom = this.room; this.state = 'idle'; setTimeout(() => this.begin(), 400); return;
@@ -198,6 +282,8 @@ export class OnlineMode {
   }
 
   _onClose(info) {
+    if (info && info.code === 4001 && this.state !== 'idle') return this._fail('mpOtherTab', true);   // the same session joined from another tab: the newer one wins
+    if (this.state === 'rejoining') return;
     if (this.state === 'intro' || this.state === 'playing') return this._startReconnect();
     if (this.state === 'lobby' || this.state === 'connecting') return this._fail('mpUnavailable');
     // ended / idle: nothing to do (the server closes the room after the results)
@@ -305,6 +391,7 @@ export class OnlineMode {
     g._rank(); g._hudSync();
     g.hud.showMarkers(true);
     this.state = 'intro';
+    this._persist(); this._startBeat();
     this.sendAt = 0;
     this.ui.net('ok', t('mpPing', { n: Math.round(this.client.rtt) }));
     bus.emit('introStart');
@@ -323,6 +410,7 @@ export class OnlineMode {
 
   _onResume(m) {
     const g = this.game;
+    if (this.state === 'rejoining') { this._rejoinRec = null; this.ui.setStatus(''); this._onStart(m); }   // fresh page: build the round from the server's picture
     this.rec = null;
     this.me = m.you;
     // objects eaten so far (by anybody): hide the ones this client still shows; claims the server never saw are restored
@@ -355,7 +443,7 @@ export class OnlineMode {
   onForeground() {
     if (this.state !== 'intro' && this.state !== 'playing') return;
     if (this.rec) return;
-    if (!this.client.open) this._startReconnect();
+    if (!this.client.open || !this.client.checkAlive(3500)) this._startReconnect();   // (a socket that looks open but has been silent for seconds is dead)
   }
 
   _startReconnect() {
@@ -364,7 +452,7 @@ export class OnlineMode {
     this.ui.net('bad', t('mpReconnecting'));
     const attempt = async () => {
       if (!this.rec) return;
-      if (Date.now() - this.rec.t0 > RECONNECT_GIVE_UP_MS) { this.rec = null; this._fail('mpLost'); return; }
+      if (Date.now() - this.rec.t0 > RECONNECT_GIVE_UP_MS) { this.rec = null; this._fail('mpLost', true); return; }
       this.rec.tries++;
       try { await this.client.connect(this.room, { name: this.game.player.name, hash: this._hash }); }
       catch { setTimeout(attempt, 900); return; }
@@ -621,6 +709,7 @@ export class OnlineMode {
     this.state = 'ended';
     this._note({ t: 'end', n: m.rank.length });
     this.finalRank = m.rank;
+    this.rec = null;
     g.phase = 'ended'; g.timeLeft = 0; g.input.enabled = false; g.player.control = { mode: 'none', x: 0, z: 0 };
     g.hud.showSwallowed(false); g.hud.showTags(false);
     const rows = m.rank.map((r) => ({
@@ -638,6 +727,7 @@ export class OnlineMode {
     g.hud.setGlobal(t(this.saved === true ? 'mpSaved' : this.saved === false ? 'mpNotSaved' : 'mpSaving'), true);
     g._hudSync();
     this._addMenuBtn();
+    this._persist(); this._startBeat();
     this.ui.net('ok', t('mpPing', { n: Math.round(this.client.rtt) }));
   }
 
@@ -684,6 +774,11 @@ export class OnlineMode {
       get self() { const p = o.game.player; return { id: p.id, x: p.x, z: p.z, radius: p.radius, score: p.score, alive: p.alive, dying: !!p.dying, protectT: p.protectT, kills: p.kills, deaths: p.deaths, eaten: p.eaten }; },
       drive: (x, z) => { o.drive = x == null ? null : { x, z }; },
       get reconnecting() { return !!o.rec; },
+      get token() { return o.client.token; },
+      forceHash: (h) => { o._hash = h; },   // test hook: pretend to be another client version
+      get session() { return loadSession(); },
+      get alive() { return o.client.checkAlive(1e9); },
+      get lastRxAge() { return performance.now() - o.client.lastRx; },
       remotes: () => o.remotes.map((h) => ({ id: h.id, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, isBot: !!h.isBot, alive: h.alive, dying: !!h.dying })),
       send: (m) => o.client.send(m),
       drop: () => o.client.dropForTest(),

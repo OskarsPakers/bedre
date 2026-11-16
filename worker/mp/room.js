@@ -76,6 +76,7 @@ export class MpRoom {
     if (!lim.allow(now)) { if (lim.over > 300) { send(ws, { t: 'err', code: 'ratelimit' }); try { ws.close(1008, 'rate'); } catch { /* */ } } return; }
     const m = parseClientMessage(data, this.cfg);
     if (!m) return;
+    if (this.sim && this.meta.phase !== 'lobby') { const pid = this.att(ws).pid; const hh = pid >= 0 && this.sim.byId.get(pid); if (hh) hh.lastMsgAt = now; }
     try {
       if (m.t === 'ping') return send(ws, { t: 'pong', c: m.c, s: now });
       if (m.t === 'hello') return await this.onHello(ws, m, now);
@@ -124,12 +125,22 @@ export class MpRoom {
     // a round is (or was) running: only the same player (token) may come back
     if (this.sim && (phase === 'intro' || phase === 'playing' || phase === 'ended')) {
       const h = this.sim.holes.find((x) => !x.bot && x.token === m.token);
-      if (!h) return this.refuse(ws, phase === 'ended' ? 'room' : 'started');
+      if (!h) {
+        const gone = this.sim.left.find((x) => x.token === m.token);
+        if (gone && phase === 'ended') { // was away longer than the grace period: still gets the final ranking (with the score it had)
+          ws.serializeAttachment({ pid: -1 });
+          send(ws, { t: 'left', you: gone.id, ended: true });
+          send(ws, this.endMsg(this.savedOk === true));
+          return;
+        }
+        if (gone) return this.refuse(ws, 'left');
+        return this.refuse(ws, phase === 'ended' ? 'room' : 'started');
+      }
       for (const o of this.ctx.getWebSockets()) { const oa = this.att(o); if (oa.pid === h.id && o !== ws) { try { o.serializeAttachment({ pid: -1 }); o.close(4001, 'replaced'); } catch { /* */ } } }
       ws.serializeAttachment({ pid: h.id, name: h.name, slot: h.slot, token: m.token });
-      h.connected = true; h.discAt = 0;
+      h.connected = true; h.discAt = 0; h.lastMsgAt = now;
       send(ws, this.resumeMsg(h, now));
-      if (phase === 'ended') send(ws, this.endMsg());
+      if (phase === 'ended') send(ws, this.endMsg(this.savedOk === true));
       return;
     }
     return this.refuse(ws, phase === 'lobby' ? 'gone' : 'room');
@@ -196,7 +207,7 @@ export class MpRoom {
     if (this.sim && this.meta.phase !== 'lobby') {
       const h = this.sim.byId.get(a.pid);
       if (h && !h.bot) { h.connected = false; h.discAt = now; }
-      if (this.meta.phase === 'ended' && this.ctx.getWebSockets().filter((w) => this.att(w).pid >= 0).length === 0) this.ctx.storage.setAlarm(now + 2000);
+      if (this.meta.phase === 'ended' && this.ctx.getWebSockets().filter((w) => this.att(w).pid >= 0).length === 0) this.ctx.storage.setAlarm(now + (explicit ? 2000 : 20000)); // a reload / drop keeps the results around a little (a returning player still sees them)
       return;
     }
     this.ctx.waitUntil(this.lobbyChanged(now));
@@ -289,6 +300,7 @@ export class MpRoom {
     await this.ctx.storage.setAlarm(now + this.cfg.resultsSeconds * 1000);
     this.report(now, 'ended');
     const ok = await this.saveScores(now).catch((e) => { console.error('scores', e && e.message); return false; });
+    this.savedOk = ok;
     const saved = JSON.stringify({ t: 'saved', ok });
     for (const ws of this.ctx.getWebSockets()) send(ws, saved);
   }

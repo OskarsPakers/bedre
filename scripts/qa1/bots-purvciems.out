@@ -1,0 +1,8 @@
+BOT purvciems/hard Uldis: path=3116m idle=0s maxIdleRun=0s reversals=0 edgeTime=0s r 2.3->70.3 score=15749.431852033349 kills=0 deaths=0 modes={"eat":82,"roam":163,"flee":8}
+BOT purvciems/hard Mežavīrs: path=3940m idle=0s maxIdleRun=0s reversals=6 edgeTime=0s r 2.3->134.2 score=68587.97250615453 kills=1 deaths=0 modes={"eat":138,"roam":110,"hunt":5}
+BOT purvciems/hard Rasa: path=2862m idle=0s maxIdleRun=0s reversals=3 edgeTime=0s r 2.2->78.6 score=20352.04974221481 kills=0 deaths=0 modes={"eat":120,"roam":133}
+BOT purvciems/hard Baiba: path=3283m idle=0s maxIdleRun=0s reversals=1 edgeTime=0s r 2.4->67.5 score=14384.903133118847 kills=0 deaths=0 modes={"eat":77,"roam":157,"hunt":19}
+BOT purvciems/hard Vilks: path=2894m idle=0s maxIdleRun=0s reversals=3 edgeTime=0s r 2.5->64.7 score=13054.481216227972 kills=0 deaths=0 modes={"eat":84,"roam":127,"flee":42}
+BOT purvciems/hard Pelmeņš: path=3870m idle=0s maxIdleRun=0s reversals=2 edgeTime=0s r 2.6->152.8 score=92266.9622435664 kills=1 deaths=0 modes={"eat":95,"roam":156,"hunt":2}
+BOT purvciems/hard Zaķis: path=3707m idle=0s maxIdleRun=0s reversals=3 edgeTime=0s r 2.2->104.6 score=38938.16360080727 kills=0 deaths=0 modes={"eat":122,"roam":124,"flee":7}
+bounds {"minX":3186,"maxX":5786,"minZ":-2012,"maxZ":588}

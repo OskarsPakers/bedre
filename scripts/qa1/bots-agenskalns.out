@@ -1,0 +1,8 @@
+BOT agenskalns/hard Bebrs: path=3392m idle=0s maxIdleRun=0s reversals=5 edgeTime=0s r 2.3->64.8 score=13082.475367792804 kills=0 deaths=0 modes={"eat":74,"roam":140,"flee":38}
+BOT agenskalns/hard Baiba: path=3315m idle=0s maxIdleRun=0s reversals=1 edgeTime=0s r 2.8->83.5 score=23274.14037468266 kills=0 deaths=0 modes={"eat":120,"roam":113,"flee":19}
+BOT agenskalns/hard Dzintars: path=3189m idle=0s maxIdleRun=0s reversals=5 edgeTime=0s r 2.2->73.1 score=17254.572783951142 kills=0 deaths=0 modes={"eat":105,"roam":77,"flee":70}
+BOT agenskalns/hard Zane: path=3827m idle=0s maxIdleRun=0s reversals=7 edgeTime=0s r 2.2->74.0 score=17677.925248437896 kills=0 deaths=0 modes={"eat":107,"roam":100,"flee":38,"hunt":7}
+BOT agenskalns/hard Uldis: path=3385m idle=0s maxIdleRun=0s reversals=6 edgeTime=0s r 2.8->64.2 score=12817.278043676317 kills=0 deaths=0 modes={"eat":101,"roam":104,"flee":47}
+BOT agenskalns/hard Zaķis: path=5101m idle=0s maxIdleRun=0s reversals=14 edgeTime=0s r 2.2->193.8 score=157842.3198351076 kills=2 deaths=0 modes={"eat":117,"roam":130,"hunt":5}
+BOT agenskalns/hard Māris: path=3687m idle=0s maxIdleRun=0s reversals=9 edgeTime=0s r 2.6->71.5 score=16355.581487017807 kills=0 deaths=0 modes={"eat":82,"roam":133,"flee":37}
+bounds {"minX":-3868,"maxX":-1268,"minZ":459,"maxZ":3059}

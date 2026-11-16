@@ -1,0 +1,44 @@
+[r1 +4s] UI {"map":"centrs","mode":["classic"],"diff":["hard"],"play":"Play","bodyClass":"mode-classic"}
+[r1 +15s] t=292 score=81 eaten=26 r=4.8 pos=-56,297 rank=2 unranked=null
+[r1 +23s] t=284 score=116 eaten=35 r=5.6 pos=-114,286 rank=4 unranked=null
+[r1 +31s] t=275 score=137 eaten=41 r=5.9 pos=-226,298 rank=6 unranked=null
+[r1 +40s] t=267 score=143 eaten=43 r=6.0 pos=-333,275 rank=6 unranked=null
+[r1 +48s] t=259 score=168 eaten=47 r=6.4 pos=-423,259 rank=6 unranked=null
+[r1 +56s] t=251 score=224 eaten=62 r=7.1 pos=-481,308 rank=6 unranked=null
+[r1 +64s] t=243 score=257 eaten=66 r=7.7 pos=-494,306 rank=6 unranked=null
+[r1 +72s] t=235 score=397 eaten=75 r=9.2 pos=-402,270 rank=6 unranked=null
+[r1 +80s] t=227 score=539 eaten=88 r=10.4 pos=-261,354 rank=5 unranked=null
+[r1 +88s] t=219 score=919 eaten=101 r=13.2 pos=-292,408 rank=5 unranked=null
+[r1 +96s] t=211 score=1452 eaten=117 r=16.0 pos=-327,543 rank=5 unranked=null
+[r1 +104s] t=203 score=2568 eaten=154 r=20.6 pos=-176,602 rank=4 unranked=null
+[r1 +113s] t=194 score=3783 eaten=183 r=24.4 pos=-35,628 rank=4 unranked=null
+[r1 +121s] t=186 score=5341 eaten=264 r=28.4 pos=89,474 rank=4 unranked=null
+[r1 +129s] t=178 score=5540 eaten=323 r=28.9 pos=267,347 rank=4 unranked=null
+[r1 +137s] t=170 score=9174 eaten=377 r=35.4 pos=462,241 rank=4 unranked=null
+[r1 +145s] t=162 score=13022 eaten=435 r=41.9 pos=639,232 rank=4 unranked=null
+[r1 +153s] t=154 score=16607 eaten=508 r=46.7 pos=733,308 rank=3 unranked=null
+[r1 +161s] t=146 score=17567 eaten=539 r=47.9 pos=865,285 rank=3 unranked=null
+[r1 +169s] t=138 score=20677 eaten=586 r=51.4 pos=994,243 rank=3 unranked=null
+[r1 +177s] t=130 score=24073 eaten=667 r=55.0 pos=1158,82 rank=3 unranked=null
+[r1 +185s] t=121 score=27327 eaten=727 r=58.0 pos=982,10 rank=3 unranked=null
+[r1 +194s] t=113 score=31971 eaten=865 r=62.1 pos=1083,-271 rank=3 unranked=null
+[r1 +202s] t=105 score=35334 eaten=971 r=65.1 pos=1082,-522 rank=3 unranked=null
+[r1 +210s] t=97 score=39883 eaten=1137 r=68.7 pos=914,-828 rank=3 unranked=null
+[r1 +218s] t=89 score=43432 eaten=1264 r=71.3 pos=1072,-930 rank=3 unranked=null
+[r1 +226s] t=81 score=46700 eaten=1317 r=73.6 pos=1164,-827 rank=3 unranked=null
+[r1 +234s] t=73 score=49498 eaten=1365 r=75.5 pos=1075,-1056 rank=3 unranked=null
+[r1 +242s] t=65 score=51377 eaten=1460 r=76.8 pos=1040,-1200 rank=3 unranked=null
+[r1 +250s] t=57 score=52429 eaten=1506 r=77.5 pos=766,-1174 rank=3 unranked=null
+[r1 +258s] t=49 score=53882 eaten=1573 r=78.4 pos=390,-1192 rank=3 unranked=null
+[r1 +266s] t=41 score=57284 eaten=1634 r=80.6 pos=216,-1108 rank=3 unranked=null
+[r1 +274s] t=33 score=59685 eaten=1673 r=81.9 pos=73,-919 rank=3 unranked=null
+[r1 +283s] t=24 score=60971 eaten=1722 r=82.8 pos=-67,-561 rank=3 unranked=null
+[r1 +291s] t=16 score=63020 eaten=1818 r=84.0 pos=-272,-408 rank=3 unranked=null
+[r1 +299s] t=8 score=64661 eaten=1892 r=85.0 pos=-657,-434 rank=3 unranked=null
+[r1 +307s] t=0 score=68160 eaten=2004 r=87.0 pos=-737,-565 rank=3 unranked=null
+[r1 +307s] FRAME {"n":18291,"avg":16.7170192991117,"p50":16.69999999999709,"p95":16.70000000001164,"p99":16.80000000000291,"max":833.3000000000001,"long":[[926,833]]}
+[r1 +307s] maxR=87.0 deaths=0
+[r1 +309s] RESULTS {"place":"3rd of 8","score":"68,233","global":"Global rank: #1 all-time · #1 today","eaten":"2018","kills":"0","deaths":"0","biggest":"Krišjāņa Valdemāra iela 5A","size":"Ø 174.0 m (size 9)","table":["♛Dzeguze125,105","2Baiba72,838","3QAr168,233","4Laima50,788","5Zane24,326","6Ezis11,806","7Gundega10,663","8Māris10,181"],"unranked":null,"vis":true}
+[r1 +315s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":7.074999999999999,"z":268.35,"radius":2.2,"targetRadius":2.2},"counts":{"props":15624,"buildings":5276,"remainingProps":15624,"remainingBuildings":5276,"falling":0}}
+[r1 +325s] MEM 225000000 -> 225000000
+[r1 +325s] ERRS 0

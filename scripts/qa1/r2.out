@@ -1,0 +1,26 @@
+[r2 +5s] UI {"map":"agenskalns","mode":["quick"],"diff":["normal"],"play":"Spēlēt — Ātrā 2:00","bodyClass":"mode-quick"}
+[r2 +15s] t=114 score=26 eaten=8 r=4.6 pos=-1799,1620 rank=2 unranked=null
+[r2 +21s] t=107 score=97 eaten=28 r=7.7 pos=-1829,1547 rank=1 unranked=null
+[r2 +27s] t=101 score=157 eaten=47 r=9.3 pos=-1767,1557 rank=1 unranked=null
+[r2 +33s] t=95 score=239 eaten=75 r=11.2 pos=-1662,1538 rank=1 unranked=null
+[r2 +40s] t=89 score=363 eaten=118 r=13.4 pos=-1585,1616 rank=2 unranked=null
+[r2 +46s] t=83 score=518 eaten=168 r=15.7 pos=-1577,1754 rank=3 unranked=null
+[r2 +52s] t=77 score=718 eaten=234 r=18.1 pos=-1591,1907 rank=3 unranked=null
+[r2 +58s] t=71 score=1101 eaten=260 r=21.9 pos=-1553,2062 rank=3 unranked=null
+[r2 +64s] t=65 score=1342 eaten=289 r=23.8 pos=-1481,2201 rank=4 unranked=null
+[r2 +70s] t=59 score=1545 eaten=309 r=25.3 pos=-1401,2330 rank=4 unranked=null
+[r2 +76s] t=53 score=2190 eaten=330 r=29.5 pos=-1280,2450 rank=5 unranked=null
+[r2 +82s] t=46 score=3391 eaten=349 r=35.7 pos=-1291,2647 rank=5 unranked=null
+[r2 +88s] t=40 score=5211 eaten=411 r=43.2 pos=-1470,2575 rank=5 unranked=null
+[r2 +94s] t=34 score=7805 eaten=522 r=51.6 pos=-1589,2636 rank=3 unranked=null
+[r2 +101s] t=28 score=8629 eaten=577 r=53.7 pos=-1478,2419 rank=5 unranked=null
+[r2 +107s] t=22 score=17345 eaten=625 r=73.3 pos=-1475,2173 rank=3 unranked=null
+[r2 +113s] t=16 score=40859 eaten=848 r=106.9 pos=-1664,2200 rank=1 unranked=null
+[r2 +119s] t=10 score=45186 eaten=1053 r=111.7 pos=-1910,2161 rank=1 unranked=null
+[r2 +125s] t=4 score=53286 eaten=1271 r=120.1 pos=-2188,2101 rank=1 unranked=null
+[r2 +129s] FRAME {"n":7502,"avg":16.763756331644874,"p50":16.69999999999709,"p95":16.70000000001164,"p99":16.80000000000291,"max":600,"long":[[779,600]]}
+[r2 +129s] maxR=122.7 deaths=0
+[r2 +131s] RESULTS {"place":"1. vieta no 8","score":"55 943","global":"Globālā vieta: #1 visu laiku · #1 šodien","eaten":"1391","kills":"0","deaths":"0","biggest":"ēka","size":"Ø 245.5 m (izmērs 10)","table":["♛Tu55 943","2Rūķis36 057","3Gundega24 484","4Vilks15 144","5Pūce14 845","6Ilze8159","7Kārlis5200","8Saulīte3165"],"unranked":null,"vis":true}
+[r2 +137s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":-2690.825,"z":2143.95,"radius":2.2,"targetRadius":2.2},"counts":{"props":20349,"buildings":7165,"remainingProps":20349,"remainingBuildings":7165,"falling":0}}
+[r2 +148s] MEM 435000000 -> 435000000
+[r2 +148s] ERRS 0

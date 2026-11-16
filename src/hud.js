@@ -1,7 +1,9 @@
 // HTML overlay: timer, score, size bar, popups, labels, start/results panels.
 import { CFG } from './config.js';
-import { t, fmt, getLang, onLang } from './i18n.js';
+import { t, fmt, getLang, onLang, extendStrings } from './i18n.js';
+import { cleanName, sanitizeName } from '../worker/lib/moderation.js';   // the same name policy as the scores API and the multiplayer server
 const $ = (id) => document.getElementById(id);
+extendStrings({ nameAs: 'Tiks rādīts kā: {n}' }, { nameAs: 'Shown as: {n}' });
 
 export class Hud {
   constructor() {
@@ -15,12 +17,34 @@ export class Hud {
     this.tagEls = new Map();
     this.boardRows = [];
     try { const n = localStorage.getItem('bedre.name'); if (n && this.el.name) this.el.name.value = n; } catch (e) { /* storage blocked */ }
-    onLang(() => { this._last = {}; this._lastRes = null; });
+    onLang(() => { this._last = {}; this._lastRes = null; this._nameHint(); });
+    this._bindName();
   }
+
+  /** Live preview of the name as the others will see it (angle brackets / invisible characters removed, filter -> "Anonīms"); on blur the field itself is normalised. */
+  _bindName() {
+    const inp = this.el.name;
+    if (!inp || !inp.parentElement) return;
+    const hint = document.createElement('div');
+    hint.id = 'name-hint'; hint.className = 'name-hint'; hint.setAttribute('aria-live', 'polite');
+    inp.parentElement.after(hint);
+    this._hintEl = hint;
+    inp.addEventListener('input', () => { this._nameHint(); this._saveName(); });
+    inp.addEventListener('blur', () => { const c = cleanName(inp.value).slice(0, 14); if (c !== inp.value.trim()) inp.value = c; this._nameHint(); this._saveName(); });
+    this._nameHint();
+  }
+  _nameHint() {
+    const inp = this.el.name, hint = this._hintEl;
+    if (!inp || !hint) return;
+    const typed = inp.value.trim().replace(/\s+/g, ' ');
+    const shown = typed ? (sanitizeName(typed.slice(0, 14)) || '') : '';
+    hint.textContent = shown && shown !== typed ? t('nameAs', { n: shown }) : '';
+  }
+  _saveName() { try { const n = cleanName(this.el.name.value).slice(0, 14); if (n) localStorage.setItem('bedre.name', n); } catch (e) { /* ignore */ } }
 
   /** Player's chosen display name (remembered in localStorage). */
   getName(fallback = CFG.playerName) {
-    let n = (this.el.name?.value || '').trim().replace(/\s+/g, ' ').slice(0, 14);
+    let n = cleanName(this.el.name?.value || '').slice(0, 14);
     try { if (n) localStorage.setItem('bedre.name', n); } catch (e) { /* ignore */ }
     return n || fallback;
   }
@@ -120,8 +144,23 @@ export class Hud {
   }
 
   // ---- name tags floating above holes ------------------------------------------------------------
+  /** Screen rects of everything a name tag must not sit on (HUD cards, round buttons, transient banners); refreshed ~3x / s and on resize. */
+  _hudRects() {
+    const now = performance.now();
+    if (this._hr && now - this._hrAt < 350) return this._hr;
+    this._hrAt = now;
+    const out = [];
+    for (const el of document.querySelectorAll('#hud .card, #board-chip, #meta-pct, #meta-area, #feed > *, #swallowed, #hud-btns > button, #mp-net, #end-free')) {
+      if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width > 2 && r.height > 2) out.push({ l: r.left - 2, r: r.right + 2, t: r.top - 2, b: r.bottom + 2 });
+    }
+    return (this._hr = out);
+  }
+
   updateTags(items) {
     // items: [{ id, name, color, x, y, visible, leader, me }]
+    const rects = this._hudRects();
     for (const it of items) {
       let t = this.tagEls.get(it.id);
       if (!t) {
@@ -132,11 +171,19 @@ export class Hud {
         t = { el, vis: true, name: '', leader: null, me: null, crown: el.children[0], dot: el.children[1], n: el.children[2] };
         this.tagEls.set(it.id, t);
       }
-      if (t.name !== it.name) { t.name = it.name; t.n.textContent = it.name; t.dot.style.background = it.color; }
+      if (t.name !== it.name) { t.name = it.name; t.w = 0; t.n.textContent = it.name; t.dot.style.background = it.color; }
       if (t.leader !== it.leader) { t.leader = it.leader; t.el.classList.toggle('leader', it.leader); }
       if (t.me !== it.me) { t.me = it.me; t.el.classList.toggle('me', it.me); }
       if (t.vis !== it.visible) { t.vis = it.visible; t.el.style.display = it.visible ? '' : 'none'; }
-      if (it.visible) t.el.style.transform = `translate(${it.x.toFixed(1)}px, ${it.y.toFixed(1)}px) translate(-50%, -100%)`;
+      if (it.visible) {
+        t.el.style.transform = `translate(${it.x.toFixed(1)}px, ${it.y.toFixed(1)}px) translate(-50%, -100%)`;
+        // a tag that would land on a HUD card / button fades out while it does (they are also layered below the HUD)
+        const w = t.w || (t.w = t.el.offsetWidth || 80), h = t.h || (t.h = t.el.offsetHeight || 22);
+        const l = it.x - w / 2, r = it.x + w / 2, tp = it.y - h, b = it.y;
+        let occ = false;
+        for (const q of rects) if (l < q.r && r > q.l && tp < q.b && b > q.t) { occ = true; break; }
+        if (t.occ !== occ) { t.occ = occ; t.el.classList.toggle('occluded', occ); }
+      }
     }
   }
 

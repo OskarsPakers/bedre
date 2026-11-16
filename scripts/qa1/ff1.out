@@ -1,0 +1,28 @@
+[ff1] console.warning: [JavaScript Warning: "The execution of microtasks on this page was reordered to avoid unsafe execution." {file: "http://127.0.0.1:8801/?" line: 0}]
+[ff1] console.warning: THREE.WebGLRenderer: WEBGL_multi_draw extension not supported.
+[ff1] console.warning: [JavaScript Warning: "WebGL warning: drawElementsInstanced: Depth texture comparison requests (e.g. `LINEAR`) Filtering, but behavior is implementation-defined, and so on some systems will sometimes behave as `NEAREST`. (warns once)"]
+[ff1] console.warning: [JavaScript Warning: "The execution of microtasks on this page was reordered to avoid unsafe execution." {file: "http://127.0.0.1:8801/?" line: 0}]
+[ff1] console.warning: THREE.WebGLRenderer: WEBGL_multi_draw extension not supported.
+[ff1] console.warning: [JavaScript Warning: "WebGL warning: drawElementsInstanced: Depth texture comparison requests (e.g. `LINEAR`) Filtering, but behavior is implementation-defined, and so on some systems will sometimes behave as `NEAREST`. (warns once)"]
+[ff1 +13s] UI {"map":"centrs","mode":["quick"],"diff":["normal"],"play":"Play — Quick 2:00","bodyClass":"mode-quick"}
+[ff1 +24s] t=113 score=69 eaten=23 r=6.6 pos=-58,297 rank=1 unranked=null
+[ff1 +32s] t=105 score=171 eaten=30 r=9.7 pos=-180,305 rank=1 unranked=null
+[ff1 +40s] t=97 score=805 eaten=43 r=18.2 pos=-158,238 rank=1 unranked=null
+[ff1 +48s] t=89 score=3639 eaten=107 r=35.9 pos=-355,157 rank=1 unranked=null
+[ff1 +56s] t=81 score=10521 eaten=202 r=58.4 pos=-567,202 rank=1 unranked=null
+[ff1 +65s] t=73 score=18274 eaten=366 r=75.0 pos=-762,-48 rank=1 unranked=null
+[ff1 +72s] t=65 score=24608 eaten=481 r=85.3 pos=-782,-371 rank=1 unranked=null
+[ff1 +81s] t=57 score=29013 eaten=635 r=91.7 pos=-412,-407 rank=1 unranked=null
+[ff1 +89s] t=49 score=32832 eaten=921 r=97.0 pos=-155,-101 rank=1 unranked=null
+[ff1 +97s] t=42 score=39458 eaten=1242 r=104.6 pos=24,196 rank=1 unranked=null
+[ff1 +105s] t=34 score=47356 eaten=1407 r=113.9 pos=-73,399 rank=1 unranked=null
+[ff1 +114s] t=27 score=55410 eaten=1641 r=122.1 pos=267,493 rank=1 unranked=null
+[ff1 +122s] t=19 score=63034 eaten=1807 r=129.4 pos=501,490 rank=1 unranked=null
+[ff1 +130s] t=11 score=69308 eaten=2005 r=134.7 pos=491,821 rank=1 unranked=null
+[ff1 +138s] t=3 score=74631 eaten=2210 r=139.3 pos=44,782 rank=1 unranked=null
+[ff1 +141s] FRAME {"n":6424,"avg":20.8784620174346,"p50":16.760000000002037,"p95":41.63999999999942,"p99":67.02000000000407,"max":3798.8399999999997,"long":[[90144,126],[98185,116],[98769,100],[99661,234],[99777,116],[100353,142],[100752,150],[100961,117],[101603,133],[102211,117],[103728,184],[106102,109]]}
+[ff1 +141s] maxR=140.8 deaths=0
+[ff1 +143s] RESULTS {"place":"1st of 8","score":"76,759","global":"Global rank: #1 all-time · #1 today","eaten":"2375","kills":"0","deaths":"0","biggest":"Stacijas laukums 2","size":"Ø 281.9 m (size 11)","table":["♛QAff176,759","2Pūce26,526","3Zaķis11,527","4Uldis5,764","5Gundega3,554","6Ieva2,704","7Mārtiņš1,171","8Baiba456"],"unranked":null,"vis":true}
+[ff1 +149s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":154.6,"z":-151.64000000000001,"radius":2.2,"targetRadius":2.2},"counts":{"props":15624,"buildings":5276,"remainingProps":15624,"remainingBuildings":5276,"falling":0}}
+[ff1 +159s] MEM undefined -> undefined
+[ff1 +159s] ERRS 6

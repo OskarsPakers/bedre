@@ -69,6 +69,9 @@ export const hapticStats = { calls: 0, supported: false };
 export function buzz(pattern) {
   hapticStats.supported = canVibrate();
   if (!hapticStats.supported || !prefs.haptics || document.hidden) return false;
+  // only on touch devices and only after the user has interacted with the page (desktop Chromium logs a console error for a vibrate() before any gesture)
+  if (!(navigator.maxTouchPoints > 0 || 'ontouchstart' in window)) return false;
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return false;
   try { const ok = navigator.vibrate(pattern); hapticStats.calls++; return ok; } catch { return false; }
 }
 function wireHaptics() {

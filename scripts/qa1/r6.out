@@ -1,0 +1,36 @@
+[r6 +6s] UI {"map":"mezaparks","mode":["classic"],"diff":["normal"],"play":"Play","bodyClass":"mode-classic"}
+[r6 +20s] t=290 score=103 eaten=23 r=5.2 pos=2687,-6094 rank=1 unranked=null
+[r6 +30s] t=279 score=204 eaten=36 r=6.8 pos=2723,-6217 rank=1 unranked=null
+[r6 +40s] t=269 score=296 eaten=47 r=8.1 pos=2869,-6153 rank=1 unranked=null
+[r6 +50s] t=259 score=1463 eaten=71 r=15.9 pos=3079,-6112 rank=1 unranked=null
+[r6 +60s] t=249 score=2061 eaten=96 r=18.7 pos=3263,-6166 rank=1 unranked=null
+[r6 +70s] t=239 score=6051 eaten=119 r=29.4 pos=3336,-5946 rank=1 unranked=null
+[r6 +80s] t=229 score=12714 eaten=164 r=41.6 pos=3497,-5907 rank=1 unranked=null
+[r6 +90s] t=219 score=24542 eaten=352 r=54.9 pos=3422,-5560 rank=1 unranked=null
+[r6 +101s] t=209 score=32302 eaten=481 r=62.5 pos=3406,-5777 rank=1 unranked=null
+[r6 +111s] t=198 score=38139 eaten=585 r=67.4 pos=3224,-6183 rank=1 unranked=null
+[r6 +121s] t=188 score=51151 eaten=797 r=76.6 pos=2891,-6390 rank=1 unranked=null
+[r6 +131s] t=178 score=58763 eaten=1073 r=81.4 pos=2821,-6063 rank=1 unranked=null
+[r6 +141s] t=168 score=62969 eaten=1269 r=84.0 pos=2972,-5761 rank=1 unranked=null
+[r6 +151s] t=158 score=70585 eaten=1541 r=88.3 pos=3152,-5317 rank=1 unranked=null
+[r6 +161s] t=148 score=72795 eaten=1673 r=89.5 pos=2819,-4957 rank=1 unranked=null
+[r6 +171s] t=138 score=77929 eaten=1807 r=92.3 pos=2514,-4697 rank=1 unranked=null
+[r6 +182s] t=128 score=78994 eaten=1966 r=92.8 pos=2058,-4911 rank=1 unranked=null
+[r6 +192s] t=118 score=84309 eaten=2411 r=95.5 pos=1559,-5001 rank=1 unranked=null
+[r6 +201s] t=108 score=90527 eaten=2607 r=98.2 pos=1239,-4635 rank=1 unranked=null
+[r6 +212s] t=98 score=93377 eaten=2784 r=99.9 pos=1191,-4815 rank=1 unranked=null
+[r6 +222s] t=87 score=93833 eaten=2789 r=100.1 pos=1448,-4841 rank=1 unranked=null
+[r6 +232s] t=77 score=94796 eaten=3000 r=100.6 pos=1864,-5141 rank=1 unranked=null
+[r6 +242s] t=67 score=97737 eaten=3239 r=101.9 pos=2226,-5243 rank=1 unranked=null
+[r6 +252s] t=57 score=99426 eaten=3325 r=102.7 pos=2630,-5058 rank=1 unranked=null
+[r6 +262s] t=47 score=100473 eaten=3409 r=103.2 pos=2924,-4661 rank=1 unranked=null
+[r6 +272s] t=37 score=101544 eaten=3631 r=103.6 pos=3442,-4631 rank=1 unranked=null
+[r6 +282s] t=27 score=102463 eaten=3701 r=104.1 pos=3675,-4935 rank=1 unranked=null
+[r6 +292s] t=17 score=111348.66168841303 eaten=3730 r=107.8 pos=3675,-5454 rank=1 unranked=null
+[r6 +303s] t=7 score=111649.66168841303 eaten=3812 r=108.1 pos=3573,-5971 rank=1 unranked=null
+[r6 +310s] FRAME {"n":18304,"avg":16.70150786713574,"p50":16.69999999999709,"p95":16.70000000001164,"p99":16.800000000017462,"max":433.2,"long":[[532,433]]}
+[r6 +310s] maxR=108.5 deaths=0
+[r6 +311s] RESULTS {"place":"1st of 8","score":"112,598","global":"Global rank: #1 all-time · #1 today","eaten":"3842","kills":"1","deaths":"0","biggest":"building","size":"Ø 216.9 m (size 10)","table":["♛Tu112,598","2Uldis33,947","3Kaķis17,478","4Sprīdītis7,831","5Mežavīrs7,757","6Zaķis7,696","7Kārlis6,249","8Bebrs5,843"],"unranked":null,"vis":true}
+[r6 +317s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":2675.2333333333336,"z":-6039.333333333333,"radius":2.2,"targetRadius":2.2},"counts":{"props":27223,"buildings":1870,"remainingProps":27223,"remainingBuildings":1870,"falling":0}}
+[r6 +329s] MEM 386000000 -> 386000000
+[r6 +329s] ERRS 0

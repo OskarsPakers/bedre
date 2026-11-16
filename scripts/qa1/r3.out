@@ -1,0 +1,26 @@
+[r3 +5s] UI {"map":"purvciems","mode":["quick"],"diff":["hard"],"play":"Spēlēt — Ātrā 2:00","bodyClass":"mode-quick"}
+[r3 +15s] t=113 score=28 eaten=9 r=4.7 pos=5132,-207 rank=7 unranked=null
+[r3 +21s] t=107 score=56 eaten=18 r=6.0 pos=5137,-271 rank=6 unranked=null
+[r3 +27s] t=101 score=130 eaten=33 r=8.5 pos=5062,-281 rank=6 unranked=null
+[r3 +33s] t=95 score=217 eaten=58 r=10.8 pos=5005,-268 rank=6 unranked=null
+[r3 +39s] t=89 score=282 eaten=70 r=12.1 pos=5054,-310 rank=7 unranked=null
+[r3 +45s] t=83 score=394 eaten=112 r=13.9 pos=5083,-395 rank=8 unranked=null
+[r3 +51s] t=77 score=477 eaten=142 r=15.2 pos=5142,-509 rank=7 unranked=null
+[r3 +58s] t=71 score=2091 eaten=192 r=28.9 pos=5288,-558 rank=7 unranked=null
+[r3 +64s] t=65 score=5471 eaten=248 r=43.3 pos=5313,-689 rank=5 unranked=null
+[r3 +70s] t=59 score=8429 eaten=297 r=53.4 pos=5290,-843 rank=6 unranked=null
+[r3 +76s] t=53 score=15926 eaten=441 r=70.3 pos=5249,-994 rank=5 unranked=null
+[r3 +82s] t=47 score=19686 eaten=588 r=77.3 pos=5176,-814 rank=5 unranked=null
+[r3 +88s] t=41 score=22436 eaten=749 r=82.1 pos=5122,-535 rank=5 unranked=null
+[r3 +94s] t=35 score=29609 eaten=1076 r=92.6 pos=5108,-272 rank=5 unranked=null
+[r3 +100s] t=29 score=35984 eaten=1347 r=101.1 pos=5066,-128 rank=4 unranked=null
+[r3 +106s] t=23 score=41888 eaten=1524 r=108.1 pos=4870,-309 rank=5 unranked=null
+[r3 +112s] t=17 score=42387 eaten=1587 r=108.6 pos=4618,-505 rank=6 unranked=null
+[r3 +118s] t=11 score=48558 eaten=1701 r=115.3 pos=4341,-428 rank=5 unranked=null
+[r3 +124s] t=5 score=49484 eaten=1754 r=116.3 pos=4288,-376 rank=6 unranked=null
+[r3 +129s] FRAME {"n":7513,"avg":16.734766404898103,"p50":16.69999999999709,"p95":16.79999999998836,"p99":16.80000000000291,"max":400.09999999999997,"long":[[580,400]]}
+[r3 +129s] maxR=118.1 deaths=0
+[r3 +131s] RESULTS {"place":"6. vieta no 8","score":"51 279","global":"Globālā vieta: #1 visu laiku · #1 šodien","eaten":"1831","kills":"0","deaths":"0","biggest":"Ilūkstes iela 103","size":"Ø 236.3 m (izmērs 10)","table":["♛Baiba78 986","2Līga61 615","3Zaķis58 580","4Laima57 211","5Mežavīrs54 646","6Tu51 279","7Dzeguze45 915","8Ezis38 093"],"unranked":null,"vis":true}
+[r3 +137s] AFTER AGAIN {"ph":"intro","score":0,"hole":{"x":3841.523076923077,"z":56.15384615384615,"radius":2.2,"targetRadius":2.2},"counts":{"props":34554,"buildings":3379,"remainingProps":34554,"remainingBuildings":3379,"falling":0}}
+[r3 +149s] MEM 386000000 -> 386000000
+[r3 +149s] ERRS 0

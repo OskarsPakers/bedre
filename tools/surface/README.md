@@ -49,6 +49,6 @@ All downloads are cached under `tools/.cache`, at most 3 concurrent, retries wit
 5. Quay apron of 2.5 m next to water, 3x3 mode filter twice, specks < 45 cells removed, tan blobs surrounded by paving relabelled (monument bases).
 6. PNG: 4-bit palette (palette index * 16 in the red channel; the game reads `round(R / 16)` and maps the class to its own colours), per-row filter search, zlib 9.
 
-Class ids: 0 other (=paving), 1 lawn, 2 canopy, 3 asphalt, 4 paving, 5 gravel, 6 water, 7 ballast, 8 sett.
+Class ids: 0 other (=paving), 1 lawn, 2 canopy, 3 asphalt, 4 paving, 5 gravel, 6 water, 7 ballast, 8 sett; added by `tools/mapfix/` (from the reality-mesh height raster, not the orthophoto): 9 running track, 10 dense forest (Mežaparks; the game scatters pines on it). `tools/mapfix/trees.mjs` also raises canopy (2) to the mesh's tree-like cells (Centre 10.9 -> 20.7 % of observed cells, mesh 24.6 %).
 
 The game works without the file (falls back to OSM land cover: `areas`, `parks` with holes, tree discs) and on the procedural sample city.

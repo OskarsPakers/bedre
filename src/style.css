@@ -114,7 +114,7 @@ body:has(#results:not(.hidden)) #daily-intro, body:has(#start:not(.hidden)) #dai
 .tag.leader { background: #fff3c8; }
 
 /* kill feed + swallowed overlay */
-#feed { position: fixed; top: 92px; left: var(--gap); display: flex; flex-direction: column; gap: 5px; pointer-events: none; max-width: 240px; }
+#feed { position: fixed; top: 126px; left: var(--gap); display: flex; flex-direction: column; gap: 5px; pointer-events: none; max-width: 240px; }
 .feed-item { background: rgba(246,239,223,.94); border-left: 5px solid var(--terra); padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; box-shadow: var(--shadow); animation: feed 3.4s ease-out forwards; }
 .feed-item span:last-child { color: var(--ink2); }
 @keyframes feed { 0% { opacity: 0; transform: translateX(-12px); } 8% { opacity: 1; transform: none; } 85% { opacity: 1; } 100% { opacity: 0; } }
@@ -318,10 +318,10 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
   #board li { font-size: 12px; padding: 2px 4px; gap: 5px; }
   #board li:nth-child(n+4):not(.me) { display: none !important; }
   /* left column under the score card: % of Riga chip, then the kill feed */
-  #meta-pct { top: 80px; left: var(--gap); transform: none; width: 108px; padding: 3px 7px 4px; font-size: 10px; }
+  #meta-pct { top: 104px; left: var(--gap); transform: none; width: 108px; min-width: 0; padding: 3px 7px 4px; font-size: 10px; }
   #meta-pct .pl { flex-direction: column; gap: 0; }
   #meta-pct .l-full { display: none; } #meta-pct .l-short { display: inline; }
-  #feed { top: 126px; left: var(--gap); max-width: 156px; }
+  #feed { top: 154px; left: var(--gap); max-width: 156px; }
   .feed-item { font-size: 11px; padding: 4px 8px; }
   .feed-item:nth-last-child(n+3) { display: none; }
   /* bottom: size bar full width, minimap bottom-left above it, round buttons in a column bottom-right */
@@ -366,7 +366,7 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
   #minimap-box { bottom: 12px; } #minimap { width: 84px; height: 84px; }
   #hud-btns { bottom: 12px; --btn: 40px; gap: 6px; }
   body:has(#start:not(.hidden)) #hud-btns, body:has(#results:not(.hidden)) #hud-btns { flex-direction: column-reverse; --btn: 42px; right: 8px; bottom: 8px; } /* landscape menu: a column, so the cards (<= 660 px) never meet it */
-  #meta-toasts { bottom: 82px; width: min(320px, calc(100vw - 260px)); }
+  #meta-toasts { left: auto; right: var(--gap); transform: none; top: 124px; bottom: auto; align-items: flex-end; width: min(190px, 30vw); }   /* right lane under the leaderboard: never over the hole (centre) */
   #meta-area { top: 30%; }
   .lab { top: 38%; }
   .panel { padding: 8px 8px 8px; }
@@ -393,3 +393,21 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
   #card-score { width: 100px; }
   .modesw button { font-size: 12px; padding: 9px 1px; }
 }
+
+/* ================= layering + overlap guards (QA2-02..08, QA1-01..04) ================= */
+/* stacking: world-space name tags < HUD cards < panels; round buttons (z 40) stay above everything and step aside via body.hud-guard */
+#tags { z-index: 1; }
+#hud { z-index: 2; }
+.panel { z-index: 10; }
+.tag { transition: opacity .12s; }
+.tag.occluded { opacity: 0; }
+/* ping badge: never over a panel's text (start / lobby / results own the screen) */
+body:has(#start:not(.hidden)) #mp-net, body:has(#results:not(.hidden)) #mp-net, body:has(#mp-lobby:not(.hidden)) #mp-net, body:has(#scores:not(.hidden)) #mp-net, body:has(#about:not(.hidden)) #mp-net, body:has(#meta-panel:not(.hidden)) #mp-net { display: none !important; }
+body.hud-guard #hud-btns > button, body.hud-guard #mp-net { visibility: hidden !important; }
+/* "Advanced" summary chip: one line, ellipsis (ui.js swaps in a count when the list does not fit) */
+.opts-val.on { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72%; line-height: 1.5; text-align: right; }
+.name-hint { margin: -6px 0 8px; font-size: 12px; font-weight: 700; color: var(--terra2); text-align: left; }
+.name-hint:empty { display: none; }
+@media (min-width: 901px) and (min-height: 521px) { #meta-pct { width: auto; min-width: 168px; white-space: nowrap; } }
+.btn.alt.done { background: var(--verd); box-shadow: 0 4px 0 #46705f; }
+.r-share .btn.alt { min-width: 44px; }

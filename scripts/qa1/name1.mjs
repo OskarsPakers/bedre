@@ -1,0 +1,18 @@
+import { launch, newPage, sleep, note } from './lib.mjs';
+const b = await launch();
+const p = await newPage(b, { tag: 'name', locale: 'lv-LV' });
+await p.openGame('');
+const v = () => p.evaluate(() => document.getElementById('name').value + '|ls=' + localStorage.getItem('bedre.name'));
+await p.fill('#name', 'Pēteris Ķēniņš-Šļūka Long Name Here 12345');
+note('after fill ' + await v());
+await p.click('[data-lang=en]'); await sleep(300); note('after EN ' + await v());
+await p.click('[data-lang=lv]'); await sleep(300); note('after LV ' + await v());
+await p.fill('#name', 'Ķ'); await p.click('#open-about'); await sleep(300); await p.keyboard.press('Escape'); note('after about ' + await v());
+await p.reload(); await p.waitForFunction(() => document.body.dataset.ready === '1'); await sleep(500); note('after reload (no play) ' + await v());
+await p.fill('#name', '<b>x</b> & "q" \'s'); await p.click('#play'); await sleep(5000);
+note('in game name label: ' + await p.evaluate(() => [...document.querySelectorAll('#labels *')].map(e => e.textContent).filter(Boolean).slice(0, 4).join('|') + ' || lb: ' + [...document.querySelectorAll('#board-list *')].map(e => e.textContent).slice(0, 3).join('|')));
+await p.shot('name-html');
+await p.reload(); await p.waitForFunction(() => document.body.dataset.ready === '1'); await sleep(500); note('after reload (played) ' + await v());
+await p.fill('#name', ''); await p.click('#play'); await sleep(4000);
+note('empty name label: ' + await p.evaluate(() => document.getElementById('board-list').textContent.slice(0, 120)));
+await b.close();

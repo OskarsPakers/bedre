@@ -1,0 +1,10 @@
+import { launch, sleep, note } from './lib.mjs';
+const b = await launch();
+const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, locale: 'en-US', permissions: ['clipboard-read', 'clipboard-write'] });
+const p = await ctx.newPage();
+await p.goto('http://127.0.0.1:8801/?mode=free&autostart=1&intro=0'); await p.waitForFunction(() => document.body.dataset.ready === '1'); await sleep(3000);
+await p.click('#end-free'); await sleep(1500);
+await p.click('button:text-is("Copy link")'); await sleep(350);
+await p.screenshot({ path: 'scripts/out/qa1-share-copy2.png' });
+note('toast texts: ' + await p.evaluate(() => [...document.querySelectorAll('body *')].filter(e => /copied/i.test(e.textContent) && e.children.length === 0).map(e => e.tagName + '#' + e.id + '.' + e.className + ' vis=' + !!e.offsetParent + ' z=' + getComputedStyle(e).zIndex).join(' | ')));
+await b.close();
