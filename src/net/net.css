@@ -22,7 +22,7 @@
 #r-table tr.bot { opacity: .7; }
 
 /* connection indicator + ping */
-#mp-net { position: fixed; z-index: 6; left: 14px; bottom: 18px; display: none; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(43,58,74,.82); color: #f6efdf; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; pointer-events: none; }
+#mp-net { position: fixed; z-index: 6; left: 14px; bottom: 18px; width: max-content; height: max-content; max-width: 60vw; white-space: nowrap; display: none; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(43,58,74,.82); color: #f6efdf; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; pointer-events: none; }
 #mp-net i { width: 9px; height: 9px; border-radius: 50%; background: #5fc77e; }
 #mp-net.warn i { background: #f0b73a; }
 #mp-net.bad i { background: #e5533d; animation: mpblink 1s infinite; }
