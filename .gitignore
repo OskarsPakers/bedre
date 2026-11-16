@@ -18,3 +18,4 @@ tools/detail/node_modules/
 scripts/.tmp-*/
 scripts/.wrangler/
 tools/out/*.partial.json
+.secrets/
