@@ -8,7 +8,9 @@
 //   fit        mesh-fit tuning ({ tol, minArea, lathe:false, … }), see planar.mjs
 //   cam        { dist, el, a, b, y } override for the review shots (a, b = azimuths in degrees, y = look-at height)
 //   note       one line: what the real building looks like
-export const HEROES = [
+import { mergeCivic } from './heroes-civic.mjs';
+import { mergeChurches } from './heroes-churches.mjs';
+export const HEROES = mergeChurches(mergeCivic([
   { slug: 'nativity', name: 'Kristus Piedzimšanas pareizticīgo katedrāle', ids: [49615771], source: 'parts', style: 1, crosses: true, wall: 0xe6dcc0, roof: 0x66727e, dome: 0xe3b53c, accent: 0xe3b53c,
     note: 'neo-Byzantine cathedral: cream/ochre walls, a large gilded central dome and four gilded corner domes on drums, apse to the east' },
   { slug: 'artmuseum', name: 'Latvijas Nacionālais mākslas muzejs', ids: [49615452], source: 'mesh', curated: 'artmuseum', style: 5, wall: 0xdcd2b8, roof: 0x739889, dome: 0x739889, cam: { a: 40, b: 220, dist: 150, el: 26, y: 12 },
@@ -76,7 +78,7 @@ export const HEROES = [
   { map: 'purvciems', slug: 'pv-slab-1', name: 'Plātņu nams (34 m)', ids: [49645710, 49646937, 49648832], source: 'mesh', style: 0, note: 'row of 9-12 floor slabs' },
   { map: 'purvciems', slug: 'pv-slab-2', name: 'Plātņu nams (30 m)', ids: [49644482, 49644483], source: 'mesh', style: 0, note: '9 floor slabs' },
   { map: 'purvciems', slug: 'pv-church', name: 'Labā Vēsts', ids: [49645108], source: 'mesh', style: 3, note: 'church / congregation hall' },
-];
+]));
 
 /** 6 fixed ordinary shaped blocks for before/after comparisons (seeded pick from the notable + relief set) */
 export const BLOCK_IDS = [49615326, 49615322, 49615688, 49618849, 49622179, 49613620];

@@ -18,6 +18,10 @@ import { planarMesh, Del, dp, dpClosed } from './planar.mjs';
 import { heroById } from './heroes.mjs';
 import { partsMesh } from './parts.mjs';
 import { CURATED } from './curated.mjs';
+import { CURATED_CIVIC, FEATURES as FEATURES_CIVIC } from './curated-civic.mjs';
+import { churchFromField, synthChurchGrid } from './curated-churches.mjs';
+import { HEROES } from './heroes.mjs';
+const HEROES_SYNTH = () => HEROES.filter((h) => h.church && h.church.synth && (h.map || 'centrs') === (process.argv.find((a) => a.startsWith('--map=')) || '--map=centrs').slice(6));
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MAP = (process.argv.find((a) => a.startsWith('--map=')) || '--map=centrs').slice(6);
@@ -564,6 +568,14 @@ const V = [], T = [], M = [], L = [];
 const heightsRec = [];
 for (const id of Object.keys(detail.heights)) heightsRec.push(+id, Math.round(detail.heights[id] * 10), Math.round((detail.heightsP50[id] ?? detail.heights[id]) * 10));
 
+for (const hh of HEROES_SYNTH()) { // grid-less churches (outside the reality-mesh coverage): synthesise a grid from the footprint so the church kit still builds a real church
+  const b = byId.get(hh.ids[0]);
+  if (!b || (detail.buildings[hh.ids[0]] && detail.buildings[hh.ids[0]].grid)) continue;
+  const sg = synthChurchGrid(cleanRing(b.p), hh.church.synth);
+  detail.buildings[hh.ids[0]] = { src: 'synth', grid: sg.grid, hmax: sg.hmax, h: sg.h90 };
+  detail.heights[hh.ids[0]] = sg.h90; detail.heightsP50[hh.ids[0]] = sg.h90 * 0.7;
+  heightsRec.push(hh.ids[0], Math.round(sg.h90 * 10), Math.round(sg.h90 * 7));
+}
 const stats = { mesh: 0, osm: 0, osmRejected: 0, failed: 0, tris: 0, verts: 0, contour: 0 };
 const t0 = Date.now();
 const ids = Object.keys(detail.buildings).filter((k) => !only.length || only.includes(+k));
@@ -615,9 +627,10 @@ for (const key of ids) {
   }
   let flagsVal = 0;
   if (hero && hero.curated) { // curated parametric building (curated.mjs); area = measured footprint, stored in flags (>> 4) for the game's fit radius
-    partsRes = CURATED[hero.curated]();
+    partsRes = (CURATED_CIVIC[hero.curated] || CURATED[hero.curated])(hero, { ring: ring0, key: +key, d });
     if (partsRes) { src = 2; flagsVal = Math.round(partsRes.area) << 4; }
   }
+  if (!partsRes && hero && hero.church) { partsRes = churchFromField(mesh, ring0, hero.church); if (partsRes) src = 2; } // church kit (curated-churches.mjs)
   if (!partsRes && d.osm && d.osm.length && mode !== 'mesh') {
     // OSM building parts: accepted when they agree with the measured mesh (or forced by the hero config); tessellated directly (exact prisms, planar roofs, lathe domes)
     const r = osmField(mesh, d.osm);
@@ -652,6 +665,10 @@ for (const key of ids) {
   let res = null;
   if (partsRes) { res = partsRes; res.planar = true; }
   else try { res = meshBuilding(F, ring0, opts); } catch (e) { console.warn('mesh failed', key, e.message); }
+  if (res && hero && hero.features && FEATURES_CIVIC[hero.features]) { // civic features (portico, ...) merged into the measured mesh (indices stay in first-use order)
+    const f = FEATURES_CIVIC[hero.features](hero, { ring: ring0, key: +key, d }), nv0 = res.verts.length;
+    res = { ...res, verts: res.verts.concat(f.verts), tris: res.tris.concat(f.tris.map(([a1, b1, c1, m1]) => [a1 + nv0, b1 + nv0, c1 + nv0, m1])), hmax: Math.max(res.hmax, f.hmax), vol: res.vol + f.vol * 0.3 };
+  }
   if (!res) { stats.failed++; if (process.argv.includes('--why')) console.log('failed', key, area.toFixed(0), d.grid.w, d.grid.h); continue; }
   if (process.argv.includes('--verbose') && only.length) console.log(key, res.planar ? 'planar' : 'tin', 'tris', res.tris.length, 'verts', res.verts.length, JSON.stringify(res.info || {}));
   if (res.info && res.planar) (globalThis.__rep ||= []).push([key, +(res.info.rms || 0).toFixed(2), res.info.planes, res.tris.length, res.info.dropped, res.info.lathes, Math.round(area)]);

@@ -128,7 +128,12 @@ export class FestiveFlags {
       }
       if (poles.length < 150 && rng() < 0.75) {
         // roof corner flag at a polygon vertex (or on the long edge when tiny)
-        const vi = Math.floor(rng() * it.ring.length), v = it.ring[vi];
+        let vi = Math.floor(rng() * it.ring.length);
+        if (it.cornerH && it.cornerH.length > 3) { // churches: never plant a flag on a tower / spire flank (corner heights far above the median eave); pick another corner
+          const srt = Array.from(it.cornerH).sort((a, b) => a - b), med = srt[srt.length >> 1];
+          for (let t = 0; t < it.ring.length && it.cornerH[vi] > med * 1.5 + 5; t++) vi = (vi + 1) % it.ring.length;
+        }
+        const v = it.ring[vi];
         // stand the pole on the roof AT THAT CORNER: it.h is the highest point of the building (spire, dome), not the eave
         const roofY = it.cornerH ? it.cornerH[vi] - 0.15 : it.h * 0.96;
         const s = roofY > 30 ? 2.0 : 1.5;

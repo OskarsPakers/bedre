@@ -33,7 +33,7 @@ export const CFG = {
     person: 1, bin: 1, lamp: 2, bench: 2, tree: 2, car: 4, van: 6,
     kiosk: 6, bus: 14, tram: 22, monument: 120, freedom: 450,
     trolley: 16, shelter: 4, flag: 2, parasol: 3, stall: 6, bike: 1, boat: 12, ferry: 45, swan: 3, bird: 1,
-    laima: 45, pylon: 160, railarch: 90, landmarkBonus: 2.0, catHouse: 120,
+    laima: 45, pylon: 160, railarch: 90, platformroof: 70, landmarkBonus: 2.0, catHouse: 120,
     buildingDiv: 71,      // building points = area*mean height / div (70 before the measured heights/shapes; measured volumes are ~20% bigger)
     buildingMin: 4,
     landmarkMul: 2.5,

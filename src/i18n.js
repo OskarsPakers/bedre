@@ -73,7 +73,7 @@ const KINDS = {
   stall: ['tirgus galdiņš', 'market stall'], bike: ['velosipēds', 'bicycle'], scooter: ['skrejritenis', 'e-scooter'],
   lantern: ['laterna', 'street lantern'], boat: ['laiva', 'boat'], ferry: ['prāmis', 'ferry'], swan: ['gulbis', 'swan'],
   pigeon: ['balodis', 'pigeon'], laima: ['Laimas pulkstenis', 'Laima clock'], pylon: ['tilta pilons', 'bridge pylon'],
-  railarch: ['dzelzceļa tilta loks', 'railway-bridge arch'], tree: ['koks', 'tree'], bench: ['sols', 'bench'],
+  railarch: ['dzelzceļa tilta loks', 'railway-bridge arch'], platformroof: ['perona nojume', 'platform canopy'], tree: ['koks', 'tree'], bench: ['sols', 'bench'],
   lamp: ['ielas lukturis', 'street lamp'], bin: ['atkritumu tvertne', 'bin'], kiosk: ['kiosks', 'kiosk'],
   cafeset: ['kafejnīcas galdiņš', 'café table'],
   monument: ['piemineklis', 'monument'], freedom: ['Brīvības piemineklis', 'Freedom Monument'], building: ['ēka', 'building'],

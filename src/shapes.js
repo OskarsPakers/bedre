@@ -4,9 +4,9 @@ import { CFG } from './config.js';
 
 
 /** file triangle material -> render class (0/1 roof, 2 wall with windows, 3 spire / dome accent, 5 gilded accent, 6 plain wall-coloured tread); shared by buildings.js and tools/detail/roof-report.mjs */
-export function renderClass(m) { return m === 2 ? 2 : m === 3 ? 3 : m === 5 ? 5 : m === 4 ? 2 : m === 6 ? 6 : 1; }
+export function renderClass(m) { return m === 2 ? 2 : m === 3 ? 3 : m === 5 ? 5 : m === 4 ? 2 : m === 6 ? 6 : m === 7 ? 7 : m === 8 ? 8 : 1; } // 7 = glass (curtain wall / glazed gable, tinted panes), 8 = dark trim (clock hands, frames, mullions)
 /** colour slot per render class: every roof face (class 0 and 1, any slope) shares the single 'roof' colour; accents are whole spires / domes only */
-export const COLOR_SLOT = ['roof', 'roof', 'wall', 'accent', 'wall', 'accent', 'wall']; // 6 = wall-coloured faces with their real normals (parapet / step treads)
+export const COLOR_SLOT = ['roof', 'roof', 'wall', 'accent', 'wall', 'accent', 'wall', 'glass', 'trim']; // 6 = wall-coloured faces with their real normals (parapet / step treads)
 
 async function inflate(buf) {
   const u8 = new Uint8Array(buf);

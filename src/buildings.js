@@ -162,14 +162,17 @@ export function makeBuildingMaterial() {
       .replace('#include <common>', '#include <common>\nvarying vec3 vLP;\nvarying vec3 vLN;\nvarying vec4 vWin;\n' + GLSL_BLD_FRAG_DECL)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
-  float wall = step(abs(vLN.y), 0.25) * mix(vWin.w, 0.9, step(0.44, vWin.w) * step(vWin.w, 0.46));
+  float rnd = step(0.64, vWin.w) * step(vWin.w, 0.66); // round-arch church windows (frac code 0.65)
+  float wall = step(abs(vLN.y), 0.25) * mix(vWin.w, 0.9, max(step(0.44, vWin.w) * step(vWin.w, 0.46), rnd));
   float fh = max(vWin.x, 0.5);
   float fy = vLP.y / fh;
   float ff = fract(fy);
   float u = dot(vLP.xz, vec2(-vLN.z, vLN.x)) / max(vWin.z, 0.5);
   float fu = fract(u);
   float goth = step(0.44, vWin.w) * step(vWin.w, 0.46); // gothic brick style code (frac 0.45): tall pointed-arch windows
-  float archTop = mix(0.73, 0.5, goth * clamp(abs(fu - 0.45) / 0.25, 0.0, 1.0));
+  float archC = clamp(abs(fu - 0.45) / 0.25, 0.0, 1.0);
+  float archTop = mix(0.73, 0.5, goth * archC);
+  archTop = mix(archTop, mix(0.82, 0.6, archC * archC), rnd);
   float wy = smoothstep(0.2, 0.27, ff) * (1.0 - smoothstep(archTop - 0.07, archTop, ff));
   float wx = smoothstep(0.2, 0.27, fu) * (1.0 - smoothstep(0.66, 0.73, fu));
   float inside = step(fh * 0.9, vLP.y) * step(vLP.y, vWin.y - fh * 0.2);
@@ -190,7 +193,7 @@ export function makeBuildingMaterial() {
   diffuseColor.rgb *= 1.0 - 0.1 * cornice;
 }`);
   };
-  mat.customProgramCacheKey = () => 'building-win4';
+  mat.customProgramCacheKey = () => 'building-win5';
   return mat;
 }
 
@@ -325,6 +328,13 @@ const STYLE_WIN = [null, { floorH: 8.5, spacing: 4.8, frac: 0.55 }, { floorH: 5.
   { floorH: 6.4, spacing: 3.9, frac: 1 },       // 5 tall palace: plain rusticated ground floor, two rows of tall evenly spaced windows (Art Museum)
   { floorH: 6.2, spacing: 3.1, frac: 0.45 }];   // 6 gothic brick: narrow tall pointed-arch windows (frac 0.45 = pointed-arch code in the window shader; Art Academy)
 
+const GLASS_COL = [0.5, 0.62, 0.72], TRIM_COL = [0.2, 0.21, 0.23], GLASS_WIN = [3.2, 127.5, 1.7, 0.9]; // curtain-wall panes (window shader draws the dark panes), clock hands / frames
+STYLE_WIN[10] = { floorH: 4.6, spacing: 5.4, frac: 0.7 };  // 10 modernist public hall (station, theatre slab): wide low ribbon windows
+STYLE_WIN[11] = { floorH: 4.4, spacing: 3.3, frac: 0.55 }; // 11 brick warehouse / market hall: small regular openings
+STYLE_WIN[12] = { floorH: 3.0, spacing: 2.6, frac: 0.9 };  // 12 timber house: board walls with many small windows
+STYLE_WIN[7] = { floorH: 7.4, spacing: 4.2, frac: 0.65 };  // 7 plastered baroque / classicist church: tall round-arched windows (frac 0.65 = round-arch code in the window shader)
+STYLE_WIN[8] = { floorH: 3.4, spacing: 2.3, frac: 0.8 };   // 8 wooden church: small rectangular windows in rows (Jēzus baznīca, Mežaparks)
+STYLE_WIN[9] = { floorH: 6.4, spacing: 3.3, frac: 0.65 };  // 9 Orthodox church: narrow tall round-arched windows, cream walls
 /** Indexed geometry from a decoded riga-shapes record: roof triangles (colour by slope / type) + walls extruded from the outline loops. */
 function buildShapeGeometry(S, rec, colFn, winParams, wallCol, decoFn) {
   const b = new GeoBuilder();
@@ -358,7 +368,7 @@ function buildShapeGeometry(S, rec, colFn, winParams, wallCol, decoFn) {
   // The only other roof colour is the ACCENT of a complete feature (class 3 spire / dome / lantern, class 5 gilded crosses).
   const flatDominant = flatA > 0.5 * roofA;
   const cols = colFn(flatDominant);
-  const classCol = [cols.roof, cols.roof, plain, cols.special, plain, cols.accent, plain];
+  const classCol = [cols.roof, cols.roof, plain, cols.special, plain, cols.accent, plain, GLASS_COL, TRIM_COL]; // 7 glass, 8 dark trim (shapes.js)
   const wallWin = [winParams.floorH, 127.5, winParams.spacing, winParams.frac];
   const COS = 0.82;
   for (let t = 0; t < nt; t++) {
@@ -374,7 +384,7 @@ function buildShapeGeometry(S, rec, colFn, winParams, wallCol, decoFn) {
         }
         const al = Math.hypot(ax, az) || 1;
         b.idx.push(b.vert(px(i), py(i), pz(i), col, wallWin, [ax / al, 0, az / al]));
-      } else b.idx.push(b.vert(px(i), py(i), pz(i), col, noWin, [fn[t * 3], fn[t * 3 + 1], fn[t * 3 + 2]]));
+      } else b.idx.push(b.vert(px(i), py(i), pz(i), col, c === 7 ? GLASS_WIN : noWin, [fn[t * 3], fn[t * 3 + 1], fn[t * 3 + 2]]));
     }
   }
   // walls

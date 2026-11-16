@@ -3,7 +3,7 @@
 // steel arches). Pure placement logic: returns [{kind,x,z,yaw,s,tint?,name?,landmark?}] for World._buildProps.
 import { LIFE } from './config.js';
 import { mulberry32 } from './rng.js';
-import { sampleAlong, cleanRing, bbox, pointInPoly } from './geo.js';
+import { sampleAlong, cleanRing, bbox, pointInPoly, minBox } from './geo.js';
 import { zoneOf } from './buildings.js';
 import { findBridges } from './ground.js';
 import { PEOPLE_COLORS } from './propModels.js';
@@ -289,6 +289,20 @@ export function rigaProps({ data, blockers, buildingItems, net }) {
       const tx = pts[i + 1][0] - pts[i][0], tz = pts[i + 1][1] - pts[i][1], tl = Math.hypot(tx, tz) || 1;
       if (B) { let bd = 30, bp = null; for (const q of B.p) { const d = Math.hypot(q[0] - x, q[1] - z); if (d < bd) { bd = d; bp = q; } } if (bp) { x = (x + bp[0]) / 2; z = (z + bp[1]) / 2; } }
       out.push({ kind: 'railarch', x, z, yaw: yawOf(tx / tl, tz / tl), s: 1, name: 'Dzelzceļa tilts', landmark: true });
+    }
+  }
+  // Rīga Central Station: arched platform canopies (two 48 m segments per platform, from the hall end) over the OSM platforms behind the station hall
+  for (const a of data.areas || []) {
+    if (a.c !== 'plat') continue;
+    const r = cleanRing(a.p); if (r.length < 3) continue;
+    const mb = minBox(r), cx = mb.cu * mb.ux - mb.cv * mb.uz, cz = mb.cu * mb.uz + mb.cv * mb.ux;
+    if (mb.L < 140 || mb.W > 16 || Math.hypot(cx - 560, cz - 545) > 260) continue;
+    const ux = mb.ux < 0 ? -mb.ux : mb.ux, uz = mb.ux < 0 ? -mb.uz : mb.uz; // along the platform, pointing east
+    const s0 = mb.cu - mb.L / 2; // the west end in the (u, v) frame (u runs along the long side)
+    for (let k = 0; k < 2; k++) {
+      const u = (mb.ux < 0 ? mb.cu + mb.L / 2 - 4 - 24 - k * 49 : s0 + 4 + 24 + k * 49);
+      const x = u * mb.ux - mb.cv * mb.uz, z = u * mb.uz + mb.cv * mb.ux;
+      out.push({ kind: 'platformroof', x, z, yaw: yawOf(ux, uz), s: 1, name: 'Perona nojume' });
     }
   }
   return out;

@@ -349,6 +349,26 @@ function freedom() {
   ]);
 }
 
+/** Platform canopy (Rīga Central Station): arched silver-green barrel roof on two rows of steel posts, ~48 x 13 m, ridge along +x. */
+function platformroof() {
+  const L = 48, hw = 6.5, ys = 6.0, rise = 3.4, N = 8, roof = 0xa3b3ae, steel = 0x59636a, trim = 0xc9d2d0;
+  const R = (hw * hw + rise * rise) / (2 * rise), ph = Math.asin(hw / R), yc = ys + rise - R;
+  const pos = [];
+  const pt = (i, x) => { const a = -ph + (2 * ph * i) / N; return [x, yc + R * Math.cos(a), R * Math.sin(a)]; };
+  for (let i = 0; i < N; i++) { const A = pt(i, -L / 2), B = pt(i + 1, -L / 2), C = pt(i + 1, L / 2), D = pt(i, L / 2); pos.push(...A, ...C, ...D, ...A, ...B, ...C); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.computeVertexNormals();
+  const roofG = part(g, roof, 0, 0, 0);
+  const parts = [roofG];
+  for (const z of [-hw + 0.5, hw - 0.5]) {
+    for (let i = 0; i <= 6; i++) parts.push(cyl(0.2, ys, steel, -L / 2 + 1 + (i * (L - 2)) / 6, ys / 2, z, 6));
+    parts.push(box(L, 0.45, 0.5, trim, 0, ys + 0.1, z)); // edge beam
+  }
+  parts.push(box(L + 0.2, 0.2, 2.2, trim, 0, ys + rise + 0.05, 0)); // ridge lantern strip
+  return merge(parts);
+}
+
 export const PEOPLE_COLORS = [[0xd9533a, 0x2b3440], [0x3b82c4, 0x3a3a3a], [0xe8b83a, 0x2e3e52], [0x6a9a4a, 0x40372f],
   [0xe6dcc6, 0x2b2f38], [0x9a5aa8, 0x2a2a2a]];
 
@@ -386,6 +406,7 @@ Object.assign(PROP_DEFS, {
   kiosk: { cls: 'kiosk', make: kiosk, fit: 1.9, h: 2.7, value: CFG.value.kiosk, tint: true },
   monument: { cls: 'monument', make: monument, fit: 4.2, h: 20, value: CFG.value.monument, tint: false },
   freedom: { cls: 'monument', make: freedom, fit: 6.2, h: 42, value: CFG.value.freedom, tint: false },
+  platformroof: { cls: 'monument', make: platformroof, fit: 11, h: 10, value: CFG.value.platformroof, tint: false },
 });
 
 export const CAR_TINTS = [0xc9402f, 0x2f6fb5, 0xe9e5da, 0x2d3338, 0xb9bec2, 0x4b7a52, 0xe0b53c, 0x8c3b55];

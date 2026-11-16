@@ -7,7 +7,7 @@
 // Materials: 0 flat roof, 1 pitched roof, 2 wall (windows), 3 accent (lantern cap / spire = whole features), 5 gilded accent.
 import { pack } from './planar.mjs';
 
-class Comp {
+export class Comp {
   constructor(O, thDeg) {
     this.O = O; const th = (thDeg * Math.PI) / 180;
     this.U = [Math.cos(th), Math.sin(th)]; this.V = [-Math.sin(th), Math.cos(th)];
