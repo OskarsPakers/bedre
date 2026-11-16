@@ -128,9 +128,11 @@ export class FestiveFlags {
       }
       if (poles.length < 150 && rng() < 0.75) {
         // roof corner flag at a polygon vertex (or on the long edge when tiny)
-        const v = it.ring[Math.floor(rng() * it.ring.length)];
-        const s = it.h > 30 ? 2.0 : 1.5;
-        poles.push({ o, x: v[0] + (it.x - v[0]) * 0.08, y: it.h * 0.96, z: v[1] + (it.z - v[1]) * 0.08, yaw: Math.atan2(-nz, nx) + (rng() - 0.5) * 0.8, s });
+        const vi = Math.floor(rng() * it.ring.length), v = it.ring[vi];
+        // stand the pole on the roof AT THAT CORNER: it.h is the highest point of the building (spire, dome), not the eave
+        const roofY = it.cornerH ? it.cornerH[vi] - 0.15 : it.h * 0.96;
+        const s = roofY > 30 ? 2.0 : 1.5;
+        poles.push({ o, x: v[0] + (it.x - v[0]) * 0.08, y: roofY, z: v[1] + (it.z - v[1]) * 0.08, yaw: Math.atan2(-nz, nx) + (rng() - 0.5) * 0.8, s });
       }
     }
     // ---- free poles along the riverside promenade and around the Freedom Monument

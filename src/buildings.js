@@ -259,6 +259,46 @@ function addSpire(b, spec, h) {
 }
 
 /** Flat-extrusion height from the measured p90 / p50 mesh heights (fallback: the riga.json value). */
+
+/**
+ * Roof height (m above ground) just inside each footprint corner of a building, read from its own geometry by a vertical ray.
+ * `it.h` is the building's HIGHEST point (spire tip, dome), so anything that stands "on the roof" at a corner (flags) must use
+ * this instead. Corners the ray misses (simplified outlines, courtyards) fall back to the lowest roof height found.
+ */
+const CORNER_INSET = 0.08; // must match the inset src/flags.js uses for rooftop poles
+function cornerHeights(it) {
+  const pos = it.geo.attributes.position, idx = it.geo.index, ring = it.ring;
+  const P = pos.array, st = pos.itemSize, n = idx ? idx.count : pos.count;
+  const out = new Float32Array(ring.length).fill(-1);
+  const at = (i) => (idx ? idx.array[i] : i) * st;
+  const sample = (lx, lz) => {
+    let best = -1;
+    for (let t = 0; t < n; t += 3) {
+      const a = at(t), b = at(t + 1), c = at(t + 2);
+      const ax = P[a], az = P[a + 2], bx = P[b], bz = P[b + 2], cx = P[c], cz = P[c + 2];
+      const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz);
+      if (d > -1e-9 && d < 1e-9) continue;                    // vertical face: no area in plan
+      const u = ((bz - cz) * (lx - cx) + (cx - bx) * (lz - cz)) / d;
+      const v = ((cz - az) * (lx - cx) + (ax - cx) * (lz - cz)) / d;
+      const w = 1 - u - v;
+      if (u < -1e-4 || v < -1e-4 || w < -1e-4) continue;
+      const y = u * P[a + 1] + v * P[b + 1] + w * P[c + 1];
+      if (y > best) best = y;
+    }
+    return best;
+  };
+  let lo = Infinity;
+  for (let k = 0; k < ring.length; k++) {
+    const vx = ring[k][0] - it.x, vz = ring[k][1] - it.z;
+    let y = sample(vx * (1 - CORNER_INSET), vz * (1 - CORNER_INSET));
+    if (y < 0.5) y = sample(vx * 0.8, vz * 0.8);              // just outside a simplified outline: step further in
+    if (y >= 0.5) { out[k] = y; if (y < lo) lo = y; }
+  }
+  if (!Number.isFinite(lo)) lo = Math.min(it.h, it.hBox || it.h);
+  for (let k = 0; k < out.length; k++) if (out[k] < 0.5) out[k] = lo;
+  return out;
+}
+
 export function flatHeight(b, area, hs) {
   const rh = Math.max(3, +b.h || 8);
   if (b.t === 'aux' && hs && hs[0] < 0.5 && rh > 6) return 3.2; // courtyard 'building' the reality mesh shows as open ground (76 in the centre): a low shed, not an 18 m box with a stray roof colour
@@ -581,6 +621,8 @@ export function buildBuildings(data) {
     m.makeTranslation(it.x, 0, it.z);
     mesh.setMatrixAt(iid, m);
     it.batchId = iid;
+    // roof height at every footprint corner (for rooftop flags)
+    if (it.ring) it.cornerH = cornerHeights(it);
     it.geo.dispose(); it.geo = null;
     if (it.boxGeo) { it.boxGeo.dispose(); it.boxGeo = null; }
     it.rec = null;
