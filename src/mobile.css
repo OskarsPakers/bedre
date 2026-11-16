@@ -1,0 +1,143 @@
+/* Phone layout ("tui" = touch device in the compact layout, class set by src/mobile.js). Loaded after style.css; desktop never gets these.
+   Principles: the 3D view owns the screen (>= 80 % of a portrait phone free of HUD), the bottom corners (>= 96 px) are the thumbs' resting
+   place and stay empty, every control is >= 44 px, nothing sits under a notch / Dynamic Island / home indicator, and the transient
+   lines (kill feed, area banner, swallowed names, toasts) live in their own lanes under the top row, centred between the side columns. */
+:root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
+
+/* ---- always on touch: no callouts / selection / tap delay / bounce; panels still scroll ---- */
+body.touch { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+body.touch button, body.touch a, body.touch select, body.touch label, body.touch summary { touch-action: manipulation; }
+body.touch #c { -webkit-touch-callout: none; touch-action: none; }
+body.touch .panel input[type="text"] { -webkit-user-select: text; user-select: text; }
+body.touch .panel button, body.touch .panel select, body.touch .panel .link { min-height: 44px; }
+body.touch .panel select { -webkit-appearance: none; appearance: none; box-sizing: border-box; height: 44px; padding: 0 34px 0 12px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236b6258' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center; }
+body.touch .langsw button { min-height: 44px; min-width: 44px; }
+body.touch .panel input[type="range"] { min-height: 44px; }
+html { overscroll-behavior: none; }
+
+body.tui {
+  --gap: 8px; --btn: 44px;
+  --T: calc(var(--sat) + 8px); --L: calc(var(--sal) + 8px); --R: calc(var(--sar) + 8px); --B: calc(var(--sab) + 8px);
+  --lane: calc(var(--T) + 54px);                              /* first transient lane (under the top row) */
+}
+
+/* top row: score + % of Riga | timer | leaderboard chip */
+body.tui #card-score { top: var(--T); left: var(--L); width: auto; min-width: 92px; max-width: calc(50vw - 46px - var(--L)); padding: 4px 10px 5px; min-height: 46px; display: flex; flex-direction: column; justify-content: center; }
+body.tui #card-score .label, body.tui #card-score .subline { display: none; }
+body.tui #card-score .big { font-size: 22px; }
+body.tui #score-pct { font-size: 11px; font-weight: 700; color: var(--ink2); line-height: 1.15; white-space: nowrap; }
+body.tui #card-time { top: var(--T); width: 72px; min-width: 0; min-height: 46px; padding: 4px 4px 5px; display: flex; flex-direction: column; justify-content: center; }
+body.tui #card-time .label { display: none; }
+body.tui #card-time .big { font-size: 24px; }
+body.tui #meta-pct { display: none !important; }
+
+body.tui #board { top: var(--T); right: var(--R); left: auto; width: auto; max-width: calc(50vw - 38px - var(--R)); padding: 0; background: none; box-shadow: none; border: 0; pointer-events: auto; }
+body.tui #board .label { display: none; }
+body.tui #board-chip { display: flex; align-items: center; gap: 0; width: 100%; min-height: 46px; padding: 0 12px; border: 0; border-radius: 23px; background: var(--cream); border-bottom: 3px solid var(--cream2); box-shadow: var(--shadow); font: inherit; font-size: 13px; font-weight: 800; color: var(--ink); cursor: pointer; white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
+body.tui #board-chip > * { font-style: normal; }
+body.tui #board-chip b { color: var(--terra2); }
+body.tui #board-chip span::before, body.tui #board-chip em::before { content: "\00b7"; margin: 0 5px; color: var(--ink2); font-weight: 900; }
+body.tui #board-chip em:empty::before { content: none; }
+body.tui #board-chip em.down { color: var(--terra2); } body.tui #board-chip em.up { color: #3d7a64; }
+body.tui #board ol { display: none; position: absolute; top: 52px; right: calc(var(--btn) + 8px); width: min(210px, calc(100vw - var(--L) - var(--R) - var(--btn) - 76px)); margin: 0; padding: 6px 12px 7px; background: var(--cream); border-radius: 14px; box-shadow: var(--shadow); z-index: 45; }
+body.tui #board.open ol { display: block; }
+body.tui.lefty #board ol { right: 0; }
+body.tui #board li { font-size: 13px; padding: 4px 6px; }
+
+/* side columns under the top row: minimap chip (left) and the round buttons (right); mirrored for left-handed play */
+body.tui #minimap-box { left: var(--L); right: auto; top: calc(var(--T) + 54px); bottom: auto; width: 52px; height: 52px; padding: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; pointer-events: auto; cursor: pointer; border: 3px solid var(--cream); background: var(--cream2); z-index: 44; }
+body.tui #minimap-box #minimap { width: 64px; height: 52px; border-radius: 0; max-width: none; pointer-events: none; }
+body.tui #minimap-box.open { width: min(184px, calc(100vw - var(--L) - var(--R))); height: auto; border-radius: 16px; padding: 4px; }
+body.tui #minimap-box.open #minimap { width: calc(100% - 0px); height: auto; border-radius: 10px; }
+body.tui #hud-btns { --btn: 44px; top: calc(var(--T) + 54px); bottom: auto; left: auto; right: var(--R); flex-direction: column; gap: 8px; }
+body.tui.mode-free #hud-btns { left: auto; right: var(--R); transform: none; }
+body.tui.lefty #hud-btns, body.tui.lefty.mode-free #hud-btns { right: auto; left: var(--L); }
+body.tui.lefty #minimap-box { left: auto; right: var(--R); }
+body.tui.lefty #minimap-box.open { right: var(--R); }
+body.tui #end-free { top: calc(var(--T) + 2px); right: var(--R); height: 44px; }
+body.tui #radio-pop { top: calc(var(--T) + 54px); bottom: auto; right: calc(var(--R) + var(--btn) + 8px); left: auto; width: min(210px, calc(100vw - var(--L) - var(--R) - var(--btn) - 16px)); }
+body.tui.lefty #radio-pop { right: auto; left: calc(var(--L) + var(--btn) + 8px); }
+body.tui #radio-pop button { min-height: 44px; } body.tui #radio-pop input[type=range] { height: 44px; }
+/* menu / results: sound + radio in the bottom-right corner, as before, but above the home indicator */
+body.tui:has(#start:not(.hidden)) #hud-btns, body.tui:has(#results:not(.hidden)) #hud-btns { --btn: 44px; top: auto; left: auto; right: var(--R); bottom: var(--B); flex-direction: row; }
+body.tui:has(#start:not(.hidden)) #radio-pop, body.tui:has(#results:not(.hidden)) #radio-pop { top: auto; left: auto; right: var(--R); bottom: calc(var(--B) + var(--btn) + 8px); }
+
+/* bottom: only the slim size bar, centred between the two thumb zones (the corners stay free) */
+body.tui #sizebox { left: 50%; right: auto; transform: translateX(-50%); width: clamp(128px, calc(100vw - 2 * (104px + var(--sal) + var(--sar))), 220px); bottom: calc(var(--sab) + 26px); padding: 5px 10px 6px; }
+body.tui .size-row { font-size: 12px; margin-bottom: 4px; white-space: nowrap; gap: 6px; }
+body.tui .bar { height: 8px; }
+body.tui #attrib { left: calc(96px + var(--sal)); right: calc(96px + var(--sar)); bottom: calc(var(--sab) + 2px); max-width: none; text-align: center; white-space: normal; overflow: visible; font-size: 9px; line-height: 10px; }
+
+/* transient lines: one lane each, centred between the side columns, never over the bottom thumbs or the (lower) hole */
+body.tui #feed { top: var(--lane); left: 50%; right: auto; transform: translateX(-50%); align-items: center; max-width: calc(100vw - 136px - var(--sal) - var(--sar)); }
+body.tui .feed-item { font-size: 12px; padding: 3px 10px; border-left-width: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; animation-duration: 2.6s; }
+body.tui .feed-item:nth-last-child(n+2) { display: none; }
+body.tui .lab { top: calc(var(--lane) + 30px); font-size: 12.5px; padding: 4px 12px 4px 26px; max-width: calc(100vw - 136px - var(--sal) - var(--sar)); box-shadow: 0 2px 8px rgba(43,34,24,.2); }
+body.tui .lab::before { left: 9px; width: 9px; height: 9px; margin-top: -4.5px; }
+body.tui #meta-area { top: calc(var(--lane) + 60px); }
+body.tui #meta-area .an { font-size: 14px; letter-spacing: .1em; } body.tui #meta-area .as { display: none; }
+body.tui #meta-toasts { top: calc(var(--lane) + 112px); bottom: auto; width: min(300px, calc(100vw - 136px - var(--sal) - var(--sar))); }
+body.tui .meta-toast { font-size: 13px; padding: 6px 12px 6px 10px; }
+body.tui #swallowed { top: calc(var(--lane) + 20px); }
+body.tui #daily-intro { top: calc(var(--lane) + 20px) !important; }
+body.tui #mp-net { left: var(--L); right: auto; top: calc(var(--T) + 116px); bottom: auto; transform: none; max-width: 100px; white-space: normal; line-height: 1.15; font-size: 11px; border-radius: 14px; }
+body.tui.lefty #mp-net { left: auto; right: var(--R); }
+@media (max-height: 520px) {
+  body.tui:has(#start:not(.hidden)) #hud-btns, body.tui:has(#results:not(.hidden)) #hud-btns { flex-direction: column-reverse; }   /* landscape menu: a column, so the (<= 660 px) cards never meet it */
+  body.tui #meta-area { top: calc(var(--lane) + 56px); }
+  body.tui #sizebox { bottom: calc(var(--sab) + 8px); width: clamp(120px, calc(100vw - 2 * (104px + var(--sal) + var(--sar))), 240px); }
+  body.tui #attrib { bottom: calc(var(--sab) + 1px); max-width: none; white-space: nowrap; }
+  body.tui #sizebox { bottom: calc(var(--sab) + 14px); }
+  body.tui #minimap-box.open { width: 150px; }
+}
+
+/* joystick: a soft ring under the thumb, never a big graphic */
+body.touch #joystick::before { width: calc(var(--joy-r, 64px) * 2); height: calc(var(--joy-r, 64px) * 2); margin: calc(var(--joy-r, 64px) * -1) 0 0 calc(var(--joy-r, 64px) * -1); background: rgba(255, 255, 255, .10); border: 2px solid rgba(255, 255, 255, .5); }
+body.touch #joy-knob { width: 42px; height: 42px; margin: -21px 0 0 -21px; background: rgba(217, 85, 47, .78); box-shadow: 0 0 0 2px rgba(255, 255, 255, .8); }
+
+/* feedback: ring pulse on swallows, "resuming" countdown */
+#hole-ring { position: fixed; z-index: 4; left: 0; top: 0; width: var(--d, 80px); height: var(--d, 80px); margin: calc(var(--d, 80px) / -2) 0 0 calc(var(--d, 80px) / -2); border-radius: 50%; border: 3px solid rgba(255, 255, 255, .85); pointer-events: none; opacity: 0; }
+#hole-ring.big { border-width: 5px; border-color: rgba(255, 224, 138, .95); }
+#hole-ring.go { animation: holering .38s ease-out; }
+@keyframes holering { from { transform: scale(.72); opacity: .95; } to { transform: scale(1.28); opacity: 0; } }
+#resume-count { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 35; font-size: 96px; font-weight: 900; color: #fff; text-shadow: 0 5px 0 rgba(120, 50, 20, .7), 0 0 28px rgba(0, 0, 0, .45); pointer-events: none; }
+#resume-count[hidden] { display: none; }
+body:has(#pause:not(.hidden)) #resume-count { display: none; }
+
+/* start screen extras on phones */
+#a2hs, #batt-hint { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; padding: 10px 10px 10px 12px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 2px var(--cream2); text-align: left; font-size: 12.5px; line-height: 1.35; color: var(--ink); }
+#a2hs .a2hs-t { flex: 1; min-width: 0; } #a2hs b { display: none; } /* title dropped: the hint must not make the start card scroll */
+#a2hs { margin-top: 6px; padding: 4px 6px 4px 12px; }
+#a2hs button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--cream2); color: var(--ink); font: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
+#batt-hint span { flex: 1; min-width: 0; font-weight: 700; }
+.btn-mini { font: inherit; font-size: 13px; font-weight: 800; min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--terra); color: #fff; cursor: pointer; flex: none; }
+.btn-mini.alt { background: var(--slate); }
+#adv-touch .modesw button { font-size: 12px; }
+.adv-sw { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.adv-sw .adv-lbl { flex: 1; }
+.adv-sw button { flex: none; min-width: 84px; min-height: 44px; font: inherit; font-size: 13px; font-weight: 800; border-radius: 12px; border: 2px solid var(--cream2); background: #fff; color: var(--ink2); cursor: pointer; padding: 0 12px; }
+.adv-sw button[aria-pressed="true"] { background: var(--slate); border-color: var(--slate); color: var(--cream); }
+
+/* panels respect the notch / home indicator in either orientation */
+body.tui .panel { padding-top: max(12px, calc(var(--sat) + 8px)); padding-left: max(12px, calc(var(--sal) + 8px)); padding-right: max(12px, calc(var(--sar) + 8px)); padding-bottom: max(72px, calc(var(--sab) + 64px)); }
+body.tui #scores, body.tui #about, body.tui #pause, body.tui #mp-lobby, body.tui #meta-panel { padding-bottom: max(12px, calc(var(--sab) + 8px)); }
+@media (max-height: 520px) { body.tui .panel { padding-bottom: max(8px, var(--sab)); padding-top: max(8px, var(--sat)); } }
+body.tui .panel-inner { max-height: calc(100dvh - var(--sat) - var(--sab) - 84px); }
+body.tui #scores .panel-inner, body.tui #about .panel-inner, body.tui #pause .panel-inner, body.tui #mp-lobby .panel-inner, body.tui #meta-panel .panel-inner { max-height: calc(100dvh - var(--sat) - var(--sab) - 24px); }
+@media (max-height: 520px) { body.tui .panel-inner { max-height: calc(100dvh - var(--sat) - var(--sab) - 16px); } }
+#turnstile-retry { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 2px 0 6px; flex-wrap: wrap; font-size: 13px; font-weight: 700; color: var(--terra2); }
+#turnstile-retry[hidden] { display: none; }
+
+/* very narrow phones (iPhone SE class, <= 360 px) */
+@media (max-width: 360px) {
+  body.tui #board-chip { font-size: 11.5px; padding: 0 7px; }
+  body.tui #board-chip span::before, body.tui #board-chip em::before { margin: 0 2px; }
+  body.tui #card-score { min-width: 84px; padding: 4px 8px 5px; }
+  body.tui #card-score .big { font-size: 20px; }
+  body.tui #score-pct { font-size: 10.5px; }
+  body.tui #card-time { width: 66px; } body.tui #card-time .big { font-size: 22px; }
+  body.tui .size-row { font-size: 11px; }
+}
+
+/* never let a fixed overlay be pinned to opposite edges by rules from different stylesheets: intrinsic height / width */
+body.tui #radio-pop, body.tui #mp-net, body.tui #daily-intro { height: auto; }

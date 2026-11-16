@@ -85,6 +85,7 @@ export async function initMeta({ game, world }) {
     pctTxt.append(a, c);
     bAll.style.width = Math.min(100, R.pctAll * 4) + '%'; bMe.style.width = Math.min(100, R.pctMe * 4) + '%';
     pct.dataset.all = R.pctAll.toFixed(3); pct.dataset.me = R.pctMe.toFixed(3);
+    const sp = $('score-pct'); if (sp) sp.textContent = `${fmtPct(R.pctMe)}% ${mt('pctRigaShort')}`;   // phones: the % chip lives in the score card
   };
   drawPct();
 

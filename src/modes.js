@@ -9,6 +9,7 @@ import { mulberry32 } from './rng.js';
 import { t, extendStrings, onLang, getLang } from './i18n.js';
 import { isCentre } from './maps.js';
 import { TWISTS, dailyInfo, dailyUsed, markDailyUsed, todayRiga } from './daily.js';
+import { isPhone } from './mobile.js';
 import './modes.css';
 
 extendStrings({
@@ -66,7 +67,10 @@ const state = { id: 'classic', daily: null, practice: false, ranked: true, bots:
 let game = null, params = null, touched = false, savedNames = null, diffKey = null;
 const keyOf = (diff, skill, seed) => `${diff}|${skill}|${seed}`;
 
-try { const v = localStorage.getItem(KEY); if (ids.includes(v)) state.id = v; } catch { /* storage blocked */ }
+let stored = false;
+try { const v = localStorage.getItem(KEY); if (ids.includes(v)) { state.id = v; stored = true; } } catch { /* storage blocked */ }
+// first-time visitors on a phone-sized touch device start with Quick (2:00); a mode the player ever chose always wins, and nothing is written until they choose
+if (!stored && isPhone()) state.id = 'quick';
 /** The daily challenge exists on the centre map only (fixed seeded setup, one board). */
 const allowed = (id) => id !== 'daily' || isCentre();
 if (!allowed(state.id)) state.id = 'classic';
@@ -91,10 +95,11 @@ export function setDifficulty(id) {
   bus.emit('difficultyChange', id);
 }
 
+const fmtSecs = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 /** Play button text: plain "Play" for Classic, otherwise it names the mode ("Play — Quick", "Daily challenge", "Free roam"). */
 export function playLabel() {
   const id = state.id;
-  return id === 'classic' ? t('play') : id === 'quick' ? `${t('play')} — ${t('modeQuick')}` : id === 'daily' ? `${t('play')} — ${t('dailyIntroTitle')}` : `${t('play')} — ${t('modeFree')}`;
+  return id === 'classic' ? t('play') : id === 'quick' ? `${t('play')} — ${t('modeQuick')} ${fmtSecs(MODES.quick.seconds)}` : id === 'daily' ? `${t('play')} — ${t('dailyIntroTitle')}` : `${t('play')} — ${t('modeFree')}`;
 }
 
 /** What src/scores.js should ask the server for: null = no server round (free roam, daily practice). */

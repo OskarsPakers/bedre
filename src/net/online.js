@@ -351,6 +351,13 @@ export class OnlineMode {
     this._note({ t: 'resume', eaten: m.eaten.length, score: m.me.score });
   }
 
+  /** Back in the foreground (phone: app switch, call, screen lock): if the socket died meanwhile, say "reconnecting" at once and rejoin. */
+  onForeground() {
+    if (this.state !== 'intro' && this.state !== 'playing') return;
+    if (this.rec) return;
+    if (!this.client.open) this._startReconnect();
+  }
+
   _startReconnect() {
     if (this.rec) return;
     this.rec = { t0: Date.now(), tries: 0 };

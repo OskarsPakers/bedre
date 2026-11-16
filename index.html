@@ -44,7 +44,7 @@
 <body>
   <div id="loading" role="status" aria-live="polite">
     <div class="lg"><span class="lh"></span><span>BEDRE</span></div>
-    <div class="lbar"><div class="lfill" id="load-fill"></div></div>
+    <div class="lbar"><div class="lfill indet" id="load-fill"></div></div>
     <div class="lmsg" id="load-msg">Loading…</div>
   </div>
   <canvas id="c"></canvas>
@@ -55,13 +55,14 @@
       <div class="label" data-i18n="score">Score</div>
       <div class="big" id="score">0</div>
       <div class="subline"><span data-i18n="swallowedLbl">Swallowed:</span> <b id="eaten">0</b></div>
+      <div class="pctline" id="score-pct" aria-live="off"></div>
     </div>
     <div class="card" id="card-time">
       <div class="label" data-i18n="time">Time</div>
       <div class="big" id="time">5:00</div>
     </div>
-    <div class="card" id="board"><div class="label" data-i18n="leaderboard">Leaderboard</div><ol id="board-list"></ol></div>
-    <div class="card" id="minimap-box"><canvas id="minimap" width="200" height="200"></canvas></div>
+    <div class="card" id="board"><button id="board-chip" type="button" aria-expanded="false" aria-controls="board-list" data-i18n-title="leaderboard"><b id="chip-rank"></b><span id="chip-score"></span><em id="chip-gap"></em></button><div class="label" data-i18n="leaderboard">Leaderboard</div><ol id="board-list"></ol></div>
+    <div class="card" id="minimap-box" tabindex="-1"><canvas id="minimap" width="200" height="200"></canvas></div>
     <div id="sizebox" class="card">
       <div class="size-row"><span id="size-level">Size 1</span><span id="size-diam">Ø 4.4 m</span></div>
       <div class="bar"><div id="size-fill"></div></div>
@@ -149,6 +150,7 @@
         <div class="place" id="r-place">1st of 8</div>
         <div class="result-score"><span id="r-score">0</span><small data-i18n="points">points</small></div>
         <div class="globalrank" id="r-global"></div>
+        <div id="turnstile-retry" hidden><button id="ts-retry" class="btn-mini" type="button"></button></div>
       </div>
       <div class="rtabs" id="rtabs" role="tablist">
         <button type="button" role="tab" data-rt="score" aria-selected="true" data-i18n="rtScore">Result</button>

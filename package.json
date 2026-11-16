@@ -11,6 +11,8 @@
     "smoke": "node scripts/smoke.mjs",
     "smoke:world": "node scripts/smoke-world.mjs",
     "smoke:matrix": "node scripts/smoke-matrix.mjs",
+    "smoke:mobile": "node scripts/smoke-mobile.mjs",
+    "measure:load": "node scripts/measure-load.mjs",
     "perf": "node scripts/perf-matrix.mjs",
     "check:radio": "node scripts/check-radio.mjs",
     "check:spawn": "node scripts/spawn-check.mjs",

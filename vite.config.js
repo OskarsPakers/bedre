@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { MAPS, mapPaths } from './tools/maps.mjs';
 
 // [meta/PWA] stamp public/sw.js with a build id (hash of the emitted asset names) so every build ships a byte-different service worker
 const swStamp = () => {
@@ -24,8 +25,30 @@ const swStamp = () => {
 const placements = () => {
   try { return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'public/data/placements.json'), 'utf8')); } catch { return { maps: {} }; }
 };
+// Start the selected map's data files downloading while the JS bundle is still downloading / parsing: an inline script in <head> picks the map
+// exactly like src/maps.js (?map= > localStorage > centre), adds <link rel=preload as=fetch> for its four files and publishes the decoded byte
+// sizes (window.__DATA) so src/loadProgress.js can show one real progress bar over all of them. Skipped for ?sample=1 / ?placements=generate.
+const dataPreload = () => {
+  const table = () => {
+    const ph = placements();
+    const t = {};
+    for (const m of MAPS) {
+      const p = mapPaths(m.slug), h = ph.maps && ph.maps[m.slug] && ph.maps[m.slug].hash;
+      const files = [[p.data, p.data], [p.shapes, p.shapes], [p.ground, p.ground], [p.objects + (h ? `?v=${h}` : ''), p.objects]];
+      t[m.slug] = files.map(([url, file]) => { let n = 0; try { n = fs.statSync(path.resolve(process.cwd(), 'public' + file)).size; } catch { /* missing: size unknown */ } return [url, n]; });
+    }
+    return t;
+  };
+  return {
+    name: 'bedre-data-preload',
+    transformIndexHtml(html) {
+      const js = `(function(){try{var T=${JSON.stringify(table())},u=new URLSearchParams(location.search);if(u.get('sample')==='1'||u.get('placements')==='generate')return;var s=u.get('map');if(!s){try{s=localStorage.getItem('bedre.map')}catch(e){}}if(!T[s])s='centrs';var f=T[s];window.__DATA={slug:s,files:f};f.forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='fetch';l.crossOrigin='anonymous';l.href=x[0];document.head.appendChild(l)})}catch(e){}})();`;
+      return html.replace('</head>', `<script>${js}</script>\n</head>`);
+    },
+  };
+};
 export default defineConfig({
-  plugins: [swStamp()],
+  plugins: [swStamp(), dataPreload()],
   define: { __PLACEMENTS__: JSON.stringify(placements()) },
   server: {
     port: 5173, host: true,

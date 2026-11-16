@@ -342,7 +342,7 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
   #swallowed { top: 38%; min-width: 180px; padding: 12px 24px; } .sw-name { font-size: 26px; }
   #meta-toasts { bottom: 186px; width: min(340px, calc(100vw - 16px)); }
   #daily-intro { bottom: auto !important; top: 28%; }
-  #mp-net { left: auto; right: var(--gap); bottom: auto; top: 118px; }
+  body #mp-net { left: 50%; right: auto; bottom: auto; top: calc(var(--gap) + 58px); transform: translateX(-50%); }   /* body-prefixed: must beat net.css (loaded later, same specificity) */
   .tag { font-size: 11px; padding: 1px 7px 1px 5px; }
   /* panels */
   .panel { padding: 12px 12px 72px; }

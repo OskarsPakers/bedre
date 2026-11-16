@@ -15,6 +15,10 @@ import { initMeta } from './meta/progress.js';
 import { initRadio } from './meta/radio.js';
 import { initPwa } from './meta/pwa.js';
 import { initUi } from './ui.js';
+import { trackLoad } from './loadProgress.js';
+import { bus } from './events.js';
+import { initMobile, isTouchUi, prefs, maybeFullscreen } from './mobile.js';
+import { initMobileUi } from './mobileUi.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
@@ -55,7 +59,7 @@ function webglOk() {
 import { applyMap, initMapPicker, applyMapRules } from './maps.js';
 
 async function boot() {
-  applyMap(); initMapPicker(); initUi(); // selected district (?map= / remembered): file URLs + balance multipliers, picker on the start screen
+  applyMap(); initMapPicker(); initUi(); initMobileUi(); // selected district (?map= / remembered): file URLs + balance multipliers, picker on the start screen
   if (!webglOk()) { fail('noWebgl'); return; }
   const canvas = $('c');
   let renderer;
@@ -70,7 +74,8 @@ async function boot() {
   const scene = new THREE.Scene();
 
   const tl0 = performance.now();
-  const data = await loadCity(params.get('sample') === '1', (f) => setLoad(f, 'loadingData'));
+  const tracked = trackLoad((f) => setLoad(f, 'loadingData'));   // one bar over map + shapes + ground + placements (bytes)
+  const data = await loadCity(params.get('sample') === '1', (f) => { if (!tracked) setLoad(f, 'loadingData'); });
   setLoad(null, 'loadingBuild');
   await nextFrame(); // let the loading screen repaint before the long synchronous build
   const tb0 = performance.now();
@@ -84,6 +89,7 @@ async function boot() {
   else if (params.get('sample') === '1') game.urlUnranked = 'sample';
   else if (params.has('bots') && (parseInt(params.get('bots'), 10) || 0) !== CFG.bots.count) game.urlUnranked = 'bots';
   game.unranked = game.urlUnranked;
+  initMobile(game);                       // body classes (touch / tui), haptics, wake lock, hints (src/mobile.js)
   const fit = () => game.resize(window.innerWidth, window.innerHeight);
   fit();
   window.addEventListener('resize', fit);
@@ -102,10 +108,10 @@ async function boot() {
 
   game.hud.setReady(true, playLabel());
   onLang(() => { if (!$('play').disabled) $('play').textContent = playLabel(); });
-  $('play').addEventListener('click', () => game.start());
-  $('again').addEventListener('click', () => game.start());
+  $('play').addEventListener('click', () => { maybeFullscreen(); game.start(); });
+  $('again').addEventListener('click', () => game.start());   // (Play again keeps whatever fullscreen state the first Play set up)
   $('pause-btn').addEventListener('click', () => game.pause(true));
-  $('resume').addEventListener('click', () => game.pause(false));
+  $('resume').addEventListener('click', () => game.pause(false, { countdown: isTouchUi() }));   // phones: a 3-2-1 before the world moves again
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !anyPanel()) { if (game.phase === 'playing' || game.phase === 'intro') game.pause(!game.paused); return; }
     const typing = e.target && e.target.tagName === 'INPUT';
@@ -113,7 +119,11 @@ async function boot() {
     if (((e.key === 'Enter' && !onBtn) || (e.key === ' ' && !typing && !onBtn)) && game.phase !== 'playing' && game.phase !== 'intro' && !game.paused && !anyPanel() && !$('play').disabled) game.start();
   });
   // pause when the tab is hidden: nothing advances, and the first frame back gets a clamped dt
-  document.addEventListener('visibilitychange', () => { if (document.hidden) game.pause(true); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) game.pause(true);                      // app switch / incoming call / locked screen (solo; online rounds never pause)
+    else if (game.online && game.online.onForeground) game.online.onForeground();   // online: show "reconnecting" at once if the socket died in the background
+  });
+  window.addEventListener('pageshow', (e) => { if (e.persisted && game.online && game.online.onForeground) game.online.onForeground(); });
 
   // no page scroll / pinch-zoom / context menu gestures while playing
   const stop = (e) => { if (game.phase === 'playing' || game.phase === 'intro') { if (e.cancelable) e.preventDefault(); } };
@@ -121,8 +131,12 @@ async function boot() {
   for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, (e) => e.preventDefault());
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
+  let cap30 = prefs.save30;
+  bus.on('prefs', (n) => { if (n === 'save30') cap30 = prefs.save30; });
   let last = performance.now();
   function frame(now) {
+    // battery saver (Advanced): ~30 fps, i.e. skip every other vsync on a 60 Hz screen
+    if (cap30 && now - last < 28) { requestAnimationFrame(frame); return; }
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;
     const t0 = performance.now();

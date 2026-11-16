@@ -70,7 +70,30 @@ export class Hud {
   }
 
   // ---- leaderboard (top N + the player, highlighted) -------------------------------------------
+  /** Compact chip (phones): "3. · 1 240 · -180" = your rank, points and the gap to the player above (or the lead over the next one). */
+  _chip(rows) {
+    const i = rows.findIndex((r) => r.isPlayer);
+    if (i < 0) return;
+    const me = rows[i], other = rows[i - 1] || rows[i + 1];
+    const gap = other ? (i > 0 ? me.score - other.score : me.score - other.score) : 0;   // negative: behind, positive: ahead
+    const key = `${me.rank}|${Math.floor(me.score)}|${Math.floor(gap)}`;
+    if (key === this._chipKey) return;
+    this._chipKey = key;
+    const k = (v) => (v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + 'k' : String(Math.floor(v)));
+    const g = $('chip-gap'), chip = $('board-chip');
+    const set = (short) => {
+      const f = short ? k : fmt;
+      $('chip-rank').textContent = me.rank === 1 ? '\u265b' : `${me.rank}.`;
+      $('chip-score').textContent = f(me.score);
+      g.textContent = other ? `${gap < 0 ? '\u2212' : '+'}${f(Math.abs(gap))}` : '';
+    };
+    set(false);
+    if (chip && chip.clientWidth && chip.scrollWidth > chip.clientWidth + 1) set(true);   // narrow phones / big numbers: abbreviate instead of clipping
+    g.className = gap < 0 ? 'down' : 'up';
+  }
+
   updateBoard(rows, topN) {
+    this._chip(rows);
     const show = rows.slice(0, topN);
     const me = rows.find((r) => r.isPlayer);
     if (me && me.rank > topN) show.push(me);
@@ -141,6 +164,22 @@ export class Hud {
     }
   }
 
+  /** "Resuming in 3 / 2 / 1" after a pause on phones (0 hides it). */
+  showResume(n) {
+    let d = this._res;
+    if (!d) { d = this._res = document.createElement('div'); d.id = 'resume-count'; document.body.appendChild(d); }
+    d.hidden = !n; if (n) d.textContent = String(n);
+  }
+
+  /** Ring pulse around the player's hole (px centre / px diameter). */
+  ring(x, y, d, big) {
+    let r = this._ring;
+    if (!r) { r = this._ring = document.createElement('div'); r.id = 'hole-ring'; document.body.appendChild(r); }
+    r.style.left = x.toFixed(0) + 'px'; r.style.top = y.toFixed(0) + 'px';
+    r.style.setProperty('--d', Math.max(36, Math.min(Math.hypot(window.innerWidth, window.innerHeight) * 0.5, d)).toFixed(0) + 'px');
+    r.classList.remove('go'); void r.offsetWidth; r.classList.toggle('big', !!big); r.classList.add('go');
+  }
+
   clearGo() { if (this._go) { this._go.remove(); this._go = null; } }
 
   go(text) {
@@ -184,10 +223,17 @@ export class Hud {
     e.classList.toggle('muted', !!muted);
   }
 
+  /** Small retry button under the global-rank line (null hides it). */
+  setRetry(text) {
+    const box = $('turnstile-retry'), b = $('ts-retry');
+    if (!box || !b) return;
+    box.hidden = !text; if (text) b.textContent = text;
+  }
+
   showResults(v, s) {
     if (v) this.clearGo();
     if (v && s) {
-      this.setGlobal('');
+      this.setGlobal(''); this.setRetry(null);
       $('r-score').textContent = fmt(s.score);
       $('r-eaten').textContent = s.eaten;
       $('r-biggest').textContent = s.biggest;

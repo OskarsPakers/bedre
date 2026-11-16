@@ -23,7 +23,8 @@ async function precacheShell() {
     const r = await fetch(u);
     if (!r.ok) throw new Error('asset fetch failed ' + u);
     await cache.put(u, r.clone());
-    if (/\.js$/.test(u)) for (const m of (await r.text()).matchAll(/["'`]\.\/([\w.-]+\.(?:js|css))["'`]/g)) { const n = '/assets/' + m[1]; if (!seen.has(n)) { queue.push(n); todo.add(n); } }
+    // the radio's hls.js chunk is lazy (only if the player switches the radio on): not part of the install download, it is cached on first use by the fetch handler below
+    if (/\.js$/.test(u)) for (const m of (await r.text()).matchAll(/["'`]\.\/([\w.-]+\.(?:js|css))["'`]/g)) { const n = '/assets/' + m[1]; if (!seen.has(n) && !/^\/assets\/hls[.-]/.test(n)) { queue.push(n); todo.add(n); } }
   }
   for (const u of todo) if (!u.startsWith('/assets/')) { try { const r = await fetch(u); if (r.ok) await cache.put(u, r); } catch { /* optional */ } }
 }

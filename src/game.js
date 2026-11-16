@@ -13,8 +13,9 @@ import { Bots } from './bots.js';
 import { Minimap } from './minimap.js';
 import { bus } from './events.js';
 import { t, kindName, fmt, onLang } from './i18n.js';
-import { startRound, submitScore } from './scores.js';
+import { startRound, submitScore, retrySubmit, hasPending, lastFailure } from './scores.js';
 import { placeText } from './hud.js';
+import { isTouchUi, prefs } from './mobile.js';
 
 export class Game {
   constructor({ renderer, scene, world, canvas, botCount = CFG.bots.count }) {
@@ -27,6 +28,10 @@ export class Game {
     this.holeViews = new HoleViews(scene);
     this.input = new Input(canvas);
     this.input.onZoom = (f) => { if (this.phase !== 'intro') this.cam.zoomBy(f); };
+    this.input.onDoubleTap = () => { if (this.phase === 'playing') this.cam.toggleWide(); };
+    document.getElementById('ts-retry')?.addEventListener('click', () => this.retrySave());
+    this.resumeT = 0;               // seconds left of the "resuming" countdown after a pause (phones)
+    this._ringT = 0;
     this.hud = new Hud();
     this.holes = [];
     this.roundSeconds = CFG.roundSeconds;
@@ -164,13 +169,18 @@ export class Game {
   markUnranked(why) { if (!this.unranked) this.unranked = why; }
 
   // ---- pause ----------------------------------------------------------------------------------------------
-  pause(v = true) {
+  pause(v = true, opts = {}) {
     if (this.online) return; // online rounds never pause (the server clock runs on)
+    if (v && this.resumeT > 0) { this.resumeT = 0; this.hud.showResume(0); this.hud.showPause(true); this.input.releaseTouches(); return; } // paused again during the countdown
     if (v === this.paused) return;
     if (v && this.phase !== 'playing' && this.phase !== 'intro') return;
+    if (!v && opts.countdown && this.phase === 'playing') {   // phones: a 3-2-1 before the world moves again (stays paused meanwhile)
+      this.resumeT = 3; this.hud.showPause(false); this.hud.showResume(3); this.input.releaseTouches();
+      return;
+    }
     this.paused = v;
     this.hud.showPause(v);
-    if (v) this.input.keys.clear();
+    if (v) { this.input.keys.clear(); this.input.releaseTouches(); }
     bus.emit(v ? 'pause' : 'resume');
   }
 
@@ -231,7 +241,8 @@ export class Game {
     if (g.state === 'ok') this.hud.setGlobal(g.res.mode === 'daily' ? t('globalRankDaily', { n: g.res.rankToday }) : t('globalRank', { all: g.res.rankAllTime, day: g.res.rankToday }));
     else if (g.state === 'wait') this.hud.setGlobal(t('saving'), true);
     else if (g.state === 'unranked') this.hud.setGlobal(t(this.unranked === 'practice' ? 'practiceNote' : this.unranked === 'free' ? 'freeNote' : 'unranked'), true);
-    else this.hud.setGlobal(t('notSaved'), true);
+    else { this.hud.setGlobal(t('notSaved'), true); this.hud.setRetry(hasPending() && this.phase === 'ended' ? (lastFailure === 'verify' ? t('tsFail') : t('saveFail')) : null); }
+    if (g.state !== 'offline') this.hud.setRetry(null);
   }
 
   /** Submit the player's result once per round; never throws. */
@@ -245,9 +256,21 @@ export class Game {
       name: p.name, score: p.score, eaten: p.eaten, radius: Math.round(p.radius * 100) / 100, rank: me.rank,
       biggest: biggest ? (biggest.name || kindName(biggest.kind, 'en')) : undefined,
     });
-    if (this.phase !== 'ended' || this._global.state !== 'wait') return; // next round already began
+    this._submitDone(res);
+  }
+
+  _submitDone(res) {
+    if (this.phase !== 'ended' || !this._global || this._global.state !== 'wait') return; // next round already began
     this._global = res ? { state: 'ok', res } : { state: 'offline' };
     this._showGlobal();
+  }
+
+  /** Results panel "retry" (Turnstile widget failure / network): same result, same round, never lost while the panel is open. */
+  async retrySave() {
+    if (this.phase !== 'ended' || !hasPending()) return;
+    this._global = { state: 'wait' };
+    this._showGlobal();
+    this._submitDone(await retrySubmit());
   }
 
   /** Sorted ranking of every hole (alive or not). */
@@ -286,6 +309,20 @@ export class Game {
     p.sum += o.value; p.n++;
     if (o.value >= 40) p.big = true;
     if (o.name) this.hud.label(o.name, o.landmark);
+    this._ring(hole, o);
+  }
+
+  /** Soft ring on the hole's rim when the player swallows something (the visual stand-in for haptics on iOS). Cheap: one reused element. */
+  _ring(hole, o) {
+    if (!prefs.haptics || !document.body.classList.contains('touch')) return;
+    const now = performance.now();
+    if (now - this._ringT < (o.isBuilding ? 100 : 170)) return;
+    this._ringT = now;
+    const a = this._v.set(hole.x, 0, hole.z).project(this.cam.camera);
+    const b = new THREE.Vector3(hole.x + hole.radius, 0, hole.z).project(this.cam.camera);
+    const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+    const px = (a.x * 0.5 + 0.5) * w, py = (-a.y * 0.5 + 0.5) * h, pr = Math.abs((b.x - a.x) * 0.5 * w);
+    this.hud.ring(px, py, pr * 2.1, o.isBuilding);
   }
 
   _flushPopup(dt) {
@@ -302,6 +339,12 @@ export class Game {
   /** Advance simulation by dt seconds (no rendering). */
   update(dt, quiet = this.quiet) {
     if (this.online) return this.online.update(dt, quiet); // multiplayer: src/net/online.js
+    if (this.resumeT > 0) {
+      this.resumeT -= Math.min(dt, 0.1);
+      if (this.resumeT <= 0) { this.resumeT = 0; this.hud.showResume(0); this.paused = false; this.hud.showPause(false); bus.emit('resume'); }
+      else this.hud.showResume(Math.ceil(this.resumeT));
+      return;
+    }
     if (this.paused) return;
     dt = Math.min(dt, 0.1);
     if (this.phase === 'intro') dt = Math.min(dt, 0.05);
@@ -445,7 +488,8 @@ export class Game {
 
   resize(w, h) {
     this.renderer.setSize(w, h, false);
-    this.cam.resize(w / h);
+    this.cam.resize(w / h, isTouchUi());
+    if (w !== this._w || h !== this._h) { this._w = w; this._h = h; this.input.releaseTouches(); }   // orientation flip / real resize: no steering on stale coordinates (a no-change resize event must not drop a finger)
   }
 
   // ---- dev / test hooks -------------------------------------------------
