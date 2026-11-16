@@ -4,7 +4,7 @@ import { t, extendStrings, onLang } from '../i18n.js';
 
 extendStrings({
   mpOnline: 'Tiešsaiste', mpBeta: 'BETA', mpConnecting: 'Savienojas…', mpUnavailable: 'Tiešsaiste šobrīd nav pieejama. Viena spēlētāja režīms darbojas.',
-  mpVersion: 'Spēles versija ir novecojusi. Pārlādē lapu.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
+  mpVersion: 'Tiešsaiste šajā pārlūkā pagaidām nedarbojas (Safari, iPhone, Firefox) — labojums ir ceļā. Spēle vienam darbojas: spied “Spēlēt”.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
   mpStartsIn: 'Kārta sākas pēc {n} s', mpNextIn: 'Nākamā kārta sākas pēc {n} s', mpFillBots: 'Visi sāk vienlaikus. Pretinieku bedres (AI) aizpildīs istabu līdz {n} bedrēm.',
   mpPlayers: 'Spēlētāji {n}/{max}', mpYou: 'tu', mpLeave: 'Atstāt', mpRunning: 'Notiek kārta · atlikušas {t}', mpRunningHint: 'Pievienoties var tikai nākamajai kārtai. Pa to laiku vari skatīties līderus.',
   mpReconnecting: 'Savienojums pārtrūka. Atjauno…', mpLost: 'Savienojums zaudēts.', mpSaved: 'Rezultāts saglabāts tiešsaistes tabulā.', mpSaving: 'Saglabā rezultātu…',
@@ -12,7 +12,7 @@ extendStrings({
   mpPing: '{n} ms', mpAi: 'AI',
 }, {
   mpOnline: 'Online', mpBeta: 'BETA', mpConnecting: 'Connecting…', mpUnavailable: 'Online play is not available right now. Single-player still works.',
-  mpVersion: 'Your game version is out of date. Please reload the page.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
+  mpVersion: 'Online play does not work in this browser yet (Safari, iPhone, Firefox) — a fix is on the way. Single-player works: press “Play”.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
   mpStartsIn: 'Round starts in {n} s', mpNextIn: 'Next round starts in {n} s', mpFillBots: 'Everybody starts together. AI holes fill the room up to {n} holes.',
   mpPlayers: 'Players {n}/{max}', mpYou: 'you', mpLeave: 'Leave', mpRunning: 'Round in progress · {t} left', mpRunningHint: 'You can only join the next round. Meanwhile, watch the leaderboard.',
   mpReconnecting: 'Connection lost. Reconnecting…', mpLost: 'Connection lost.', mpSaved: 'Result saved to the online leaderboard.', mpSaving: 'Saving result…',
