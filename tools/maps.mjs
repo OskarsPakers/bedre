@@ -44,7 +44,7 @@ export const mapBySlug = (s) => MAPS.find((m) => m.slug === s) || MAPS[0];
 /** URLs of a map's files (the centre keeps the legacy flat paths). */
 export function mapPaths(slug) {
   const d = slug === 'centrs' ? '/data/' : `/data/${slug}/`;
-  return { data: d + 'riga.json', shapes: d + 'riga-shapes.bin.gz', ground: d + 'riga-ground.png', objects: d + 'riga-objects.bin.gz', thumb: d + 'thumb.png', areas: '/data/riga-areas.json' };
+  return { data: d + 'riga.json', shapes: d + 'riga-shapes.bin.gz', ground: d + 'riga-ground.png', objects: d + 'riga-objects.bin.gz', sights: d + 'sights.json', thumb: d + 'thumb.png', areas: '/data/riga-areas.json' };
 }
 
 /** Per-map shapes file URL (convention for the shapes agent: public/data/<slug>/riga-shapes.bin.gz; the centre keeps the flat path). */

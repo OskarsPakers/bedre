@@ -1,0 +1,865 @@
+{
+ "map": "mezaparks",
+ "generated": "2026-11-16",
+ "count": 41,
+ "sights": [
+  {
+   "hint": null,
+   "key": "estrade",
+   "name": "Lielā estrāde",
+   "en": "Great Song Festival Stage",
+   "cat": "sports",
+   "tier": "A",
+   "lead": 49673065,
+   "ids": [
+    49673065,
+    49673070
+   ],
+   "area": 18853,
+   "h": 6.4,
+   "x": 2397,
+   "z": -6997,
+   "why": [
+    "tierA"
+   ],
+   "album": "estrade"
+  },
+  {
+   "hint": null,
+   "key": "tropu",
+   "name": "Tropu māja",
+   "en": "Tropical House",
+   "cat": "public",
+   "tier": "A",
+   "lead": 49672040,
+   "ids": [
+    49672040
+   ],
+   "area": 2121,
+   "h": 13,
+   "x": 3149,
+   "z": -6313,
+   "why": [
+    "tierA"
+   ],
+   "album": "tropu"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķeizarmežs",
+   "en": null,
+   "cat": "sports",
+   "tier": "B",
+   "lead": 49665346,
+   "ids": [
+    49665346,
+    49662400
+   ],
+   "area": 3894,
+   "h": 6.4,
+   "x": 3539,
+   "z": -5677,
+   "why": [
+    "tag:leisure=sports_centre",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lidl",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49665580,
+   "ids": [
+    49665580
+   ],
+   "area": 2985,
+   "h": 5.2,
+   "x": 3249,
+   "z": -4615,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jaunā Mežaparka iela 4",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49668641,
+   "ids": [
+    49668641
+   ],
+   "area": 1404,
+   "h": 11.6,
+   "x": 2995,
+   "z": -4756,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āfrikas savanna",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49672866,
+   "ids": [
+    49672866
+   ],
+   "area": 1096,
+   "h": 16,
+   "x": 2886,
+   "z": -6450,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Kristus Karaļa Romas katoļu draudze",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49668667,
+   "ids": [
+    49668667
+   ],
+   "area": 919,
+   "h": 3.2,
+   "x": 1451,
+   "z": -4969,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vides izglītības centrs \"Zinarium\"",
+   "en": "Environmental education centre \"Zinarium\"",
+   "cat": "public",
+   "tier": "B",
+   "lead": 49672738,
+   "ids": [
+    49672738
+   ],
+   "area": 861,
+   "h": 3.2,
+   "x": 3017,
+   "z": -6322,
+   "why": [
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Žirafju māja",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49671985,
+   "ids": [
+    49671985
+   ],
+   "area": 829,
+   "h": 3.2,
+   "x": 2987,
+   "z": -6414,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Terārijs",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49672149,
+   "ids": [
+    49672149
+   ],
+   "area": 802,
+   "h": 11.4,
+   "x": 2857,
+   "z": -6315,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Villa 'Wasa'",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49665210,
+   "ids": [
+    49665210
+   ],
+   "area": 728,
+   "h": 9.6,
+   "x": 3326,
+   "z": -5933,
+   "why": [
+    "tag:historic=building",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "\"Ziemeļi\", bērnu nams",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49665585,
+   "ids": [
+    49665585
+   ],
+   "area": 724,
+   "h": 8.4,
+   "x": 3243,
+   "z": -5089,
+   "why": [
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "BUJC Ziemeļi",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49664171,
+   "ids": [
+    49664171
+   ],
+   "area": 708,
+   "h": 8.4,
+   "x": 3179,
+   "z": -5072,
+   "why": [
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kārļa Vatsona iela 11A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49665489,
+   "ids": [
+    49665489
+   ],
+   "area": 687,
+   "h": 8.4,
+   "x": 2731,
+   "z": -4989,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mežaparka filiālbibliotēka",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49671800,
+   "ids": [
+    49671800
+   ],
+   "area": 613,
+   "h": 6.4,
+   "x": 2483,
+   "z": -5186,
+   "why": [
+    "tag:amenity=library",
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Flamingu māja",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49672970,
+   "ids": [
+    49672970
+   ],
+   "area": 384,
+   "h": 3.2,
+   "x": 2761,
+   "z": -6164,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bella Bella",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49673124,
+   "ids": [
+    49673124
+   ],
+   "area": 367,
+   "h": 3.2,
+   "x": 2578,
+   "z": -5947,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Villa Helenia",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49668674,
+   "ids": [
+    49668674
+   ],
+   "area": 359,
+   "h": 8.4,
+   "x": 2843,
+   "z": -4614,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Jāņa Poruka vidusskola",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49662383,
+   "ids": [
+    49662383
+   ],
+   "area": 298,
+   "h": 9.9,
+   "x": 3293,
+   "z": -5744,
+   "why": [
+    "tag:amenity=school",
+    "osm-name",
+    "tag:heritage",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Grāves muiža",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49665457,
+   "ids": [
+    49665457
+   ],
+   "area": 276,
+   "h": 3.2,
+   "x": 3713,
+   "z": -5557,
+   "why": [
+    "tag:historic=manor",
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Villa Lavanda",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49668634,
+   "ids": [
+    49668634
+   ],
+   "area": 274,
+   "h": 8.4,
+   "x": 2907,
+   "z": -4658,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kunga Apskaidrošanās pareizticīgo baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49666459,
+   "ids": [
+    49666459
+   ],
+   "area": 216,
+   "h": 8.4,
+   "x": 1193,
+   "z": -5007,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Villa Linnea",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49668672,
+   "ids": [
+    49668672
+   ],
+   "area": 202,
+   "h": 6.4,
+   "x": 2591,
+   "z": -4637,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Villa Magnolia",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49668588,
+   "ids": [
+    49668588
+   ],
+   "area": 183,
+   "h": 6.4,
+   "x": 2733,
+   "z": -4550,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Mežaparka baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49665685,
+   "ids": [
+    49665685
+   ],
+   "area": 132,
+   "h": 3.2,
+   "x": 3594,
+   "z": -5622,
+   "why": [
+    "tag:building=church",
+    "osm-name",
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža prospekts 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49672076,
+   "ids": [
+    49672076
+   ],
+   "area": 910,
+   "h": 3.2,
+   "x": 2683,
+   "z": -6289,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stokholmas iela 24",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49662474,
+   "ids": [
+    49662474
+   ],
+   "area": 719,
+   "h": 6.4,
+   "x": 3016,
+   "z": -5632,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža prospekts 5",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49673064,
+   "ids": [
+    49673064
+   ],
+   "area": 667,
+   "h": 3.2,
+   "x": 2193,
+   "z": -5805,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ezermalas iela 28",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49665588,
+   "ids": [
+    49665588
+   ],
+   "area": 636,
+   "h": 6.4,
+   "x": 3636,
+   "z": -5486,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Cimzes iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49662372,
+   "ids": [
+    49662372
+   ],
+   "area": 521,
+   "h": 9.6,
+   "x": 3295,
+   "z": -6114,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stokholmas iela 3A",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49662574,
+   "ids": [
+    49662574
+   ],
+   "area": 469,
+   "h": 8.4,
+   "x": 3180,
+   "z": -5833,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kokneses prospekts 15",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49662566,
+   "ids": [
+    49662566
+   ],
+   "area": 412,
+   "h": 8.4,
+   "x": 2788,
+   "z": -5476,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kokneses prospekts 24",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49672812,
+   "ids": [
+    49672812
+   ],
+   "area": 382,
+   "h": 3.2,
+   "x": 2782,
+   "z": -5685,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ezermalas iela 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49665340,
+   "ids": [
+    49665340
+   ],
+   "area": 244,
+   "h": 6.4,
+   "x": 3435,
+   "z": -5870,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sarkandaugava",
+   "en": null,
+   "cat": "station",
+   "tier": "C",
+   "lead": 49618114,
+   "ids": [
+    49618114
+   ],
+   "area": 209,
+   "h": 8.4,
+   "x": 1242,
+   "z": -4614,
+   "why": [
+    "tag:building=train_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža prospekts 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49672722,
+   "ids": [
+    49672722
+   ],
+   "area": 195,
+   "h": 6.4,
+   "x": 2789,
+   "z": -6124,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sliežu iela 2",
+   "en": null,
+   "cat": "station",
+   "tier": "C",
+   "lead": 49616885,
+   "ids": [
+    49616885
+   ],
+   "area": 185,
+   "h": 5.2,
+   "x": 1270,
+   "z": -4585,
+   "why": [
+    "tag:building=transportation"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Visbijas prospekts 47",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49672159,
+   "ids": [
+    49672159
+   ],
+   "area": 173,
+   "h": 11.6,
+   "x": 1907,
+   "z": -4949,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža prospekts 30",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49672931,
+   "ids": [
+    49672931
+   ],
+   "area": 172,
+   "h": 6.4,
+   "x": 2576,
+   "z": -5845,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža prospekts 11A",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49668655,
+   "ids": [
+    49668655
+   ],
+   "area": 90,
+   "h": 8.4,
+   "x": 1205,
+   "z": -5031,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nesaules iela 7",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49668590,
+   "ids": [
+    49668590
+   ],
+   "area": 47,
+   "h": 3.2,
+   "x": 1483,
+   "z": -4589,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  }
+ ],
+ "tierAMissing": []
+}

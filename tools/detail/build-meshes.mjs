@@ -616,8 +616,7 @@ for (const key of ids) {
     const R4 = (u0, u1, v0, v1) => [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(([u, v]) => { const a = mb.cu + u, b = mb.cv + v; return [ux * a + vx * b, uz * a + vz * b]; });
     const hl = mb.L / 2, hw = mb.W / 2, dir = ((Math.atan2(uz, ux) * 180) / Math.PI + 360) % 360;
     const parts = [{ p: R4(-hl, hl, -hw, hw), y0: 0, y1: eave, roof: { shape: 'gabled', h: ridgeH, dir } }];
-    const steps = 7;
-    for (const sg of [-1, 1]) for (let k = 0; k < steps; k++) {
+    for (const sg of [-1, 1]) for (let k = 0, steps = sg < 0 ? 7 : 5; k < steps; k++) { // two DIFFERENT stepped gables (7 steps towards -u, 5 towards +u; src/sightFeatures.js 'gabletrim' adds the light trim)
       const w = hw * (1 - k / (steps + 0.6)), y0 = eave + ((top - eave) * k) / steps, y1 = eave + ((top - eave) * (k + 1)) / steps;
       const u0 = sg > 0 ? hl - 0.9 : -hl, u1 = sg > 0 ? hl : -hl + 0.9;
       parts.push({ p: R4(u0, u1, -w, w), y0: Math.min(y0, eave + ridgeH * 0.2), y1, roof: { shape: 'flat', h: 0 } });

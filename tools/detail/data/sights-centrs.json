@@ -1,0 +1,8879 @@
+{
+ "map": "centrs",
+ "generated": "2026-11-16",
+ "count": 427,
+ "sights": [
+  {
+   "hint": null,
+   "key": "library",
+   "name": "Nacionālā bibliotēka",
+   "en": "National Library",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49629679,
+   "ids": [
+    49629679
+   ],
+   "area": 12466,
+   "h": 38.5,
+   "x": -1037,
+   "z": 1142,
+   "why": [
+    "tierA"
+   ],
+   "album": "library"
+  },
+  {
+   "hint": null,
+   "key": "daile",
+   "name": "Dailes teātris",
+   "en": "Daile Theatre",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49621082,
+   "ids": [
+    49621082,
+    49612595
+   ],
+   "area": 12288,
+   "h": 9.6,
+   "x": 783,
+   "z": -934,
+   "why": [
+    "tierA"
+   ],
+   "album": "dailes"
+  },
+  {
+   "hint": null,
+   "key": "market",
+   "name": "Centrāltirgus",
+   "en": "Central Market",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49614728,
+   "ids": [
+    49614728,
+    49614778,
+    49615303,
+    49615403
+   ],
+   "area": 11415,
+   "h": 20.5,
+   "x": 24,
+   "z": 914,
+   "why": [
+    "tierA"
+   ],
+   "album": "market"
+  },
+  {
+   "hint": null,
+   "key": "origo",
+   "name": "Origo",
+   "en": "Origo",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49614964,
+   "ids": [
+    49614964,
+    49611992
+   ],
+   "area": 11179,
+   "h": 14.8,
+   "x": 549,
+   "z": 449,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "station",
+   "name": "Centrālā stacija",
+   "en": "Central Station",
+   "cat": "station",
+   "tier": "A",
+   "lead": 49614666,
+   "ids": [
+    49614666,
+    49615281,
+    49614810,
+    49614921
+   ],
+   "area": 8909,
+   "h": 14.8,
+   "x": 338,
+   "z": 534,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Radisson Blu",
+   "en": "Radisson Blu",
+   "cat": "hotel",
+   "tier": "A",
+   "lead": 49629591,
+   "ids": [
+    49629591
+   ],
+   "area": 8190,
+   "h": 32.3,
+   "x": -1178,
+   "z": 851,
+   "why": [
+    "osm-name",
+    "tall",
+    "album:radisson"
+   ],
+   "album": "radisson"
+  },
+  {
+   "hint": null,
+   "key": "castle",
+   "name": "Rīgas pils",
+   "en": "Riga Castle",
+   "cat": "castle",
+   "tier": "A",
+   "lead": 49615051,
+   "ids": [
+    49615051,
+    49614975
+   ],
+   "area": 8075,
+   "h": 29,
+   "x": -766,
+   "z": 53,
+   "why": [
+    "tierA"
+   ],
+   "album": "castle"
+  },
+  {
+   "hint": null,
+   "key": "opera",
+   "name": "Nacionālā opera",
+   "en": "National Opera",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49616059,
+   "ids": [
+    49616059,
+    49615786,
+    49615783
+   ],
+   "area": 6555,
+   "h": 34,
+   "x": 54,
+   "z": 264,
+   "why": [
+    "tierA"
+   ],
+   "album": "opera"
+  },
+  {
+   "hint": null,
+   "key": "galerija",
+   "name": "Galerija Centrs",
+   "en": "Galerija Centrs",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49614491,
+   "ids": [
+    49614491,
+    49614512
+   ],
+   "area": 5852,
+   "h": 18,
+   "x": -29,
+   "z": 389,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "market-meat",
+   "name": "Centrāltirgus (Gaļas paviljons)",
+   "en": "Central Market (meat pavilion)",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49615202,
+   "ids": [
+    49615202
+   ],
+   "area": 5491,
+   "h": 18,
+   "x": 242,
+   "z": 732,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "university",
+   "name": "Latvijas Universitāte",
+   "en": "University of Latvia",
+   "cat": "school",
+   "tier": "A",
+   "lead": 49616039,
+   "ids": [
+    49616039,
+    49616004
+   ],
+   "area": 5427,
+   "h": 18,
+   "x": 175,
+   "z": 82,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "congress",
+   "name": "Rīgas Kongresu nams",
+   "en": "Riga Congress House",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49616534,
+   "ids": [
+    49616534
+   ],
+   "area": 5354,
+   "h": 19.5,
+   "x": -397,
+   "z": -450,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "artmuseum",
+   "name": "Latvijas Nacionālais mākslas muzejs",
+   "en": "National Museum of Art",
+   "cat": "museum",
+   "tier": "A",
+   "lead": 49615452,
+   "ids": [
+    49615452
+   ],
+   "area": 4699,
+   "h": 6.4,
+   "x": -11,
+   "z": -477,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "stockmann",
+   "name": "Stockmann",
+   "en": "Stockmann",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49615917,
+   "ids": [
+    49615917
+   ],
+   "area": 4562,
+   "h": 16,
+   "x": -47,
+   "z": 242,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "ztowers",
+   "name": "Z-Towers",
+   "en": "Z-Towers",
+   "cat": "tower",
+   "tier": "A",
+   "lead": 49637749,
+   "ids": [
+    49637749
+   ],
+   "area": 4064,
+   "h": 11.6,
+   "x": -2007,
+   "z": 469,
+   "why": [
+    "tierA"
+   ],
+   "album": "ztowers"
+  },
+  {
+   "hint": null,
+   "key": "presesnams",
+   "name": "Preses nams",
+   "en": "Press House",
+   "cat": "tower",
+   "tier": "A",
+   "lead": 49639106,
+   "ids": [
+    49639106
+   ],
+   "area": 3566,
+   "h": 72.4,
+   "x": -1629,
+   "z": 384,
+   "why": [
+    "tierA"
+   ],
+   "album": "presesnams"
+  },
+  {
+   "hint": null,
+   "key": "academy",
+   "name": "Zinātņu akadēmija",
+   "en": "Academy of Sciences",
+   "cat": "tower",
+   "tier": "A",
+   "lead": 49628422,
+   "ids": [
+    49628422
+   ],
+   "area": 3446,
+   "h": 11.6,
+   "x": 526,
+   "z": 924,
+   "why": [
+    "tierA"
+   ],
+   "album": "academy"
+  },
+  {
+   "hint": null,
+   "key": "hotel-latvija",
+   "name": "Radisson Blu Latvija",
+   "en": "Radisson Blu Latvija",
+   "cat": "hotel",
+   "tier": "A",
+   "lead": 49619752,
+   "ids": [
+    49619752
+   ],
+   "area": 3440,
+   "h": 86,
+   "x": 268,
+   "z": -388,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "dome",
+   "name": "Rīgas Doms",
+   "en": "Riga Cathedral",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49614755,
+   "ids": [
+    49614755
+   ],
+   "area": 3216,
+   "h": 35,
+   "x": -504,
+   "z": 268,
+   "why": [
+    "tierA"
+   ],
+   "album": "dome"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Republikas laukums 2",
+   "en": null,
+   "cat": "tower",
+   "tier": "A",
+   "lead": 49616136,
+   "ids": [
+    49616136
+   ],
+   "area": 3121,
+   "h": 85.2,
+   "x": -850,
+   "z": -323,
+   "why": [
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "theatre",
+   "name": "Nacionālais teātris",
+   "en": "National Theatre",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49614719,
+   "ids": [
+    49614719
+   ],
+   "area": 3108,
+   "h": 8.4,
+   "x": -516,
+   "z": -247,
+   "why": [
+    "tierA"
+   ],
+   "album": "theatre"
+  },
+  {
+   "hint": null,
+   "key": "ferry",
+   "name": "Rīgas pasažieru osta",
+   "en": "Riga passenger terminal",
+   "cat": "station",
+   "tier": "A",
+   "lead": 49615997,
+   "ids": [
+    49615997
+   ],
+   "area": 3097,
+   "h": 3.2,
+   "x": -1135,
+   "z": -887,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "bank",
+   "name": "Latvijas Banka",
+   "en": "Bank of Latvia",
+   "cat": "gov",
+   "tier": "A",
+   "lead": 49615814,
+   "ids": [
+    49615814
+   ],
+   "area": 3033,
+   "h": 11.6,
+   "x": -630,
+   "z": -80,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "townhall",
+   "name": "Rīgas Rātsnams",
+   "en": "Riga City Hall",
+   "cat": "gov",
+   "tier": "A",
+   "lead": 49614687,
+   "ids": [
+    49614687
+   ],
+   "area": 2855,
+   "h": 11.6,
+   "x": -437,
+   "z": 392,
+   "why": [
+    "tierA"
+   ],
+   "album": "ratsnams"
+  },
+  {
+   "hint": null,
+   "key": "artacademy",
+   "name": "Latvijas Mākslas akadēmija",
+   "en": "Academy of Art",
+   "cat": "school",
+   "tier": "A",
+   "lead": 49615853,
+   "ids": [
+    49615853,
+    49615877
+   ],
+   "area": 2676,
+   "h": 11.6,
+   "x": -112,
+   "z": -395,
+   "why": [
+    "tierA"
+   ],
+   "album": "art"
+  },
+  {
+   "hint": null,
+   "key": "peter",
+   "name": "Svētā Pētera baznīca",
+   "en": "St Peter's Church",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49614351,
+   "ids": [
+    49614351
+   ],
+   "area": 2654,
+   "h": 40,
+   "x": -250,
+   "z": 445,
+   "why": [
+    "tierA"
+   ],
+   "album": "peter"
+  },
+  {
+   "hint": null,
+   "key": "circus",
+   "name": "Rīgas cirks",
+   "en": "Riga Circus",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49615676,
+   "ids": [
+    49615676
+   ],
+   "area": 2384,
+   "h": 8.4,
+   "x": 376,
+   "z": 219,
+   "why": [
+    "tierA"
+   ],
+   "album": "circus"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas pilsētas tiesa",
+   "en": "Riga Castle",
+   "cat": "castle",
+   "tier": "A",
+   "lead": 49627581,
+   "ids": [
+    49627581
+   ],
+   "area": 2275,
+   "h": 12.8,
+   "x": 925,
+   "z": 701,
+   "why": [
+    "tag:amenity=courthouse",
+    "osm-name",
+    "album:castle"
+   ],
+   "album": "castle"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Mākslas akadēmija",
+   "en": "Academy of Art",
+   "cat": "school",
+   "tier": "A",
+   "lead": 49616604,
+   "ids": [
+    49616604
+   ],
+   "area": 2132,
+   "h": 14.8,
+   "x": -532,
+   "z": -420,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub",
+    "album:art"
+   ],
+   "album": "art"
+  },
+  {
+   "hint": null,
+   "key": "lbn",
+   "name": "Latviešu biedrības nams",
+   "en": "Latvian Society House",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49615638,
+   "ids": [
+    49615638
+   ],
+   "area": 1997,
+   "h": 13.1,
+   "x": 242,
+   "z": 137,
+   "why": [
+    "tierA"
+   ],
+   "album": "lbn"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes Akadēmiskā bibliotēka",
+   "en": "University Library",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49615146,
+   "ids": [
+    49615146
+   ],
+   "area": 1871,
+   "h": 12.8,
+   "x": -603,
+   "z": -933,
+   "why": [
+    "tag:amenity=library",
+    "osm-name",
+    "t:pub",
+    "album:univlib"
+   ],
+   "album": "univlib"
+  },
+  {
+   "hint": null,
+   "key": "saeima",
+   "name": "Saeima",
+   "en": "Saeima (Parliament)",
+   "cat": "gov",
+   "tier": "A",
+   "lead": 49614901,
+   "ids": [
+    49614901
+   ],
+   "area": 1841,
+   "h": 9.6,
+   "x": -522,
+   "z": 32,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "splendid",
+   "name": "Splendid Palace",
+   "en": "Splendid Palace",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49619824,
+   "ids": [
+    49619824
+   ],
+   "area": 1607,
+   "h": 11.6,
+   "x": 373,
+   "z": -247,
+   "why": [
+    "tierA"
+   ],
+   "album": "splendid"
+  },
+  {
+   "hint": null,
+   "key": "nativity",
+   "name": "Kristus Piedzimšanas katedrāle",
+   "en": "Nativity Cathedral",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49615771,
+   "ids": [
+    49615771
+   ],
+   "area": 1588,
+   "h": 40,
+   "x": 140,
+   "z": -269,
+   "why": [
+    "tierA"
+   ],
+   "album": "nativity"
+  },
+  {
+   "hint": null,
+   "key": "spikeri",
+   "name": "Spīķeri",
+   "en": "Spīķeri warehouses",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614933,
+   "ids": [
+    49614933,
+    49612972,
+    49615217,
+    49615466
+   ],
+   "area": 1374,
+   "h": 18.5,
+   "x": 265,
+   "z": 914,
+   "why": [
+    "tierA"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": "guild-great",
+   "name": "Lielā Ģilde",
+   "en": "Great Guild",
+   "cat": "historic",
+   "tier": "A",
+   "lead": 49616381,
+   "ids": [
+    49616381
+   ],
+   "area": 1353,
+   "h": 18,
+   "x": -327,
+   "z": 193,
+   "why": [
+    "tierA"
+   ],
+   "album": "guilds"
+  },
+  {
+   "hint": null,
+   "key": "saulesakmens",
+   "name": "Saules akmens",
+   "en": "Saules akmens",
+   "cat": "tower",
+   "tier": "A",
+   "lead": 49639844,
+   "ids": [
+    49639844
+   ],
+   "area": 1338,
+   "h": 88.4,
+   "x": -1458,
+   "z": 286,
+   "why": [
+    "tierA"
+   ],
+   "album": "saules"
+  },
+  {
+   "hint": null,
+   "key": "radio",
+   "name": "Latvijas Radio",
+   "en": "Latvian Radio",
+   "cat": "gov",
+   "tier": "A",
+   "lead": 49616468,
+   "ids": [
+    49616468
+   ],
+   "area": 1316,
+   "h": 11.6,
+   "x": -436,
+   "z": 181,
+   "why": [
+    "tierA"
+   ],
+   "album": "radio"
+  },
+  {
+   "hint": null,
+   "key": "jekab",
+   "name": "Svētā Jēkaba katedrāle",
+   "en": "St James's Cathedral",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49614946,
+   "ids": [
+    49614946
+   ],
+   "area": 1218,
+   "h": 35,
+   "x": -524,
+   "z": 73,
+   "why": [
+    "tierA"
+   ],
+   "album": "jekab"
+  },
+  {
+   "hint": null,
+   "key": "cathouse",
+   "name": "Kaķu nams",
+   "en": "Cat House",
+   "cat": "historic",
+   "tier": "A",
+   "lead": 49616370,
+   "ids": [
+    49616370,
+    49616429
+   ],
+   "area": 1154,
+   "h": 12.8,
+   "x": -275,
+   "z": 148,
+   "why": [
+    "tierA"
+   ],
+   "album": "cat"
+  },
+  {
+   "hint": null,
+   "key": "jani",
+   "name": "Svētā Jāņa baznīca",
+   "en": "St John's Church",
+   "cat": "church",
+   "tier": "A",
+   "lead": 49614438,
+   "ids": [
+    49614438
+   ],
+   "area": 1154,
+   "h": 32,
+   "x": -159,
+   "z": 441,
+   "why": [
+    "tierA"
+   ],
+   "album": "jani"
+  },
+  {
+   "hint": null,
+   "key": "occupation",
+   "name": "Okupācijas muzejs",
+   "en": "Occupation Museum",
+   "cat": "museum",
+   "tier": "A",
+   "lead": 49614381,
+   "ids": [
+    49614381
+   ],
+   "area": 1103,
+   "h": 11.6,
+   "x": -415,
+   "z": 500,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": "blackheads",
+   "name": "Melngalvju nams",
+   "en": "House of the Blackheads",
+   "cat": "historic",
+   "tier": "A",
+   "lead": 49614347,
+   "ids": [
+    49614347
+   ],
+   "area": 965,
+   "h": 21.5,
+   "x": -383,
+   "z": 493,
+   "why": [
+    "tierA"
+   ],
+   "album": "blackheads"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "LU bibliotēka",
+   "en": "University Library",
+   "cat": "school",
+   "tier": "A",
+   "lead": 49615553,
+   "ids": [
+    49615553
+   ],
+   "area": 910,
+   "h": 11.6,
+   "x": 33,
+   "z": -150,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub",
+    "album:univlib"
+   ],
+   "album": "univlib"
+  },
+  {
+   "hint": null,
+   "key": "guild-small",
+   "name": "Mazā Ģilde",
+   "en": "Small Guild",
+   "cat": "historic",
+   "tier": "A",
+   "lead": 49616364,
+   "ids": [
+    49616364
+   ],
+   "area": 684,
+   "h": 11.6,
+   "x": -321,
+   "z": 236,
+   "why": [
+    "tierA"
+   ],
+   "album": "guilds"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49615294,
+   "ids": [
+    49615294
+   ],
+   "area": 661,
+   "h": 11.6,
+   "x": 399,
+   "z": 755,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": "brothers",
+   "name": "Trīs brāļi",
+   "en": "Three Brothers",
+   "cat": "historic",
+   "tier": "A",
+   "lead": 49614971,
+   "ids": [
+    49614971,
+    49614596,
+    49615271,
+    49614187,
+    49612599,
+    49612635,
+    49612661
+   ],
+   "area": 627,
+   "h": 18,
+   "x": -554,
+   "z": 132,
+   "why": [
+    "tierA"
+   ],
+   "album": "brothers"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614852,
+   "ids": [
+    49614852
+   ],
+   "area": 625,
+   "h": 11.6,
+   "x": 227,
+   "z": 957,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614681,
+   "ids": [
+    49614681
+   ],
+   "area": 577,
+   "h": 11.6,
+   "x": 332,
+   "z": 836,
+   "why": [
+    "t:pub",
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614744,
+   "ids": [
+    49614744
+   ],
+   "area": 577,
+   "h": 11.6,
+   "x": 365,
+   "z": 795,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614657,
+   "ids": [
+    49614657
+   ],
+   "area": 576,
+   "h": 8.4,
+   "x": 199,
+   "z": 935,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spiķeru Koncertzāle",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49615082,
+   "ids": [
+    49615082
+   ],
+   "area": 558,
+   "h": 11.6,
+   "x": 72,
+   "z": 1035,
+   "why": [
+    "t:pub",
+    "osm-name",
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614792,
+   "ids": [
+    49614792
+   ],
+   "area": 555,
+   "h": 11.6,
+   "x": 299,
+   "z": 877,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": "swedish",
+   "name": "Zviedru vārti",
+   "en": "Swedish Gate",
+   "cat": "castle",
+   "tier": "A",
+   "lead": 49614979,
+   "ids": [
+    49614979,
+    49615193
+   ],
+   "area": 398,
+   "h": 11.4,
+   "x": -414,
+   "z": 6,
+   "why": [
+    "tierA"
+   ],
+   "album": "swedish"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Latviešu biedrības nams",
+   "en": "Riga Latvian Society",
+   "cat": "theatre",
+   "tier": "A",
+   "lead": 49615662,
+   "ids": [
+    49615662
+   ],
+   "area": 250,
+   "h": 13.1,
+   "x": 225,
+   "z": 170,
+   "why": [
+    "tag:amenity=community_centre",
+    "osm-name",
+    "t:pub",
+    "album:lbn"
+   ],
+   "album": "lbn"
+  },
+  {
+   "hint": null,
+   "key": "powder",
+   "name": "Pulvertornis",
+   "en": "Powder Tower",
+   "cat": "castle",
+   "tier": "A",
+   "lead": 49615275,
+   "ids": [
+    49615275
+   ],
+   "area": 173,
+   "h": 37,
+   "x": -281,
+   "z": 31,
+   "why": [
+    "tierA"
+   ],
+   "album": "powder"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mākslas akadēmija",
+   "en": "Academy of Art",
+   "cat": "school",
+   "tier": "A",
+   "lead": 49616561,
+   "ids": [
+    49616561
+   ],
+   "area": 45,
+   "h": 14.8,
+   "x": -532,
+   "z": -432,
+   "why": [
+    "album:art"
+   ],
+   "album": "art"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614972,
+   "ids": [
+    49614972
+   ],
+   "area": 17,
+   "h": 3.7,
+   "x": 246,
+   "z": 873,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49615011,
+   "ids": [
+    49615011
+   ],
+   "area": 16,
+   "h": 4.9,
+   "x": 253,
+   "z": 878,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spīķeri",
+   "en": "Spīķeri",
+   "cat": "industrial",
+   "tier": "A",
+   "lead": 49614668,
+   "ids": [
+    49614668
+   ],
+   "area": 9,
+   "h": 4.3,
+   "x": 242,
+   "z": 870,
+   "why": [
+    "album:spikeri"
+   ],
+   "album": "spikeri"
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Starptautiskais izstāžu centrs",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49639725,
+   "ids": [
+    49639725,
+    49638617
+   ],
+   "area": 19937,
+   "h": 5.2,
+   "x": -2081,
+   "z": -346,
+   "why": [
+    "tag:amenity=exhibition_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Olimpia",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49639880,
+   "ids": [
+    49639880
+   ],
+   "area": 18165,
+   "h": 8.4,
+   "x": -1867,
+   "z": 179,
+   "why": [
+    "tag:shop=mall",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Olimpiskā Skonto halle",
+   "en": null,
+   "cat": "sports",
+   "tier": "B",
+   "lead": 49618461,
+   "ids": [
+    49618461
+   ],
+   "area": 8566,
+   "h": 3.2,
+   "x": 66,
+   "z": -1143,
+   "why": [
+    "tag:leisure=stadium",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Galerija Rīga",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49619976,
+   "ids": [
+    49619976
+   ],
+   "area": 4594,
+   "h": 24.4,
+   "x": 483,
+   "z": -350,
+   "why": [
+    "tag:shop=mall",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķīpsalas peldbaseins",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49639684,
+   "ids": [
+    49639684
+   ],
+   "area": 4149,
+   "h": 8.4,
+   "x": -1724,
+   "z": -110,
+   "why": [
+    "tag:building=civic",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Izstāžu zāle Arsenāls",
+   "en": "Arsenāls Exhibition Hall",
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49614934,
+   "ids": [
+    49614934
+   ],
+   "area": 3535,
+   "h": 8.4,
+   "x": -576,
+   "z": 4,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Elektronikas un telekomunikāciju fakultāte",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49640031,
+   "ids": [
+    49640031
+   ],
+   "area": 3475,
+   "h": 5.2,
+   "x": -2036,
+   "z": 30,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Materiālzinātnes un lietišķās ķīmijas fakultāte",
+   "en": "RTU Faculty of Material Science and Applied Chemistry",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49640061,
+   "ids": [
+    49640061
+   ],
+   "area": 3290,
+   "h": 14.8,
+   "x": -2079,
+   "z": -198,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Preses nams",
+   "en": null,
+   "cat": "tower",
+   "tier": "B",
+   "lead": 49613231,
+   "ids": [
+    49613231
+   ],
+   "area": 3101,
+   "h": 37.2,
+   "x": -1728,
+   "z": 326,
+   "why": [
+    "tall",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lidl",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49622400,
+   "ids": [
+    49622400
+   ],
+   "area": 2722,
+   "h": 8.4,
+   "x": 1189,
+   "z": 417,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvenergo",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49617011,
+   "ids": [
+    49617011
+   ],
+   "area": 2612,
+   "h": 24.4,
+   "x": -433,
+   "z": -1016,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Enerģētikas un elektrotehnikas fakultāte",
+   "en": "RTU Faculty of Power and Electrical Engineering",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639996,
+   "ids": [
+    49639996
+   ],
+   "area": 2560,
+   "h": 21.2,
+   "x": -2052,
+   "z": 6,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Arhitektūras un pilsētplānošanas fakultāte",
+   "en": "RTU Faculty of Architecture and Urban Planning",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639728,
+   "ids": [
+    49639728
+   ],
+   "area": 2486,
+   "h": 18,
+   "x": -1878,
+   "z": -192,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spelet Concert Hall",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49621964,
+   "ids": [
+    49621964
+   ],
+   "area": 2471,
+   "h": 18,
+   "x": 1186,
+   "z": -965,
+   "why": [
+    "tag:amenity=events_venue",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tallink Hotel Rīga",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49614740,
+   "ids": [
+    49614740
+   ],
+   "area": 2254,
+   "h": 24.4,
+   "x": 552,
+   "z": 309,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jāzepa Vītola Latvijas mūzikas akadēmija",
+   "en": "Jāzeps Vītols Latvian Academy of Music",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616126,
+   "ids": [
+    49616126
+   ],
+   "area": 2251,
+   "h": 8.4,
+   "x": 249,
+   "z": 204,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas dzelzceļa vēstures muzejs",
+   "en": "Latvian Railway History Museum",
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49629670,
+   "ids": [
+    49629670
+   ],
+   "area": 2238,
+   "h": 5,
+   "x": -1139,
+   "z": 1177,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Islande Hotel",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49639852,
+   "ids": [
+    49639852
+   ],
+   "area": 2207,
+   "h": 30.8,
+   "x": -1779,
+   "z": 30,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Starptautiskā autoosta",
+   "en": "Riga International Coach Terminal",
+   "cat": "station",
+   "tier": "B",
+   "lead": 49614762,
+   "ids": [
+    49614762
+   ],
+   "area": 2201,
+   "h": 8.4,
+   "x": 70,
+   "z": 725,
+   "why": [
+    "tag:amenity=bus_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "JRT Black box",
+   "en": null,
+   "cat": "station",
+   "tier": "B",
+   "lead": 49620168,
+   "ids": [
+    49620168
+   ],
+   "area": 2193,
+   "h": 12.8,
+   "x": 732,
+   "z": -374,
+   "why": [
+    "tag:amenity=theatre",
+    "osm-name",
+    "tag:building=bridge",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Celtniecības Koledža",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49615009,
+   "ids": [
+    49615009
+   ],
+   "area": 2182,
+   "h": 16.3,
+   "x": 387,
+   "z": 839,
+   "why": [
+    "tag:amenity=college",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Brīvības iela 49/53",
+   "en": null,
+   "cat": "tower",
+   "tier": "B",
+   "lead": 49618861,
+   "ids": [
+    49618861
+   ],
+   "area": 2155,
+   "h": 34,
+   "x": 513,
+   "z": -615,
+   "why": [
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pullman Riga Old Town",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49615316,
+   "ids": [
+    49615316
+   ],
+   "area": 2112,
+   "h": 12.8,
+   "x": -455,
+   "z": -89,
+   "why": [
+    "tag:building=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Petroleja",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49629795,
+   "ids": [
+    49629795
+   ],
+   "area": 2056,
+   "h": 8.4,
+   "x": -1160,
+   "z": 1384,
+   "why": [
+    "tag:amenity=events_venue",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Faculty of Computer Science and Information Technology",
+   "en": "RTU Faculty of Computer Science and Information Technology",
+   "cat": "station",
+   "tier": "B",
+   "lead": 49639962,
+   "ids": [
+    49639962
+   ],
+   "area": 1943,
+   "h": 8.4,
+   "x": -2086,
+   "z": -91,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "tag:building=bridge",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valdemāra centrs",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49618512,
+   "ids": [
+    49618512
+   ],
+   "area": 1925,
+   "h": 24.4,
+   "x": 27,
+   "z": -593,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Finanšu ministrija",
+   "en": "Ministry of Finance",
+   "cat": "market",
+   "tier": "B",
+   "lead": 49616392,
+   "ids": [
+    49616392
+   ],
+   "area": 1893,
+   "h": 18,
+   "x": -408,
+   "z": 159,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Piena paviljons",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49621798,
+   "ids": [
+    49621798
+   ],
+   "area": 1890,
+   "h": 3.2,
+   "x": 1085,
+   "z": -901,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mercure Riga Centre",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49622496,
+   "ids": [
+    49622496
+   ],
+   "area": 1871,
+   "h": 22.7,
+   "x": 647,
+   "z": 442,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Grēcinieku iela 10",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49614377,
+   "ids": [
+    49614377
+   ],
+   "area": 1861,
+   "h": 14.8,
+   "x": -238,
+   "z": 545,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gaļas paviljons",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49621849,
+   "ids": [
+    49621849
+   ],
+   "area": 1829,
+   "h": 8.4,
+   "x": 1021,
+   "z": -823,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Barona centrs",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49623487,
+   "ids": [
+    49623487
+   ],
+   "area": 1821,
+   "h": 11.6,
+   "x": 879,
+   "z": -297,
+   "why": [
+    "tag:shop=mall",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mašīnzinību, transporta un aeronautikas fakultātes Laboratoriju māja",
+   "en": "Laboratory House of Faculty of Mechanical Engineering, Transport and Aeronautics",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639897,
+   "ids": [
+    49639897
+   ],
+   "area": 1812,
+   "h": 9.6,
+   "x": -1992,
+   "z": -238,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes Humanitāro zinātņu fakultāte",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49622505,
+   "ids": [
+    49622505
+   ],
+   "area": 1800,
+   "h": 9.6,
+   "x": 959,
+   "z": 385,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Avalon",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49614551,
+   "ids": [
+    49614551,
+    49614558,
+    49614556
+   ],
+   "area": 1748,
+   "h": 14.8,
+   "x": -78,
+   "z": 655,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "VAS Pasažieru vilciens",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49628163,
+   "ids": [
+    49628163
+   ],
+   "area": 1608,
+   "h": 16,
+   "x": 619,
+   "z": 696,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Republikas Ģenerālprokuratūra",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49615883,
+   "ids": [
+    49615883,
+    49615899
+   ],
+   "area": 1577,
+   "h": 14.8,
+   "x": -111,
+   "z": -274,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "VUGD RRP 1. daļa",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615321,
+   "ids": [
+    49615321,
+    49614929
+   ],
+   "area": 1550,
+   "h": 11.6,
+   "x": 282,
+   "z": 1013,
+   "why": [
+    "tag:amenity=fire_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616490,
+   "ids": [
+    49616490
+   ],
+   "area": 1533,
+   "h": 13.1,
+   "x": -605,
+   "z": -276,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skrindu iela 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49627580,
+   "ids": [
+    49627580
+   ],
+   "area": 1512,
+   "h": 9.6,
+   "x": 1110,
+   "z": 716,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Natālijas Draudziņas vidusskolas peldbaseins",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620857,
+   "ids": [
+    49620857
+   ],
+   "area": 1509,
+   "h": 14.8,
+   "x": 959,
+   "z": -616,
+   "why": [
+    "tag:building=school",
+    "tag:leisure=sports_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 65",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49618307,
+   "ids": [
+    49618307
+   ],
+   "area": 1481,
+   "h": 12.8,
+   "x": 495,
+   "z": -1098,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 24",
+   "en": null,
+   "cat": "station",
+   "tier": "B",
+   "lead": 49620086,
+   "ids": [
+    49620086
+   ],
+   "area": 1480,
+   "h": 14.8,
+   "x": 1005,
+   "z": -598,
+   "why": [
+    "tag:building=school",
+    "tag:building=bridge",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zvejnieku iela 12",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639796,
+   "ids": [
+    49639796
+   ],
+   "area": 1476,
+   "h": 6.4,
+   "x": -2045,
+   "z": -652,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "8. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621174,
+   "ids": [
+    49621174
+   ],
+   "area": 1472,
+   "h": 6.4,
+   "x": 782,
+   "z": -1155,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Tehniskā universitāte",
+   "en": "Riga Technical University",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638698,
+   "ids": [
+    49638698
+   ],
+   "area": 1429,
+   "h": 14.8,
+   "x": -1983,
+   "z": 802,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "tet",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49622280,
+   "ids": [
+    49622280
+   ],
+   "area": 1399,
+   "h": 14.8,
+   "x": 637,
+   "z": 8,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Baptistu Draudžu savienība",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49622206,
+   "ids": [
+    49622206
+   ],
+   "area": 1375,
+   "h": 9.6,
+   "x": 884,
+   "z": -210,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:building=church",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 98",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49627602,
+   "ids": [
+    49627602
+   ],
+   "area": 1362,
+   "h": 9.6,
+   "x": 1122,
+   "z": 813,
+   "why": [
+    "tag:building=school"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecā Ģertrūdes baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49619142,
+   "ids": [
+    49619142
+   ],
+   "area": 1353,
+   "h": 27.6,
+   "x": 509,
+   "z": -714,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Riverside Offices",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49627190,
+   "ids": [
+    49627190
+   ],
+   "area": 1336,
+   "h": 27.6,
+   "x": 578,
+   "z": 1322,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Inženierekonomikas un vadības fakultāte",
+   "en": "RTU Faculty of Engineering Economics and Management",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637680,
+   "ids": [
+    49637680
+   ],
+   "area": 1328,
+   "h": 21.2,
+   "x": -2094,
+   "z": 696,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "AC Hotel by Marriott Riga",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49618756,
+   "ids": [
+    49618756
+   ],
+   "area": 1314,
+   "h": 37.2,
+   "x": 4,
+   "z": -801,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalpaka bulvāris 8",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49615808,
+   "ids": [
+    49615808
+   ],
+   "area": 1297,
+   "h": 11.6,
+   "x": -152,
+   "z": -317,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas kara muzejs",
+   "en": "Latvian War Museum",
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49615127,
+   "ids": [
+    49615127
+   ],
+   "area": 1290,
+   "h": 16.3,
+   "x": -294,
+   "z": 33,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Faculty of Computer Science and Information Technology",
+   "en": "RTU Faculty of Computer Science and Information Technology",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639998,
+   "ids": [
+    49639998
+   ],
+   "area": 1278,
+   "h": 14.8,
+   "x": -2091,
+   "z": -42,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Abava",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49615015,
+   "ids": [
+    49615015
+   ],
+   "area": 1272,
+   "h": 8.4,
+   "x": 94,
+   "z": 870,
+   "why": [
+    "tag:shop=mall",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes Matemātikas un Informātikas institūts",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616064,
+   "ids": [
+    49616064
+   ],
+   "area": 1265,
+   "h": 14.8,
+   "x": 303,
+   "z": 321,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 38",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49623467,
+   "ids": [
+    49623467
+   ],
+   "area": 1255,
+   "h": 12.8,
+   "x": 832,
+   "z": -167,
+   "why": [
+    "tag:amenity=clinic",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raņķa dambis 3",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49629619,
+   "ids": [
+    49629619
+   ],
+   "area": 1254,
+   "h": 8.4,
+   "x": -1291,
+   "z": 1080,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 24B",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620199,
+   "ids": [
+    49620199
+   ],
+   "area": 1231,
+   "h": 14.8,
+   "x": 1057,
+   "z": -552,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Benjamiņu nams",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49615636,
+   "ids": [
+    49615636
+   ],
+   "area": 1208,
+   "h": 11.6,
+   "x": 427,
+   "z": 118,
+   "why": [
+    "tag:building=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Mākslinieku savienība",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49614566,
+   "ids": [
+    49614566
+   ],
+   "area": 1201,
+   "h": 18,
+   "x": -257,
+   "z": 742,
+   "why": [
+    "tag:amenity=arts_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 2",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638521,
+   "ids": [
+    49638521
+   ],
+   "area": 1194,
+   "h": 18,
+   "x": -1973,
+   "z": 695,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RISEBA",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638135,
+   "ids": [
+    49638135,
+    49637799
+   ],
+   "area": 1173,
+   "h": 14.8,
+   "x": -2030,
+   "z": 753,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Francijas vēstniecība",
+   "en": "French embassy",
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615622,
+   "ids": [
+    49615622,
+    49615865
+   ],
+   "area": 1146,
+   "h": 11.6,
+   "x": -5,
+   "z": -110,
+   "why": [
+    "tag:office=diplomatic",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mihaila Čehova Rīgas Krievu teātris",
+   "en": "Mikhail Chekhov Riga Russian Theatre",
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49614510,
+   "ids": [
+    49614510
+   ],
+   "area": 1133,
+   "h": 16,
+   "x": -226,
+   "z": 289,
+   "why": [
+    "tag:amenity=theatre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 2",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49615557,
+   "ids": [
+    49615557
+   ],
+   "area": 1132,
+   "h": 13.1,
+   "x": -365,
+   "z": -234,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sētas iela 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638105,
+   "ids": [
+    49638105
+   ],
+   "area": 1124,
+   "h": 18,
+   "x": -2016,
+   "z": 694,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "VUGD RRP 3. daļa",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49621910,
+   "ids": [
+    49621910
+   ],
+   "area": 1102,
+   "h": 11.6,
+   "x": 1076,
+   "z": -776,
+   "why": [
+    "tag:amenity=fire_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU sporta centrs",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637824,
+   "ids": [
+    49637824
+   ],
+   "area": 1060,
+   "h": 12,
+   "x": -1923,
+   "z": 757,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 1A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616307,
+   "ids": [
+    49616307
+   ],
+   "area": 1060,
+   "h": 18,
+   "x": -567,
+   "z": -228,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jēzus baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49628050,
+   "ids": [
+    49628050
+   ],
+   "area": 1033,
+   "h": 18,
+   "x": 626,
+   "z": 1105,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "tag:man_made=tower",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Visvalža iela 4",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49622645,
+   "ids": [
+    49622645
+   ],
+   "area": 1002,
+   "h": 11.6,
+   "x": 946,
+   "z": 327,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pēdējo dienu svēto Jēzus Kristus baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49618920,
+   "ids": [
+    49618920
+   ],
+   "area": 985,
+   "h": 18,
+   "x": 454,
+   "z": -718,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU studentu dienesta viesnīca",
+   "en": "RTU Student Dormitory Kipsala",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639899,
+   "ids": [
+    49639899
+   ],
+   "area": 977,
+   "h": 37.2,
+   "x": -1867,
+   "z": 74,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "7. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49620921,
+   "ids": [
+    49620921
+   ],
+   "area": 977,
+   "h": 3.2,
+   "x": 750,
+   "z": -1175,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Sāpju Dievmātes baznīca",
+   "en": "Our Lady of Sorrows Church",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49615077,
+   "ids": [
+    49615077
+   ],
+   "area": 951,
+   "h": 15.5,
+   "x": -717,
+   "z": 133,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Septītās dienas adventistu baznīca",
+   "en": "Seventh-day Adventist Church",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49619726,
+   "ids": [
+    49619726
+   ],
+   "area": 941,
+   "h": 6.4,
+   "x": 393,
+   "z": -543,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Slokas iela 1 k-2",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49629643,
+   "ids": [
+    49629643
+   ],
+   "area": 916,
+   "h": 34,
+   "x": -1982,
+   "z": 1111,
+   "why": [
+    "tag:building=hotel",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 5 k-2",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621007,
+   "ids": [
+    49621007
+   ],
+   "area": 894,
+   "h": 9.6,
+   "x": 657,
+   "z": -1040,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU studentu dienesta viesnīca",
+   "en": "RTU Student Dormitory Kipsala",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639927,
+   "ids": [
+    49639927
+   ],
+   "area": 840,
+   "h": 30.8,
+   "x": -1894,
+   "z": 28,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 11",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49618859,
+   "ids": [
+    49618859
+   ],
+   "area": 835,
+   "h": 14.8,
+   "x": 256,
+   "z": -657,
+   "why": [
+    "tag:building=university"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "M4a",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49617114,
+   "ids": [
+    49617114
+   ],
+   "area": 833,
+   "h": 24.4,
+   "x": -392,
+   "z": -971,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dannenšterna nams",
+   "en": "Dannenstern House",
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49614545,
+   "ids": [
+    49614545
+   ],
+   "area": 829,
+   "h": 17.6,
+   "x": -319,
+   "z": 643,
+   "why": [
+    "tag:historic=building",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Saeimas deputātu frakcijas un komisijas",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49614930,
+   "ids": [
+    49614930
+   ],
+   "area": 828,
+   "h": 9.6,
+   "x": -461,
+   "z": 26,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 10",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620131,
+   "ids": [
+    49620131
+   ],
+   "area": 827,
+   "h": 14.8,
+   "x": 816,
+   "z": -772,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Wellton Hotel Riga & SPA",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49614633,
+   "ids": [
+    49614633
+   ],
+   "area": 818,
+   "h": 25.9,
+   "x": 32,
+   "z": 566,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pēdējo Dienu Svēto Jēzus Kristus baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49622396,
+   "ids": [
+    49622396
+   ],
+   "area": 805,
+   "h": 9.9,
+   "x": 1191,
+   "z": 137,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pestīšanas Armija",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49620030,
+   "ids": [
+    49620030,
+    49620133
+   ],
+   "area": 800,
+   "h": 21.2,
+   "x": 827,
+   "z": -741,
+   "why": [
+    "osm-name",
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lattelecom Technology, LTT",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49618602,
+   "ids": [
+    49618602
+   ],
+   "area": 799,
+   "h": 11.6,
+   "x": -226,
+   "z": -946,
+   "why": [
+    "tag:building=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Wellton Riverside SPA Hotel",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49614594,
+   "ids": [
+    49614594
+   ],
+   "area": 765,
+   "h": 24.4,
+   "x": -322,
+   "z": 711,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU studentu viesnīca",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637887,
+   "ids": [
+    49637887
+   ],
+   "area": 764,
+   "h": 11.6,
+   "x": -2083,
+   "z": 770,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ebreju draudze \"Habad Ļubavič\"",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49627789,
+   "ids": [
+    49627789
+   ],
+   "area": 751,
+   "h": 11.6,
+   "x": 1119,
+   "z": 1105,
+   "why": [
+    "tag:building=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 11",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49618857,
+   "ids": [
+    49618857
+   ],
+   "area": 743,
+   "h": 22.7,
+   "x": 242,
+   "z": -674,
+   "why": [
+    "tag:building=university"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "10. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49620917,
+   "ids": [
+    49620917
+   ],
+   "area": 738,
+   "h": 6.4,
+   "x": 778,
+   "z": -1103,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Akas iela 10",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620083,
+   "ids": [
+    49620083
+   ],
+   "area": 708,
+   "h": 14.8,
+   "x": 753,
+   "z": -562,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Hotel Neiburgs",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49616644,
+   "ids": [
+    49616644
+   ],
+   "area": 707,
+   "h": 18,
+   "x": -469,
+   "z": 346,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "13. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621277,
+   "ids": [
+    49621277
+   ],
+   "area": 698,
+   "h": 18.3,
+   "x": 699,
+   "z": -1039,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "6. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621080,
+   "ids": [
+    49621080
+   ],
+   "area": 689,
+   "h": 13.1,
+   "x": 730,
+   "z": -1154,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Poliklīnika \"Bruņinieku\"",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49620915,
+   "ids": [
+    49620915
+   ],
+   "area": 665,
+   "h": 9.6,
+   "x": 682,
+   "z": -991,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "LKA Zirgu pasts",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49618938,
+   "ids": [
+    49618938
+   ],
+   "area": 654,
+   "h": 8.4,
+   "x": 231,
+   "z": -518,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Aspazijas bulvāris 34",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616092,
+   "ids": [
+    49616092,
+    49615750
+   ],
+   "area": 646,
+   "h": 14.8,
+   "x": 71,
+   "z": 478,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Republikas Satversmes tiesa",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49613737,
+   "ids": [
+    49613737
+   ],
+   "area": 645,
+   "h": 9.6,
+   "x": -259,
+   "z": -534,
+   "why": [
+    "tag:amenity=courthouse",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas 40. vidusskola",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49619906,
+   "ids": [
+    49619906
+   ],
+   "area": 641,
+   "h": 18,
+   "x": 520,
+   "z": -309,
+   "why": [
+    "tag:amenity=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valsts sociālās apdrošināšanas aģentūra",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49622291,
+   "ids": [
+    49622291
+   ],
+   "area": 637,
+   "h": 21.2,
+   "x": 1137,
+   "z": 140,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "25. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49620956,
+   "ids": [
+    49620956
+   ],
+   "area": 633,
+   "h": 3.2,
+   "x": 785,
+   "z": -1002,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vissvētās Dievmātes pasludināšanas baznīca",
+   "en": "Annunciation of Our Most Holy Lady Church",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49627799,
+   "ids": [
+    49627799
+   ],
+   "area": 629,
+   "h": 11.6,
+   "x": 583,
+   "z": 837,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Peitav-šul Sinagoga",
+   "en": "Peitav Synagogue",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49614645,
+   "ids": [
+    49614645
+   ],
+   "area": 629,
+   "h": 11.6,
+   "x": -163,
+   "z": 604,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "3. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621178,
+   "ids": [
+    49621178
+   ],
+   "area": 625,
+   "h": 6.4,
+   "x": 661,
+   "z": -1086,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "12. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621418,
+   "ids": [
+    49621418
+   ],
+   "area": 622,
+   "h": 6.4,
+   "x": 730,
+   "z": -1061,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Akas iela 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620065,
+   "ids": [
+    49620065
+   ],
+   "area": 620,
+   "h": 8.4,
+   "x": 609,
+   "z": -510,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "4. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621139,
+   "ids": [
+    49621139
+   ],
+   "area": 618,
+   "h": 11.6,
+   "x": 685,
+   "z": -1111,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas baptistu Vīlandes draudze",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49614999,
+   "ids": [
+    49614999
+   ],
+   "area": 606,
+   "h": 6.4,
+   "x": -711,
+   "z": -1008,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "5. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49620994,
+   "ids": [
+    49620994
+   ],
+   "area": 606,
+   "h": 13.1,
+   "x": 708,
+   "z": -1132,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Svētās Marijas Magdalēnas baznīca",
+   "en": "St. Mary Magdalen's Church",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49615201,
+   "ids": [
+    49615201
+   ],
+   "area": 594,
+   "h": 11.6,
+   "x": -575,
+   "z": 81,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Saeimas komisijas",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615149,
+   "ids": [
+    49615149
+   ],
+   "area": 593,
+   "h": 12.8,
+   "x": -462,
+   "z": 95,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "11. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621034,
+   "ids": [
+    49621034
+   ],
+   "area": 588,
+   "h": 6.4,
+   "x": 752,
+   "z": -1083,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raiņa bulvāris 23",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49615848,
+   "ids": [
+    49615848
+   ],
+   "area": 588,
+   "h": 16.3,
+   "x": 210,
+   "z": 181,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stacijas laukums 2",
+   "en": null,
+   "cat": "station",
+   "tier": "B",
+   "lead": 49615446,
+   "ids": [
+    49615446,
+    49615333
+   ],
+   "area": 569,
+   "h": 5.2,
+   "x": 365,
+   "z": 569,
+   "why": [
+    "tag:building=transportation"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas metālapstrādes profesionālā vidusskola",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49622274,
+   "ids": [
+    49622274,
+    49622250
+   ],
+   "area": 565,
+   "h": 14.8,
+   "x": 721,
+   "z": 263,
+   "why": [
+    "tag:amenity=college",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "22. korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49621378,
+   "ids": [
+    49621378
+   ],
+   "area": 558,
+   "h": 3.2,
+   "x": 830,
+   "z": -1041,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Saeimas deputātu komisijas",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615176,
+   "ids": [
+    49615176
+   ],
+   "area": 554,
+   "h": 12.8,
+   "x": -458,
+   "z": 67,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Polijas Republikas vēstniecība",
+   "en": "Embassy of the Republic of Poland",
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49617142,
+   "ids": [
+    49617142
+   ],
+   "area": 547,
+   "h": 18,
+   "x": -362,
+   "z": -965,
+   "why": [
+    "tag:office=diplomatic",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 55",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49622331,
+   "ids": [
+    49622331
+   ],
+   "area": 545,
+   "h": 8.2,
+   "x": 1036,
+   "z": -49,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Reinholda Šmēlinga vidusskola",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49615520,
+   "ids": [
+    49615520
+   ],
+   "area": 531,
+   "h": 11.6,
+   "x": 438,
+   "z": 770,
+   "why": [
+    "tag:building=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Futurimo Rīga",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638434,
+   "ids": [
+    49638434
+   ],
+   "area": 529,
+   "h": 5.2,
+   "x": -1951,
+   "z": 751,
+   "why": [
+    "tag:amenity=education_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētā Pētera un Pāvila baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49614698,
+   "ids": [
+    49614698
+   ],
+   "area": 525,
+   "h": 21.2,
+   "x": -732,
+   "z": -399,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:man_made=tower",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētās Trijādības Pārdaugavas pareizticīgo baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49636436,
+   "ids": [
+    49636436
+   ],
+   "area": 517,
+   "h": 3.2,
+   "x": -1935,
+   "z": 845,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:man_made=tower",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lietuvas vēstniecība",
+   "en": "Lithuanian embassy",
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49611845,
+   "ids": [
+    49611845
+   ],
+   "area": 496,
+   "h": 20.4,
+   "x": -552,
+   "z": -1174,
+   "why": [
+    "tag:office=diplomatic",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Paula Stradiņa Medicīnas vēstures muzeja izglītības centrs",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49616585,
+   "ids": [
+    49616585
+   ],
+   "area": 491,
+   "h": 3.2,
+   "x": -303,
+   "z": -642,
+   "why": [
+    "tag:building=yes",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "The Icon",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49615688,
+   "ids": [
+    49615688
+   ],
+   "area": 488,
+   "h": 24.4,
+   "x": 258,
+   "z": 260,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētā labticīgā Aleksandra Ņevska pareizticīgo baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49619857,
+   "ids": [
+    49619857
+   ],
+   "area": 483,
+   "h": 11.6,
+   "x": 494,
+   "z": -503,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atklāsme",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49628191,
+   "ids": [
+    49628191
+   ],
+   "area": 483,
+   "h": 9.6,
+   "x": 456,
+   "z": 1224,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Apvienotā metodistu baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49620098,
+   "ids": [
+    49620098
+   ],
+   "area": 458,
+   "h": 6.4,
+   "x": 782,
+   "z": -578,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Anglikāņu baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49614911,
+   "ids": [
+    49614911
+   ],
+   "area": 454,
+   "h": 3.2,
+   "x": -691,
+   "z": 194,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Reformātu baznīca",
+   "en": "Reformed Church of Riga",
+   "cat": "church",
+   "tier": "B",
+   "lead": 49614561,
+   "ids": [
+    49614561
+   ],
+   "area": 453,
+   "h": 6.4,
+   "x": -176,
+   "z": 565,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:heritage",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Radisson Old Town Riga",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49615478,
+   "ids": [
+    49615478
+   ],
+   "area": 452,
+   "h": 18,
+   "x": -209,
+   "z": 29,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Popova muižiņa",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49622424,
+   "ids": [
+    49622424
+   ],
+   "area": 438,
+   "h": 6.4,
+   "x": 1030,
+   "z": 454,
+   "why": [
+    "tag:historic=manor",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Saeimas komisijas un deputāti",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615251,
+   "ids": [
+    49615251
+   ],
+   "area": 411,
+   "h": 9.6,
+   "x": -465,
+   "z": 4,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Igaunijas vēstniecība",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49615322,
+   "ids": [
+    49615322
+   ],
+   "area": 395,
+   "h": 16,
+   "x": -656,
+   "z": 128,
+   "why": [
+    "tag:office=diplomatic",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Republikas Kultūras ministrija",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49616582,
+   "ids": [
+    49616582
+   ],
+   "area": 389,
+   "h": 11.6,
+   "x": -136,
+   "z": -486,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ganden",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49621133,
+   "ids": [
+    49621133
+   ],
+   "area": 387,
+   "h": 21.2,
+   "x": 1003,
+   "z": -1124,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Nacionālais rakstniecības un mūzikas muzejs",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49614546,
+   "ids": [
+    49614546
+   ],
+   "area": 375,
+   "h": 11.6,
+   "x": -153,
+   "z": 548,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Hare Krišnas centrs",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49622020,
+   "ids": [
+    49622020
+   ],
+   "area": 362,
+   "h": 11.6,
+   "x": 932,
+   "z": -356,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas 1. pamatskola-attīstības centrs",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49620076,
+   "ids": [
+    49620076
+   ],
+   "area": 354,
+   "h": 8.4,
+   "x": 637,
+   "z": -557,
+   "why": [
+    "tag:amenity=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mosaic",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49618363,
+   "ids": [
+    49618363
+   ],
+   "area": 286,
+   "h": 8.4,
+   "x": -185,
+   "z": -776,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Čehijas Republikas vēstniecība",
+   "en": "Embassy of the Czech Republic",
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49618285,
+   "ids": [
+    49618285
+   ],
+   "area": 266,
+   "h": 11.6,
+   "x": -221,
+   "z": -781,
+   "why": [
+    "tag:office=diplomatic",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gustava Šķiltera muzejs",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49638599,
+   "ids": [
+    49638599
+   ],
+   "area": 252,
+   "h": 5.2,
+   "x": -2027,
+   "z": 533,
+   "why": [
+    "tag:historic=building",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Žaņa Lipkes memoriāls",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49640026,
+   "ids": [
+    49640026
+   ],
+   "area": 235,
+   "h": 8.4,
+   "x": -1743,
+   "z": -272,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Saksofons",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49623376,
+   "ids": [
+    49623376
+   ],
+   "area": 191,
+   "h": 8.4,
+   "x": 1070,
+   "z": -428,
+   "why": [
+    "tag:amenity=arts_centre",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raiņa un Aspazijas muzejs",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49618952,
+   "ids": [
+    49618952
+   ],
+   "area": 184,
+   "h": 8.4,
+   "x": 651,
+   "z": -856,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mencendorfa nams",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49614372,
+   "ids": [
+    49614372
+   ],
+   "area": 153,
+   "h": 11.6,
+   "x": -306,
+   "z": 528,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rāmera tornis",
+   "en": null,
+   "cat": "castle",
+   "tier": "B",
+   "lead": 49611828,
+   "ids": [
+    49611828
+   ],
+   "area": 93,
+   "h": 18.4,
+   "x": -366,
+   "z": 14,
+   "why": [
+    "tag:man_made=tower",
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Emiļa Melngaiļa iela 1A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618793,
+   "ids": [
+    49618793
+   ],
+   "area": 5103,
+   "h": 3.2,
+   "x": 172,
+   "z": -1120,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vernisāža",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615659,
+   "ids": [
+    49615659
+   ],
+   "area": 4386,
+   "h": 8.4,
+   "x": 206,
+   "z": -73,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķīpsalas iela 6A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639790,
+   "ids": [
+    49639790
+   ],
+   "area": 4017,
+   "h": 18,
+   "x": -1946,
+   "z": -142,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 10",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629776,
+   "ids": [
+    49629776
+   ],
+   "area": 3738,
+   "h": 8.4,
+   "x": -1364,
+   "z": 1410,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "20. korpuss",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621422,
+   "ids": [
+    49621422
+   ],
+   "area": 3429,
+   "h": 3.2,
+   "x": 879,
+   "z": -1142,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes Ekonomikas un sociālo zinātņu fakultāte",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615764,
+   "ids": [
+    49615764
+   ],
+   "area": 3295,
+   "h": 18,
+   "x": 136,
+   "z": 411,
+   "why": [
+    "t:pub",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaļķu iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616622,
+   "ids": [
+    49616622
+   ],
+   "area": 3053,
+   "h": 14.8,
+   "x": -498,
+   "z": 451,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raiņa bulvāris 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615973,
+   "ids": [
+    49615973
+   ],
+   "area": 2800,
+   "h": 6.4,
+   "x": -33,
+   "z": -151,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 65",
+   "en": null,
+   "cat": "sports",
+   "tier": "C",
+   "lead": 49618720,
+   "ids": [
+    49618720
+   ],
+   "area": 2727,
+   "h": 3.2,
+   "x": 450,
+   "z": -1124,
+   "why": [
+    "tag:leisure=sports_centre",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķīpsalas iela 6B",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639842,
+   "ids": [
+    49639842
+   ],
+   "area": 2375,
+   "h": 18,
+   "x": -1989,
+   "z": -152,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Eksporta iela 1A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616607,
+   "ids": [
+    49616607
+   ],
+   "area": 2338,
+   "h": 6.4,
+   "x": -947,
+   "z": -775,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614690,
+   "ids": [
+    49614690
+   ],
+   "area": 2332,
+   "h": 9.6,
+   "x": -426,
+   "z": -313,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Slokas iela 1 k-1",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49629684,
+   "ids": [
+    49629684
+   ],
+   "area": 2067,
+   "h": 8.4,
+   "x": -1935,
+   "z": 1095,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rātslaukums 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614380,
+   "ids": [
+    49614380
+   ],
+   "area": 1925,
+   "h": 3.2,
+   "x": -380,
+   "z": 455,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skrindu iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627413,
+   "ids": [
+    49627413
+   ],
+   "area": 1810,
+   "h": 3.2,
+   "x": 1071,
+   "z": 733,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Palasta iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616566,
+   "ids": [
+    49616566
+   ],
+   "area": 1790,
+   "h": 11.6,
+   "x": -523,
+   "z": 318,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 1C",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614713,
+   "ids": [
+    49614713
+   ],
+   "area": 1686,
+   "h": 11.6,
+   "x": -562,
+   "z": -170,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Visvalža iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622590,
+   "ids": [
+    49622590
+   ],
+   "area": 1619,
+   "h": 8.4,
+   "x": 1125,
+   "z": 412,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Barona iela 31",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619935,
+   "ids": [
+    49619935
+   ],
+   "area": 1606,
+   "h": 8.4,
+   "x": 748,
+   "z": -250,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Marijas iela 21",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622255,
+   "ids": [
+    49622255
+   ],
+   "area": 1571,
+   "h": 6.4,
+   "x": 714,
+   "z": 57,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616499,
+   "ids": [
+    49616499
+   ],
+   "area": 1565,
+   "h": 6.4,
+   "x": -854,
+   "z": -739,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pulkveža Brieža iela 25",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615169,
+   "ids": [
+    49615169
+   ],
+   "area": 1456,
+   "h": 14.8,
+   "x": -491,
+   "z": -1191,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Riharda Vāgnera iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614409,
+   "ids": [
+    49614409
+   ],
+   "area": 1452,
+   "h": 9.6,
+   "x": -153,
+   "z": 260,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 12",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629595,
+   "ids": [
+    49629595
+   ],
+   "area": 1421,
+   "h": 8.4,
+   "x": -1346,
+   "z": 1489,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lenču iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49617035,
+   "ids": [
+    49617035
+   ],
+   "area": 1318,
+   "h": 14.8,
+   "x": -120,
+   "z": -1119,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaļķu iela 28",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49615861,
+   "ids": [
+    49615861
+   ],
+   "area": 1317,
+   "h": 21.2,
+   "x": -99,
+   "z": 185,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 5 k-23",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621384,
+   "ids": [
+    49621384
+   ],
+   "area": 1297,
+   "h": 6.4,
+   "x": 879,
+   "z": -988,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Brīvības bulvāris 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615705,
+   "ids": [
+    49615705
+   ],
+   "area": 1204,
+   "h": 18,
+   "x": 116,
+   "z": -63,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pulkveža Brieža iela 11A",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49615020,
+   "ids": [
+    49615020,
+    49615374
+   ],
+   "area": 1168,
+   "h": 19.2,
+   "x": -528,
+   "z": -1007,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "BluOr Banka",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615219,
+   "ids": [
+    49615219
+   ],
+   "area": 1164,
+   "h": 16,
+   "x": -430,
+   "z": 97,
+   "why": [
+    "tag:amenity=bank",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skārņu iela 10",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614492,
+   "ids": [
+    49614492
+   ],
+   "area": 1142,
+   "h": 16.3,
+   "x": -217,
+   "z": 389,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Barona iela 16/18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623491,
+   "ids": [
+    49623491
+   ],
+   "area": 1124,
+   "h": 6.4,
+   "x": 519,
+   "z": 47,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaļķu iela 24",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614484,
+   "ids": [
+    49614484
+   ],
+   "area": 1105,
+   "h": 12.8,
+   "x": -139,
+   "z": 222,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sporta iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618797,
+   "ids": [
+    49618797
+   ],
+   "area": 1102,
+   "h": 5.2,
+   "x": 277,
+   "z": -1177,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raiņa bulvāris 33",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49615702,
+   "ids": [
+    49615702
+   ],
+   "area": 1099,
+   "h": 19.5,
+   "x": 336,
+   "z": 392,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Andrejostas iela 5 k-3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615189,
+   "ids": [
+    49615189
+   ],
+   "area": 1092,
+   "h": 3.2,
+   "x": -1036,
+   "z": -1121,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernesta Birznieka-Upīša iela 21E",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622362,
+   "ids": [
+    49622362
+   ],
+   "area": 1085,
+   "h": 14.8,
+   "x": 988,
+   "z": 155,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes iela 83/85",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49622359,
+   "ids": [
+    49622359
+   ],
+   "area": 1073,
+   "h": 14.8,
+   "x": 553,
+   "z": 121,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618941,
+   "ids": [
+    49618941
+   ],
+   "area": 1057,
+   "h": 8.4,
+   "x": 155,
+   "z": -476,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalēju iela 33",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614563,
+   "ids": [
+    49614563
+   ],
+   "area": 1035,
+   "h": 17.8,
+   "x": -44,
+   "z": 513,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Palasta iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616536,
+   "ids": [
+    49616536
+   ],
+   "area": 1023,
+   "h": 12.8,
+   "x": -583,
+   "z": 356,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 6",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618960,
+   "ids": [
+    49618960
+   ],
+   "area": 1009,
+   "h": 14.8,
+   "x": 206,
+   "z": -529,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lastādijas iela 5",
+   "en": null,
+   "cat": "tower",
+   "tier": "C",
+   "lead": 49614956,
+   "ids": [
+    49614956
+   ],
+   "area": 999,
+   "h": 3.2,
+   "x": 344,
+   "z": 1039,
+   "why": [
+    "tag:man_made=tower"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Grēcinieku iela 25",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614353,
+   "ids": [
+    49614353
+   ],
+   "area": 985,
+   "h": 21.2,
+   "x": -351,
+   "z": 509,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Marijas iela 7",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615715,
+   "ids": [
+    49615715
+   ],
+   "area": 961,
+   "h": 18,
+   "x": 468,
+   "z": 279,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Citadeles iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616058,
+   "ids": [
+    49616058
+   ],
+   "area": 955,
+   "h": 8.4,
+   "x": -771,
+   "z": -420,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 106 k-1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627478,
+   "ids": [
+    49627478
+   ],
+   "area": 939,
+   "h": 18,
+   "x": 1056,
+   "z": 969,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Visvalža iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622384,
+   "ids": [
+    49622384
+   ],
+   "area": 930,
+   "h": 14.8,
+   "x": 1105,
+   "z": 428,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pils laukums 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614907,
+   "ids": [
+    49614907
+   ],
+   "area": 928,
+   "h": 11.6,
+   "x": -644,
+   "z": 27,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619128,
+   "ids": [
+    49619128
+   ],
+   "area": 907,
+   "h": 18,
+   "x": 553,
+   "z": -898,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ausekļa iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615360,
+   "ids": [
+    49615360
+   ],
+   "area": 899,
+   "h": 18,
+   "x": -829,
+   "z": -1103,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alberta iela 13",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618813,
+   "ids": [
+    49618813
+   ],
+   "area": 899,
+   "h": 21.2,
+   "x": -315,
+   "z": -862,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 6",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616531,
+   "ids": [
+    49616531
+   ],
+   "area": 890,
+   "h": 18,
+   "x": -749,
+   "z": -737,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Barona iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615980,
+   "ids": [
+    49615980
+   ],
+   "area": 889,
+   "h": 16,
+   "x": 303,
+   "z": 226,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baznīcas iela 19/23",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619001,
+   "ids": [
+    49619001
+   ],
+   "area": 854,
+   "h": 17.8,
+   "x": 371,
+   "z": -614,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 106",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627540,
+   "ids": [
+    49627540
+   ],
+   "area": 851,
+   "h": 18,
+   "x": 1058,
+   "z": 916,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elijas iela 17A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629078,
+   "ids": [
+    49629078
+   ],
+   "area": 844,
+   "h": 6.4,
+   "x": 846,
+   "z": 1152,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 106 k-2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627535,
+   "ids": [
+    49627535
+   ],
+   "area": 841,
+   "h": 18,
+   "x": 1019,
+   "z": 946,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tērbatas iela 30",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619967,
+   "ids": [
+    49619967
+   ],
+   "area": 841,
+   "h": 18,
+   "x": 650,
+   "z": -352,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615811,
+   "ids": [
+    49615811
+   ],
+   "area": 840,
+   "h": 18,
+   "x": -766,
+   "z": -771,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Marijas iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614656,
+   "ids": [
+    49614656
+   ],
+   "area": 820,
+   "h": 18,
+   "x": 508,
+   "z": 320,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Abrenes iela 15",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627571,
+   "ids": [
+    49627571
+   ],
+   "area": 801,
+   "h": 16.9,
+   "x": 1084,
+   "z": 822,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alberta iela 10",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618295,
+   "ids": [
+    49618295
+   ],
+   "area": 800,
+   "h": 14.8,
+   "x": -248,
+   "z": -878,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raņķa dambis 14",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638473,
+   "ids": [
+    49638473
+   ],
+   "area": 787,
+   "h": 18,
+   "x": -1813,
+   "z": 724,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619792,
+   "ids": [
+    49619792
+   ],
+   "area": 783,
+   "h": 21.2,
+   "x": 707,
+   "z": -892,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes iela 61",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620006,
+   "ids": [
+    49620006
+   ],
+   "area": 774,
+   "h": 8.4,
+   "x": 361,
+   "z": -230,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 5",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619780,
+   "ids": [
+    49619780
+   ],
+   "area": 764,
+   "h": 18,
+   "x": 170,
+   "z": -570,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Blaumaņa iela 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622239,
+   "ids": [
+    49622239
+   ],
+   "area": 738,
+   "h": 21.2,
+   "x": 727,
+   "z": -64,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Strēlnieku iela 4A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618371,
+   "ids": [
+    49618371
+   ],
+   "area": 737,
+   "h": 5.2,
+   "x": -336,
+   "z": -841,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Aspazijas bulvāris 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616143,
+   "ids": [
+    49616143
+   ],
+   "area": 734,
+   "h": 12.8,
+   "x": 56,
+   "z": 440,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zirgu iela 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616435,
+   "ids": [
+    49616435
+   ],
+   "area": 731,
+   "h": 9.6,
+   "x": -216,
+   "z": 175,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Grēcinieku iela 34",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614387,
+   "ids": [
+    49614387
+   ],
+   "area": 718,
+   "h": 18,
+   "x": -434,
+   "z": 588,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ukrainas neatkarības iela 2",
+   "en": null,
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49614201,
+   "ids": [
+    49614201
+   ],
+   "area": 713,
+   "h": 12.8,
+   "x": -287,
+   "z": -570,
+   "why": [
+    "tag:building=government"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ukrainas neatkarības iela 1",
+   "en": null,
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49616363,
+   "ids": [
+    49616363
+   ],
+   "area": 705,
+   "h": 12.8,
+   "x": -316,
+   "z": -617,
+   "why": [
+    "tag:building=government",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baznīcas iela 4A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619148,
+   "ids": [
+    49619148
+   ],
+   "area": 698,
+   "h": 18,
+   "x": 283,
+   "z": -451,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Noliktavas iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616567,
+   "ids": [
+    49616567
+   ],
+   "area": 691,
+   "h": 11.6,
+   "x": -601,
+   "z": -185,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Antonijas iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616208,
+   "ids": [
+    49616208
+   ],
+   "area": 687,
+   "h": 16.3,
+   "x": -207,
+   "z": -711,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "13. janvāra iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616104,
+   "ids": [
+    49616104
+   ],
+   "area": 679,
+   "h": 21.2,
+   "x": 64,
+   "z": 544,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Noliktavas iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616200,
+   "ids": [
+    49616200
+   ],
+   "area": 675,
+   "h": 8.4,
+   "x": -620,
+   "z": -223,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kungu iela 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614527,
+   "ids": [
+    49614527
+   ],
+   "area": 671,
+   "h": 8.4,
+   "x": -208,
+   "z": 623,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vingrotāju iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616484,
+   "ids": [
+    49616484
+   ],
+   "area": 669,
+   "h": 18,
+   "x": -434,
+   "z": -378,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Abrenes iela 15",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627422,
+   "ids": [
+    49627422
+   ],
+   "area": 668,
+   "h": 18,
+   "x": 1114,
+   "z": 800,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Šķūņu iela 17",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49613495,
+   "ids": [
+    49613495
+   ],
+   "area": 656,
+   "h": 9.6,
+   "x": -382,
+   "z": 211,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baznīcas iela 18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618958,
+   "ids": [
+    49618958
+   ],
+   "area": 644,
+   "h": 9.6,
+   "x": 477,
+   "z": -637,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 43",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623453,
+   "ids": [
+    49623453
+   ],
+   "area": 639,
+   "h": 21.2,
+   "x": 943,
+   "z": -158,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gaiziņa iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614663,
+   "ids": [
+    49614663
+   ],
+   "area": 629,
+   "h": 6.4,
+   "x": 404,
+   "z": 860,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stabu iela 10 k-4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619735,
+   "ids": [
+    49619735
+   ],
+   "area": 627,
+   "h": 22.4,
+   "x": 600,
+   "z": -761,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ģertrūdes iela 48A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623651,
+   "ids": [
+    49623651
+   ],
+   "area": 611,
+   "h": 16.3,
+   "x": 1050,
+   "z": -133,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 26",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619746,
+   "ids": [
+    49619746
+   ],
+   "area": 598,
+   "h": 16,
+   "x": 246,
+   "z": -746,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dzirnavu iela 147 k-3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627469,
+   "ids": [
+    49627469
+   ],
+   "area": 596,
+   "h": 6.4,
+   "x": 900,
+   "z": 890,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārstaļu iela 19",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614607,
+   "ids": [
+    49614607
+   ],
+   "area": 594,
+   "h": 11.6,
+   "x": -298,
+   "z": 628,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skrindu iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627429,
+   "ids": [
+    49627429
+   ],
+   "area": 588,
+   "h": 3.2,
+   "x": 1124,
+   "z": 758,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Minsterejas iela 1",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614638,
+   "ids": [
+    49614638
+   ],
+   "area": 577,
+   "h": 19.2,
+   "x": -286,
+   "z": 697,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Maiznīcas iela 5",
+   "en": null,
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49621150,
+   "ids": [
+    49621150
+   ],
+   "area": 576,
+   "h": 6.4,
+   "x": 923,
+   "z": -1067,
+   "why": [
+    "tag:building=government"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes iela 65",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619877,
+   "ids": [
+    49619877
+   ],
+   "area": 571,
+   "h": 21.2,
+   "x": 407,
+   "z": -145,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Brīvības iela 96",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621749,
+   "ids": [
+    49621749
+   ],
+   "area": 560,
+   "h": 8.4,
+   "x": 1147,
+   "z": -1006,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Barona iela 20",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623653,
+   "ids": [
+    49623653
+   ],
+   "area": 527,
+   "h": 18,
+   "x": 536,
+   "z": 20,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Anglikāņu iela 5",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615165,
+   "ids": [
+    49615165
+   ],
+   "area": 526,
+   "h": 9.6,
+   "x": -706,
+   "z": 168,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629597,
+   "ids": [
+    49629597
+   ],
+   "area": 518,
+   "h": 11.6,
+   "x": -1251,
+   "z": 1195,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Barona iela 5",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619889,
+   "ids": [
+    49619889
+   ],
+   "area": 516,
+   "h": 18,
+   "x": 498,
+   "z": -21,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Paula Valdena iela 3 k-1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639926,
+   "ids": [
+    49639926
+   ],
+   "area": 513,
+   "h": 9.6,
+   "x": -2041,
+   "z": -138,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dzirnavu iela 117",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622273,
+   "ids": [
+    49622273
+   ],
+   "area": 507,
+   "h": 6.4,
+   "x": 732,
+   "z": 272,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalēju iela 49",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614582,
+   "ids": [
+    49614582
+   ],
+   "area": 482,
+   "h": 16.3,
+   "x": -41,
+   "z": 576,
+   "why": [
+    "tag:historic=yes",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Miesnieku iela 11",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49615186,
+   "ids": [
+    49615186
+   ],
+   "area": 480,
+   "h": 14.8,
+   "x": -653,
+   "z": 194,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jauniela 24",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49616638,
+   "ids": [
+    49616638
+   ],
+   "area": 477,
+   "h": 14.8,
+   "x": -504,
+   "z": 351,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dzirnavu iela 23",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618699,
+   "ids": [
+    49618699
+   ],
+   "area": 471,
+   "h": 9.9,
+   "x": -136,
+   "z": -929,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Audēju iela 7",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614540,
+   "ids": [
+    49614540
+   ],
+   "area": 469,
+   "h": 11.6,
+   "x": -86,
+   "z": 524,
+   "why": [
+    "tag:historic=yes",
+    "tag:heritage"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āzenes iela 12 k-4",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49639103,
+   "ids": [
+    49639103
+   ],
+   "area": 458,
+   "h": 8.4,
+   "x": -2005,
+   "z": 68,
+   "why": [
+    "tag:building=university"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 3A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619695,
+   "ids": [
+    49619695
+   ],
+   "area": 455,
+   "h": 6.4,
+   "x": 156,
+   "z": -561,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernesta Birznieka-Upīša iela 12",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622391,
+   "ids": [
+    49622391
+   ],
+   "area": 450,
+   "h": 12.8,
+   "x": 848,
+   "z": 288,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 3A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616570,
+   "ids": [
+    49616570
+   ],
+   "area": 448,
+   "h": 5.2,
+   "x": -651,
+   "z": -402,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 125",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627542,
+   "ids": [
+    49627542
+   ],
+   "area": 446,
+   "h": 9.6,
+   "x": 1172,
+   "z": 859,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernesta Birznieka-Upīša iela 20",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49622617,
+   "ids": [
+    49622617
+   ],
+   "area": 442,
+   "h": 11.6,
+   "x": 963,
+   "z": 257,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 60",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622281,
+   "ids": [
+    49622281
+   ],
+   "area": 429,
+   "h": 9.6,
+   "x": 1052,
+   "z": 20,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jauniela 26",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616516,
+   "ids": [
+    49616516
+   ],
+   "area": 425,
+   "h": 18,
+   "x": -519,
+   "z": 364,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ģertrūdes iela 18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620059,
+   "ids": [
+    49620059
+   ],
+   "area": 419,
+   "h": 5.2,
+   "x": 623,
+   "z": -543,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecpilsētas iela 3",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614579,
+   "ids": [
+    49614579
+   ],
+   "area": 418,
+   "h": 19.2,
+   "x": -117,
+   "z": 522,
+   "why": [
+    "tag:historic=yes"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Herdera laukums 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49613383,
+   "ids": [
+    49613383
+   ],
+   "area": 414,
+   "h": 8.4,
+   "x": -558,
+   "z": 296,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jēzusbaznīcas iela 6",
+   "en": null,
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49627865,
+   "ids": [
+    49627865
+   ],
+   "area": 412,
+   "h": 19.2,
+   "x": 501,
+   "z": 1286,
+   "why": [
+    "tag:amenity=courthouse"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Visvalža iela 2",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49622429,
+   "ids": [
+    49622429
+   ],
+   "area": 411,
+   "h": 8.4,
+   "x": 931,
+   "z": 290,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 41",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623563,
+   "ids": [
+    49623563
+   ],
+   "area": 411,
+   "h": 16,
+   "x": 914,
+   "z": -167,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes iela 83",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623692,
+   "ids": [
+    49623692
+   ],
+   "area": 410,
+   "h": 8.4,
+   "x": 531,
+   "z": 110,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ģertrūdes iela 32",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620778,
+   "ids": [
+    49620778
+   ],
+   "area": 404,
+   "h": 18,
+   "x": 775,
+   "z": -357,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Avotu iela 23A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623603,
+   "ids": [
+    49623603
+   ],
+   "area": 395,
+   "h": 8.4,
+   "x": 1111,
+   "z": 89,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ģertrūdes iela 28",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620093,
+   "ids": [
+    49620093
+   ],
+   "area": 392,
+   "h": 9.6,
+   "x": 767,
+   "z": -421,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lastādijas iela 40",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49628400,
+   "ids": [
+    49628400
+   ],
+   "area": 380,
+   "h": 18,
+   "x": 564,
+   "z": 1279,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalpaka bulvāris 13",
+   "en": null,
+   "cat": "theatre",
+   "tier": "C",
+   "lead": 49615805,
+   "ids": [
+    49615805
+   ],
+   "area": 375,
+   "h": 6.4,
+   "x": -77,
+   "z": -383,
+   "why": [
+    "tag:amenity=arts_centre",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Klostera iela 4",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49615014,
+   "ids": [
+    49615014
+   ],
+   "area": 375,
+   "h": 11.6,
+   "x": -587,
+   "z": 71,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pils iela 5",
+   "en": null,
+   "cat": "tower",
+   "tier": "C",
+   "lead": 49615139,
+   "ids": [
+    49615139
+   ],
+   "area": 373,
+   "h": 8.4,
+   "x": -737,
+   "z": 116,
+   "why": [
+    "tag:man_made=tower"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 27",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620123,
+   "ids": [
+    49620123
+   ],
+   "area": 368,
+   "h": 12.8,
+   "x": 752,
+   "z": -351,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Riharda Vāgnera iela 13",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614407,
+   "ids": [
+    49614407
+   ],
+   "area": 367,
+   "h": 8.4,
+   "x": -108,
+   "z": 343,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lastādijas iela 58",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49628456,
+   "ids": [
+    49628456
+   ],
+   "area": 367,
+   "h": 6.4,
+   "x": 783,
+   "z": 1311,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Aspazijas bulvāris 36",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49615680,
+   "ids": [
+    49615680
+   ],
+   "area": 362,
+   "h": 12.8,
+   "x": 80,
+   "z": 505,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 9",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49616528,
+   "ids": [
+    49616528
+   ],
+   "area": 360,
+   "h": 5.2,
+   "x": -824,
+   "z": -702,
+   "why": [
+    "tag:historic=building",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ogļu iela 12A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639857,
+   "ids": [
+    49639857
+   ],
+   "area": 360,
+   "h": 8.4,
+   "x": -1827,
+   "z": -616,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Maiznīcas iela 5",
+   "en": null,
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49621285,
+   "ids": [
+    49621285
+   ],
+   "area": 358,
+   "h": 18,
+   "x": 941,
+   "z": -1076,
+   "why": [
+    "tag:building=civic"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Strūgu iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49628696,
+   "ids": [
+    49628696
+   ],
+   "area": 352,
+   "h": 9.6,
+   "x": 888,
+   "z": 1109,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tērbatas iela 36",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620102,
+   "ids": [
+    49620102
+   ],
+   "area": 348,
+   "h": 8.4,
+   "x": 727,
+   "z": -398,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kārļa Mīlenbaha iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627614,
+   "ids": [
+    49627614
+   ],
+   "area": 345,
+   "h": 18,
+   "x": 369,
+   "z": 1215,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārstaļu iela 32",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614560,
+   "ids": [
+    49614560
+   ],
+   "area": 338,
+   "h": 16,
+   "x": -308,
+   "z": 690,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skolas iela 22",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619081,
+   "ids": [
+    49619081
+   ],
+   "area": 337,
+   "h": 18,
+   "x": 399,
+   "z": -742,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Amatu iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616376,
+   "ids": [
+    49616376
+   ],
+   "area": 334,
+   "h": 14.8,
+   "x": -336,
+   "z": 242,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Emīlijas Benjamiņas iela 11",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627968,
+   "ids": [
+    49627968
+   ],
+   "area": 333,
+   "h": 6.4,
+   "x": 618,
+   "z": 874,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krišjāņa Valdemāra iela 41",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618338,
+   "ids": [
+    49618338
+   ],
+   "area": 329,
+   "h": 3.2,
+   "x": 244,
+   "z": -803,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Doma laukums 1",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49616504,
+   "ids": [
+    49616504
+   ],
+   "area": 326,
+   "h": 12.8,
+   "x": -609,
+   "z": 261,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Enkura iela 9",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49639713,
+   "ids": [
+    49639713
+   ],
+   "area": 325,
+   "h": 9.6,
+   "x": -2065,
+   "z": -753,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 9",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49616496,
+   "ids": [
+    49616496
+   ],
+   "area": 323,
+   "h": 6.4,
+   "x": -883,
+   "z": -702,
+   "why": [
+    "tag:historic=building",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dzirnavu iela 29",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618380,
+   "ids": [
+    49618380
+   ],
+   "area": 317,
+   "h": 12.8,
+   "x": -77,
+   "z": -896,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 11",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637752,
+   "ids": [
+    49637752
+   ],
+   "area": 316,
+   "h": 8.4,
+   "x": -2065,
+   "z": 510,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Strēlnieku iela 4 k-2",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49618783,
+   "ids": [
+    49618783
+   ],
+   "area": 315,
+   "h": 18,
+   "x": -313,
+   "z": -830,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Blaumaņa iela 19",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623575,
+   "ids": [
+    49623575
+   ],
+   "area": 314,
+   "h": 8.4,
+   "x": 736,
+   "z": -132,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Matīsa iela 16",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621949,
+   "ids": [
+    49621949
+   ],
+   "area": 313,
+   "h": 18,
+   "x": 1087,
+   "z": -662,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kronvalda bulvāris 5",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616023,
+   "ids": [
+    49616023
+   ],
+   "area": 310,
+   "h": 6.4,
+   "x": -745,
+   "z": -520,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaņepes kultūras centrs",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49619778,
+   "ids": [
+    49619778
+   ],
+   "area": 309,
+   "h": 11.6,
+   "x": 339,
+   "z": -730,
+   "why": [
+    "t:pub",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Pils iela 4",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49615243,
+   "ids": [
+    49615243
+   ],
+   "area": 305,
+   "h": 6.4,
+   "x": -534,
+   "z": 103,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "24. korpuss",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621406,
+   "ids": [
+    49621406
+   ],
+   "area": 302,
+   "h": 17.6,
+   "x": 807,
+   "z": -1022,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tērbatas iela 2D",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616213,
+   "ids": [
+    49616213
+   ],
+   "area": 296,
+   "h": 8.4,
+   "x": 366,
+   "z": -76,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vaļņu iela 23",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614481,
+   "ids": [
+    49614481
+   ],
+   "area": 281,
+   "h": 11.6,
+   "x": -83,
+   "z": 272,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kārļa Mīlenbaha iela 18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49627796,
+   "ids": [
+    49627796
+   ],
+   "area": 279,
+   "h": 8.4,
+   "x": 611,
+   "z": 973,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 16 k-1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620807,
+   "ids": [
+    49620807
+   ],
+   "area": 276,
+   "h": 5.2,
+   "x": 894,
+   "z": -707,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bārddziņu iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49628915,
+   "ids": [
+    49628915
+   ],
+   "area": 273,
+   "h": 3.2,
+   "x": 1150,
+   "z": 1387,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krāmu iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616661,
+   "ids": [
+    49616661
+   ],
+   "area": 272,
+   "h": 16.3,
+   "x": -451,
+   "z": 316,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": "chimney",
+   "key": null,
+   "name": "Matīsa iela 8",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49621914,
+   "ids": [
+    49621914
+   ],
+   "area": 269,
+   "h": 3.2,
+   "x": 1014,
+   "z": -760,
+   "why": [
+    "tag:man_made=chimney"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 35A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621986,
+   "ids": [
+    49621986
+   ],
+   "area": 255,
+   "h": 3.2,
+   "x": 1106,
+   "z": -612,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalēju iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614412,
+   "ids": [
+    49614412
+   ],
+   "area": 253,
+   "h": 8.4,
+   "x": -214,
+   "z": 301,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Šķūņu iela 4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614679,
+   "ids": [
+    49614679
+   ],
+   "area": 248,
+   "h": 12.8,
+   "x": -342,
+   "z": 322,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecpilsētas iela 8A",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614598,
+   "ids": [
+    49614598
+   ],
+   "area": 246,
+   "h": 16.1,
+   "x": -82,
+   "z": 556,
+   "why": [
+    "tag:historic=yes"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes nams",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49618811,
+   "ids": [
+    49618811
+   ],
+   "area": 241,
+   "h": 8.4,
+   "x": -280,
+   "z": -764,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabete",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49617130,
+   "ids": [
+    49617130
+   ],
+   "area": 238,
+   "h": 16,
+   "x": -399,
+   "z": -1098,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Marijas iela 13",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623530,
+   "ids": [
+    49623530
+   ],
+   "area": 235,
+   "h": 9.6,
+   "x": 554,
+   "z": 88,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Skārņu iela 25",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614392,
+   "ids": [
+    49614392
+   ],
+   "area": 231,
+   "h": 14.8,
+   "x": -172,
+   "z": 468,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Šķūņu iela 9",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49616341,
+   "ids": [
+    49616341
+   ],
+   "area": 229,
+   "h": 11.6,
+   "x": -333,
+   "z": 273,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alksnāja iela 3",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49614623,
+   "ids": [
+    49614623
+   ],
+   "area": 228,
+   "h": 9.6,
+   "x": -163,
+   "z": 584,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecpilsētas iela 7",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614557,
+   "ids": [
+    49614557
+   ],
+   "area": 225,
+   "h": 9.6,
+   "x": -132,
+   "z": 553,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zvejnieku iela 1 k-14",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639714,
+   "ids": [
+    49639714
+   ],
+   "area": 224,
+   "h": 6.4,
+   "x": -1942,
+   "z": -713,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Forums",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614562,
+   "ids": [
+    49614562
+   ],
+   "area": 222,
+   "h": 18,
+   "x": 25,
+   "z": 541,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ģertrūdes iela 27",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620788,
+   "ids": [
+    49620788
+   ],
+   "area": 220,
+   "h": 21.2,
+   "x": 755,
+   "z": -526,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārstaļu iela 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614619,
+   "ids": [
+    49614619
+   ],
+   "area": 215,
+   "h": 11.6,
+   "x": -167,
+   "z": 547,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecpilsētas iela 5",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614517,
+   "ids": [
+    49614517
+   ],
+   "area": 214,
+   "h": 16,
+   "x": -120,
+   "z": 543,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Avotu iela 19",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49623654,
+   "ids": [
+    49623654
+   ],
+   "area": 214,
+   "h": 8.4,
+   "x": 1037,
+   "z": 66,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elizabetes iela 31",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618781,
+   "ids": [
+    49618781
+   ],
+   "area": 212,
+   "h": 11.6,
+   "x": -199,
+   "z": -779,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ola rezidence",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49693937,
+   "ids": [
+    49693937
+   ],
+   "area": 212,
+   "h": 8.4,
+   "x": -1863,
+   "z": -623,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Balasta dambis 56",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639952,
+   "ids": [
+    49639952
+   ],
+   "area": 208,
+   "h": 5.2,
+   "x": -1722,
+   "z": -383,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vecpilsētas iela 13/15",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614532,
+   "ids": [
+    49614532
+   ],
+   "area": 200,
+   "h": 9.6,
+   "x": -107,
+   "z": 570,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ukrainas neatkarības iela 4A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616150,
+   "ids": [
+    49616150
+   ],
+   "area": 199,
+   "h": 9.6,
+   "x": -249,
+   "z": -577,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alksnāja iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49614504,
+   "ids": [
+    49614504
+   ],
+   "area": 195,
+   "h": 9.6,
+   "x": -128,
+   "z": 605,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Riverside Hotel",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49627740,
+   "ids": [
+    49627740
+   ],
+   "area": 193,
+   "h": 14.8,
+   "x": 1119,
+   "z": 1152,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Aldaru iela 7",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49614157,
+   "ids": [
+    49614157
+   ],
+   "area": 189,
+   "h": 14.8,
+   "x": -441,
+   "z": 55,
+   "why": [
+    "tag:historic=yes"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Klostera iela 4",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49616572,
+   "ids": [
+    49616572
+   ],
+   "area": 189,
+   "h": 8.4,
+   "x": -566,
+   "z": 62,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārstaļu iela 5",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614635,
+   "ids": [
+    49614635
+   ],
+   "area": 184,
+   "h": 16,
+   "x": -210,
+   "z": 558,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rixwell Terrace Design Hotel",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49617040,
+   "ids": [
+    49617040
+   ],
+   "area": 183,
+   "h": 18,
+   "x": -379,
+   "z": -1100,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Simtgades aleja 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616555,
+   "ids": [
+    49616555
+   ],
+   "area": 183,
+   "h": 5.2,
+   "x": -548,
+   "z": -354,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 7",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637927,
+   "ids": [
+    49637927
+   ],
+   "area": 182,
+   "h": 8.4,
+   "x": -2022,
+   "z": 569,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ola rezidence",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639734,
+   "ids": [
+    49639734
+   ],
+   "area": 182,
+   "h": 8.4,
+   "x": -1852,
+   "z": -617,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Man-Tess",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614420,
+   "ids": [
+    49614420
+   ],
+   "area": 177,
+   "h": 14.8,
+   "x": -85,
+   "z": 344,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 21",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49621913,
+   "ids": [
+    49621913
+   ],
+   "area": 176,
+   "h": 9.6,
+   "x": 894,
+   "z": -796,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nacionālais Kino centrs",
+   "en": "National Film Centre of Latvia",
+   "cat": "gov",
+   "tier": "C",
+   "lead": 49614601,
+   "ids": [
+    49614601
+   ],
+   "area": 174,
+   "h": 9.6,
+   "x": -145,
+   "z": 644,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārstaļu iela 3",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49614591,
+   "ids": [
+    49614591
+   ],
+   "area": 174,
+   "h": 16,
+   "x": -203,
+   "z": 548,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lāčplēša iela 55A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49622170,
+   "ids": [
+    49622170
+   ],
+   "area": 174,
+   "h": 6.4,
+   "x": 1021,
+   "z": -72,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stabu iela 22",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49620738,
+   "ids": [
+    49620738
+   ],
+   "area": 169,
+   "h": 8.4,
+   "x": 785,
+   "z": -611,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Stabu iela 22",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49620162,
+   "ids": [
+    49620162
+   ],
+   "area": 163,
+   "h": 8.4,
+   "x": 791,
+   "z": -623,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dzirnavu iela 16",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49618516,
+   "ids": [
+    49618516
+   ],
+   "area": 159,
+   "h": 5.2,
+   "x": -239,
+   "z": -907,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jauniela 29A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616524,
+   "ids": [
+    49616524
+   ],
+   "area": 154,
+   "h": 8.4,
+   "x": -486,
+   "z": 375,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Muitas iela 3",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49616460,
+   "ids": [
+    49616460
+   ],
+   "area": 151,
+   "h": 5.2,
+   "x": -842,
+   "z": -153,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Elijas iela 1",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49627790,
+   "ids": [
+    49627790
+   ],
+   "area": 146,
+   "h": 6.4,
+   "x": 560,
+   "z": 1033,
+   "why": [
+    "tag:historic=house"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 9B",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637990,
+   "ids": [
+    49637990
+   ],
+   "area": 112,
+   "h": 6.4,
+   "x": -2050,
+   "z": 536,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Jāņa sēta 7",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49614454,
+   "ids": [
+    49614454
+   ],
+   "area": 106,
+   "h": 8.4,
+   "x": -175,
+   "z": 404,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bruņinieku iela 43",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49623839,
+   "ids": [
+    49623839
+   ],
+   "area": 106,
+   "h": 8.4,
+   "x": 1190,
+   "z": -512,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaļķu iela 9",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49616304,
+   "ids": [
+    49616304
+   ],
+   "area": 99,
+   "h": 9.6,
+   "x": -265,
+   "z": 282,
+   "why": [
+    "tag:historic=yes"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 11A",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49638194,
+   "ids": [
+    49638194
+   ],
+   "area": 63,
+   "h": 3.2,
+   "x": -2057,
+   "z": 529,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Aldaru iela 9",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49615042,
+   "ids": [
+    49615042
+   ],
+   "area": 54,
+   "h": 14.8,
+   "x": -440,
+   "z": 45,
+   "why": [
+    "tag:historic=yes"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža iela 2B",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49636360,
+   "ids": [
+    49636360
+   ],
+   "area": 46,
+   "h": 8.4,
+   "x": -1919,
+   "z": 830,
+   "why": [
+    "tag:building=chapel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Brīvības iela 56",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49619931,
+   "ids": [
+    49619931
+   ],
+   "area": 33,
+   "h": 21.2,
+   "x": 503,
+   "z": -490,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  }
+ ],
+ "tierAMissing": []
+}

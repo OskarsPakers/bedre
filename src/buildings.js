@@ -5,8 +5,11 @@ import { cleanRing, centroid, bbox, minBox, pointInPoly } from './geo.js';
 import { mulberry32 } from './rng.js';
 import { renderClass } from './shapes.js';
 import { landmarkRule, pickCatHouse, addDeco, addCat } from './landmarks.js';
+import { treatmentFor, neighbourRef, TIER_A } from './sights.js';
+import { addSightFeature, SF_KINDS } from './sightFeatures.js';
 import { themeHook, GLSL_BLD_VERT_DECL, GLSL_BLD_VERT_SET, GLSL_BLD_FRAG_DECL, GLSL_BLD_WINDOWS } from './themeUniforms.js';
 
+const TIER_A_BY_KEY = new Map(TIER_A.map((a) => [a.key, a]));
 const _tri = [];
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3();
 
@@ -100,7 +103,7 @@ export function buildBuildingGeometry(ring, h, wallCol, roofCol, mansard, winPar
   if (spire) {
     for (const d of Array.isArray(spire) ? spire : [spire]) {
       if (d.kind === 'roof' || d.kind === 'spire') { d.wallCol = d.wallCol || wallCol; addSpire(b, d, h); extra = Math.max(extra, d.hgt); }
-      else extra = Math.max(extra, addDeco(b, d, ring, h, wallCol, roofCol));
+      else extra = Math.max(extra, SF_KINDS.has(d.kind) ? addSightFeature(b, { ...d, base: d.base ?? h }, ring, wallCol, roofCol) : addDeco(b, d, ring, h, wallCol, roofCol));
     }
   }
   if (!b.pos.length) return null;
@@ -163,7 +166,12 @@ export function makeBuildingMaterial() {
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
   float rnd = step(0.64, vWin.w) * step(vWin.w, 0.66); // round-arch church windows (frac code 0.65)
-  float wall = step(abs(vLN.y), 0.25) * mix(vWin.w, 0.9, max(step(0.44, vWin.w) * step(vWin.w, 0.46), rnd));
+  float inst = step(0.84, vWin.w) * step(vWin.w, 0.86);  // sights: institutional (school / hospital): ribbon windows + dark base band + stone string course
+  float blind = step(0.74, vWin.w) * step(vWin.w, 0.76); // theatre / museum: blank monumental walls, glazed foyer band, pilasters, cornice
+  float slit = step(0.24, vWin.w) * step(vWin.w, 0.26);  // castle: thick stone, small slit windows, courses
+  float hist = step(0.94, vWin.w) * step(vWin.w, 0.96);  // historic house: windows with light plaster surrounds
+  float strong = max(max(step(0.44, vWin.w) * step(vWin.w, 0.46), rnd), max(max(inst, blind), max(slit, hist)));
+  float wall = step(abs(vLN.y), 0.25) * mix(vWin.w, 0.9, strong);
   float fh = max(vWin.x, 0.5);
   float fy = vLP.y / fh;
   float ff = fract(fy);
@@ -176,7 +184,12 @@ export function makeBuildingMaterial() {
   float wy = smoothstep(0.2, 0.27, ff) * (1.0 - smoothstep(archTop - 0.07, archTop, ff));
   float wx = smoothstep(0.2, 0.27, fu) * (1.0 - smoothstep(0.66, 0.73, fu));
   float inside = step(fh * 0.9, vLP.y) * step(vLP.y, vWin.y - fh * 0.2);
+  wx = mix(wx, smoothstep(0.1, 0.14, fu) * (1.0 - smoothstep(0.86, 0.9, fu)), inst);
+  wx = mix(wx, smoothstep(0.42, 0.46, fu) * (1.0 - smoothstep(0.54, 0.58, fu)), slit);
+  wy = mix(wy, smoothstep(0.3, 0.34, ff) * (1.0 - smoothstep(0.66, 0.7, ff)), slit);
+  float foyer = smoothstep(0.08, 0.14, fu) * (1.0 - smoothstep(0.86, 0.92, fu)) * step(0.7, vLP.y) * step(vLP.y, 4.3);
   float win = wall * wx * wy * inside;
+  win = mix(win, wall * foyer, blind);
   vec3 glass = vec3(0.16, 0.22, 0.29) * (0.8 + 0.4 * fract(sin(floor(u) * 12.9898 + floor(fy) * 78.233) * 43758.5453));
   diffuseColor.rgb = mix(diffuseColor.rgb, glass, 0.82 * win);
   ${GLSL_BLD_WINDOWS}
@@ -189,11 +202,31 @@ export function makeBuildingMaterial() {
     float course = wall * (step(ff, 0.045) * step(fh * 0.9, vLP.y) + step(vLP.y, 1.4));
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.84, 0.77, 0.64), clamp(0.8 * surr + 0.7 * course, 0.0, 0.8));
   }
+  if (inst > 0.5) { // dark base band + light stone string course above it
+    diffuseColor.rgb *= 1.0 - 0.3 * wall * step(vLP.y, 1.9);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.85, 0.78), 0.6 * wall * step(1.9, vLP.y) * step(vLP.y, 2.3));
+  }
+  if (blind > 0.5) { // pilaster lines, a light string course over the foyer and a heavy cornice
+    float pil = wall * step(4.9, vLP.y) * (smoothstep(0.0, 0.04, fu) * (1.0 - smoothstep(0.04, 0.1, fu)));
+    diffuseColor.rgb *= 1.0 - 0.12 * pil;
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.9, 0.87, 0.8), 0.55 * wall * step(4.4, vLP.y) * step(vLP.y, 4.9));
+    diffuseColor.rgb *= 1.0 - 0.2 * wall * step(vWin.y - 1.2, vLP.y) * step(vLP.y, vWin.y);
+  }
+  if (slit > 0.5) { // stone courses and a darker parapet band
+    diffuseColor.rgb *= 1.0 - 0.1 * wall * step(fract(vLP.y / 1.3), 0.07);
+    diffuseColor.rgb *= 1.0 - 0.14 * wall * step(vWin.y - 1.4, vLP.y);
+  }
+  if (hist > 0.5) { // light plaster window surrounds + string course
+    float wxo = smoothstep(0.1, 0.16, fu) * (1.0 - smoothstep(0.74, 0.8, fu));
+    float wyo = smoothstep(0.14, 0.2, ff) * (1.0 - smoothstep(0.78, 0.84, ff));
+    float surr = wall * wxo * wyo * inside * (1.0 - clamp(wx * wy * 1.5, 0.0, 1.0));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.93, 0.89, 0.8), clamp(0.75 * surr + 0.55 * wall * step(ff, 0.05) * step(fh * 0.9, vLP.y), 0.0, 0.8));
+  }
   float cornice = wall * step(vWin.y - 0.45, vLP.y) * step(vLP.y, vWin.y);
   diffuseColor.rgb *= 1.0 - 0.1 * cornice;
 }`);
   };
-  mat.customProgramCacheKey = () => 'building-win5';
+  mat.customProgramCacheKey = () => 'building-win6';
   return mat;
 }
 
@@ -332,6 +365,10 @@ const GLASS_COL = [0.5, 0.62, 0.72], TRIM_COL = [0.2, 0.21, 0.23], GLASS_WIN = [
 STYLE_WIN[10] = { floorH: 4.6, spacing: 5.4, frac: 0.7 };  // 10 modernist public hall (station, theatre slab): wide low ribbon windows
 STYLE_WIN[11] = { floorH: 4.4, spacing: 3.3, frac: 0.55 }; // 11 brick warehouse / market hall: small regular openings
 STYLE_WIN[12] = { floorH: 3.0, spacing: 2.6, frac: 0.9 };  // 12 timber house: board walls with many small windows
+STYLE_WIN[13] = { floorH: 3.8, spacing: 2.2, frac: 0.85 }; // 13 institutional (school / hospital / public): ribbon windows, dark base band, string course (sights)
+STYLE_WIN[14] = { floorH: 6.0, spacing: 4.5, frac: 0.75 }; // 14 blind monumental (theatre / museum): blank walls, glazed foyer band, pilasters, cornice
+STYLE_WIN[15] = { floorH: 5.0, spacing: 6.0, frac: 0.25 }; // 15 castle stone: thick plain walls, small slit windows
+STYLE_WIN[16] = { floorH: 3.4, spacing: 2.8, frac: 0.95 }; // 16 historic plaster house: windows with light surrounds
 STYLE_WIN[7] = { floorH: 7.4, spacing: 4.2, frac: 0.65 };  // 7 plastered baroque / classicist church: tall round-arched windows (frac 0.65 = round-arch code in the window shader)
 STYLE_WIN[8] = { floorH: 3.4, spacing: 2.3, frac: 0.8 };   // 8 wooden church: small rectangular windows in rows (Jēzus baznīca, Mežaparks)
 STYLE_WIN[9] = { floorH: 6.4, spacing: 3.3, frac: 0.65 };  // 9 Orthodox church: narrow tall round-arched windows, cream walls
@@ -426,6 +463,7 @@ export function buildBuildings(data) {
   const landmarks = data.landmarks || [];
   const S = data.shapes || null;
   const slug = (data.meta && data.meta.slug) || 'centrs';
+  const SIGHTS = data.sights ? data.sights.s : null; // id -> [cat, tier, lead, key, hint, piece] (src/sights.js)
   const PANEL_WALLS = [0xd2cdc2, 0xc9c6bf, 0xdad4c6, 0xbfc2c3, 0xc8c0b0, 0xd6d1c8];
   const stats = { buildings: 0, osm: 0, meshNotable: 0, meshRelief: 0, flat: 0, measuredHeights: 0 };
   let totalV = 0, totalI = 0;
@@ -453,7 +491,7 @@ export function buildBuildings(data) {
       fit = CFG.buildingFit.boxWeight * (hb.L / 2) + CFG.buildingFit.areaWeight * Math.sqrt((rec.flags >> 4) / Math.PI);
     }
     const value = Math.max(CFG.value.buildingMin, Math.round((area * hv) / CFG.value.buildingDiv));
-    items.push({ id: b.id, x: cx, z: cz, area, h, hBox, fit, value, name: b.n || null, t: b.t || 'oth', landmark: false, ring: ring0, rel: ring, lmH: 0, rec });
+    items.push({ id: b.id, x: cx, z: cz, area, h, hBox, fit, value, name: b.n || null, t: b.t || 'oth', landmark: false, ring: ring0, rel: ring, lmH: 0, rec, sight: SIGHTS ? SIGHTS[b.id] || null : null });
   }
 
   // Match each landmark to exactly one building: the one containing it, else the nearest close one.
@@ -489,6 +527,15 @@ export function buildBuildings(data) {
     if (r.bonus) it.value += r.bonus;
   }
 
+  // tier A sights carry their real names (the cadastre often only has the street address): album / labels / achievements match on the name; value, fit and landmark flags are untouched
+  for (const it of items) {
+    if (!it.sight || !it.sight[3]) continue;
+    const A = TIER_A_BY_KEY.get(it.sight[3]);
+    if (A && (!it.name || isAddressName(it.name))) it.name = A.lv;
+  }
+
+  const OTHERS = SIGHTS ? items.filter((it) => !it.sight) : []; // ordinary buildings: the neighbours a tier B sight must differ from (src/sights.js neighbourRef)
+
   // pass 2: geometry
   const P = LIFE.palettes;
   for (const it of items) {
@@ -518,34 +565,52 @@ export function buildBuildings(data) {
     };
     if (rule && rule.win) Object.assign(winParams, rule.win); // landmark facades (e.g. tall opera windows)
     // Purvciems: Soviet panel blocks = crisp pale boxes with a regular window grid and flat grey roofs (never red mansards)
-    const panel = slug === 'purvciems' && !rule && (t === 'res' || t === 'com' || t === 'pub' || t === 'oth') && area > 200 && it.h >= 8 && !(rec && rec.style);
-    const bigFlat = slug === 'purvciems' && !rule && !panel && area > 350 && t !== 'rel' && t !== 'aux' && !(rec && rec.style); // big shops / halls: flat grey roofs too
+    const panel = slug === 'purvciems' && !rule && !it.sight && (t === 'res' || t === 'com' || t === 'pub' || t === 'oth') && area > 200 && it.h >= 8 && !(rec && rec.style);
+    const bigFlat = slug === 'purvciems' && !rule && !it.sight && !panel && area > 350 && t !== 'rel' && t !== 'aux' && !(rec && rec.style); // big shops / halls: flat grey roofs too
     if (bigFlat) roofCol.setHex([0x77797c, 0x6e7073, 0x808285][Math.abs((it.x * 3 + it.z * 5) | 0) % 3]);
     if (panel) {
       wallCol.setHex(PANEL_WALLS[Math.abs((it.x * 7 + it.z * 13) | 0) % PANEL_WALLS.length]); it.wallCol = wallCol.getHex();
       Object.assign(winParams, { floorH: 2.8, spacing: 2.7, frac: 1 });
       roofCol.setHex([0x77797c, 0x6e7073, 0x808285][Math.abs((it.x * 3 + it.z * 5) | 0) % 3]);
     }
+    // sights (src/sights.js): category facade style + wall / roof palette outside the housing palette + one signature feature (tier A overrides per building)
+    const T = it.sight ? treatmentFor(it.sight, rec, it.x, it.z, it.sight[1] <= 1 ? neighbourRef(it, OTHERS, slug) : 0) : null;
+    if (T) {
+      if (T.wall != null) { wallCol.setHex(T.wall); it.wallCol = T.wall; }
+      if (T.roof != null) roofCol.setHex(T.roof);
+      if (STYLE_WIN[T.style]) Object.assign(winParams, STYLE_WIN[T.style]);
+      it.sightCat = T.cat;
+    }
     const nm = it.name || '';
 
     if (rec) {
       // ---- measured shape: roof colours by type, decorations dropped (the data has the real spires/domes), except the cat
       const orth = RE_ORTHODOX.test(nm);
-      if (rec.wallRGB) { wallCol.setHex(rec.wallRGB); it.wallCol = rec.wallRGB; }
-      if (rec.style && STYLE_WIN[rec.style]) Object.assign(winParams, STYLE_WIN[rec.style]);
+      if (!T && rec.wallRGB) { wallCol.setHex(rec.wallRGB); it.wallCol = rec.wallRGB; }
+      if (!T && rec.style && STYLE_WIN[rec.style]) Object.assign(winParams, STYLE_WIN[rec.style]);
       const hash = Math.abs((it.x * 7 + it.z * 3) | 0);
       let pitchCol;
       if (rec.roofRGB) pitchCol = new THREE.Color(rec.roofRGB);
       else if (rule && rule.roof) pitchCol = roofCol.clone();
       else if (zone === 'old') pitchCol = new THREE.Color(P.oldTownRoof[hash % P.oldTownRoof.length]);
       else { const r = rng(); pitchCol = new THREE.Color(r < 0.62 ? TILE[hash % TILE.length] : r < 0.93 ? TIN[hash % TIN.length] : TIN_GREEN[hash % TIN_GREEN.length]); }
-      if (panel || bigFlat) pitchCol = roofCol.clone();
-      const flatCol = panel || bigFlat ? roofCol.clone() : rec.roofRGB ? pitchCol.clone() : new THREE.Color(TAR[hash % TAR.length]);
-      const specialCol = new THREE.Color(rec.domeRGB ? rec.domeRGB : orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x5a6a74 : 0x5f9d89));
+      if (panel || bigFlat || (T && T.roof != null)) pitchCol = roofCol.clone();
+      const flatCol = panel || bigFlat || (T && T.roof != null) ? roofCol.clone() : rec.roofRGB ? pitchCol.clone() : new THREE.Color(TAR[hash % TAR.length]);
+      const specialCol = new THREE.Color(T && T.dome ? T.dome : T && !rec.domeRGB ? pitchCol.getHex() : rec.domeRGB ? rec.domeRGB : orth ? 0xe2b23a : rule && rule.roof ? rule.roof : (hash % 3 === 0 ? 0x5a6a74 : 0x5f9d89));
       const accentCol = new THREE.Color(rec.accentRGB || 0xe3b53c);
       const colFn = (flatDominant) => { const r = flatDominant ? flatCol : pitchCol; return { roof: [r.r, r.g, r.b], special: [specialCol.r, specialCol.g, specialCol.b], accent: [accentCol.r, accentCol.g, accentCol.b] }; };
-      let decoFn = null;
-      if (rule && rule.deco && rule.deco.kind === 'cat') {
+      let decoFn = null, sfTop = 0;
+      const flatRoof = rec.hmax - rec.eave < 1.5;
+      if (T && T.feats.length) { // signature feature(s) of the sight (src/sightFeatures.js) on the measured roof: eave height for pitched roofs, the top for flat ones / crowns
+        decoFn = (b) => {
+          for (const f of T.feats) {
+            const base = f.kind === 'crown' ? rec.hmax - 0.4 : flatRoof ? rec.hmax : Math.max(3, rec.eave);
+            const spec = { ...f, base, flat: flatRoof, top: rec.hmax };
+            const ex = SF_KINDS.has(f.kind) ? addSightFeature(b, spec, ring, wallCol, roofCol) : addDeco(b, spec, ring, base, wallCol, roofCol);
+            sfTop = Math.max(sfTop, base + ex);
+          }
+        };
+      } else if (rule && rule.deco && rule.deco.kind === 'cat') {
         decoFn = (b, px, py, pz) => { // cat on the highest points (turret tips), at most two, >5 m apart
           const pts = [];
           for (let i = 0; i < rec.nv; i++) pts.push([px(i), py(i), pz(i)]);
@@ -556,12 +621,13 @@ export function buildBuildings(data) {
         };
       }
       const geo = buildShapeGeometry(S, rec, colFn, winParams, wallCol, decoFn);
-      it.h = rec.hmax + (decoFn ? 2 : 0);
+      it.h = T && T.feats.length ? Math.max(rec.hmax, sfTop) : rec.hmax + (decoFn ? 2 : 0);
       it.shaped = true;
       if (rec.src === 2) stats.osm++; else if (rec.src === 1) stats.meshNotable++; else stats.meshRelief++;
       it.geo = geo;
+      it.roofHex = (geo.userData.flatDominant ? flatCol : pitchCol).getHex();
       if (rec.src === 3) { // lighter variant for the `low` quality tier: a flat extrusion with the measured height
-        const bg = buildBuildingGeometry(ring, it.hBox, wallCol, roofCol, null, winParams, null);
+        const bg = buildBuildingGeometry(ring, it.hBox, wallCol, roofCol, null, winParams, T && T.feats.length ? T.feats.map((f) => ({ ...f, base: it.hBox, flat: true })) : null);
         if (bg) { it.boxGeo = bg; totalV += bg.attributes.position.count; totalI += bg.index.count; }
       }
       totalV += geo.attributes.position.count;
@@ -601,14 +667,20 @@ export function buildBuildings(data) {
       spire = { kind: 'spire', p: ip.p, r, hgt: Sh, seg: 8, wallCol: wallCol.clone().multiplyScalar(0.95), roofCol: new THREE.Color(dark ? 0x3f4a52 : 0x5f9d89) };
     }
     if (spire) decos.push(spire);
+    if (T && T.feats.length) { // signature feature(s) replace the generic rule / flag decorations (the rng draws above stay as they were, so ordinary buildings keep their looks)
+      if (!spire) { decos.length = 0; for (const f of T.feats) decos.push({ ...f, base: h, flat: true }); }
+      else for (const f of T.feats) if (f.kind !== 'cote') decos.push({ ...f, base: h, flat: true });
+    }
     let mansard = null;
     if (!panel && !bigFlat && !spire && !(rule && rule.deco) && (t === 'res' || t === 'pub' || t === 'oth' || t === 'rel') && h > 7 && h < 40 && hull > 0 && area / hull > 0.82 &&
         minSide > 8 && ring.length <= 24 && rng() < 0.7) {
       mansard = { s: 0.62 + rng() * 0.12, rh: Math.min(4.5, 0.22 * minSide + 0.5) };
     }
+    if (T) mansard = null; // sights are not mansard-roofed housing
     const geo = buildBuildingGeometry(ring, h, wallCol, roofCol, mansard, winParams, decos.length ? decos : null);
     if (!geo) { it.drop = true; continue; }
     it.h = h + (geo.userData.extraH || 0);
+    it.roofHex = roofCol.getHex();
     stats.flat++;
     it.geo = geo;
     totalV += geo.attributes.position.count;

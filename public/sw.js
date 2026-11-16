@@ -4,7 +4,7 @@
 const BUILD = '__BUILD_ID__';
 const SHELL = 'bedre-shell-' + BUILD;
 const DATA = 'bedre-data-v1';
-const DATA_FILES = ['/data/riga.json', '/data/riga-shapes.bin.gz', '/data/riga-areas.json', '/data/riga-ground.png'];
+const DATA_FILES = ['/data/riga.json', '/data/riga-shapes.bin.gz', '/data/sights.json', '/data/riga-areas.json', '/data/riga-ground.png'];
 
 async function precacheShell() {
   const cache = await caches.open(SHELL);

@@ -39,8 +39,6 @@ export const HEROES = mergeChurches(mergeCivic([
     note: 'red-brick stepped-gable guild house with ornate gable' },
   { slug: 'townhall', name: 'Rātsnams', ids: [49614687], source: 'auto', style: 2, wall: 0xe8d8b8, roof: 0x8c4632,
     note: 'rebuilt town hall on the square: pale walls, red tile roof with a small tower' },
-  { slug: 'cathouse', name: 'Kaķu nams', ids: [49614702], source: 'mesh', style: 0, wall: 0xd7b089, roof: 0x5f9d89,
-    note: 'Art Nouveau corner house with a round turret and two cats on top' },
   { slug: 'university', name: 'Latvijas Universitātes galvenā ēka', ids: [49616039, 49616004], source: 'mesh', style: 2, ortho: true, ringTol: 0.9, opts: { contourTol: 0.9, openMin: 90 }, fit: { minArea: 20, weld: 1.2, tol: 0.5 }, wall: 0xe7dcc4, roof: 0x6f9486, dome: 0x6f9486,
     note: 'neo-baroque university palace: long pale facade, central pediment block with a low dome' },
   { slug: 'theatre', name: 'Nacionālais teātris', ids: [49614719], source: 'mesh', style: 2, wall: 0xe8d8b8, roof: 0x6f9486,

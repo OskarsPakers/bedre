@@ -21,7 +21,7 @@ export function applyMap() {
   const m = mapBySlug(activeSlug());
   const p = mapPaths(m.slug);
   CFG.map = { slug: m.slug, lv: m.lv, en: m.en, mult: m.mult, focus: m.focus };
-  CFG.dataUrl = p.data; CFG.shapesUrl = p.shapes; CFG.groundUrl = p.ground;
+  CFG.dataUrl = p.data; CFG.shapesUrl = p.shapes; CFG.groundUrl = p.ground; CFG.sightsUrl = p.sights;
   if (m.slug !== 'centrs') {
     const k = m.mult || {};
     for (const key of ['people', 'lamps', 'benches', 'bins', 'cars', 'vans', 'buses', 'trams', 'kiosks']) CFG.props[key] = Math.round(CFG.props[key] * (k.props ?? 1));

@@ -237,6 +237,30 @@ export function marketVault(hero, ctx) {
 }
 
 
+/** Centrāltirgus 5th (meat) pavilion, host 49615202 (5491 m2 cadastre piece, 0.5 m height grid: a 20 m crown, symmetric section, ridge running ~151 deg = CROSSWISE to the other four,
+ *  which run 61 deg). Same hangar vault, oriented from the footprint's own minimum box so the ridge follows the measured ridge. */
+export function marketVaultMeasured(hero, ctx) {
+  const mb = minBox(ctx.ring), th = (Math.atan2(mb.uz, mb.ux) * 180) / Math.PI;
+  const C = new Civic([0, 0], th), hl = mb.L / 2 - 0.4, hw = Math.min(mb.W / 2 - 0.4, 19.5);
+  const r = R4(mb.cu - hl, mb.cu + hl, mb.cv - hw, mb.cv + hw), y0 = 7.4, rise = 20.4 - y0;
+  C.walls(r, 0, y0, { v0: 1, v1: 1 });
+  C.walls(r, 0, 3.4, { u0: 1, u1: 1 });
+  C.vault(r, y0, rise, 'u', { segmental: true, ends: { lo: 'glass', hi: 'glass' }, sill: 3.4, n: 14 });
+  C.boxM(R4(mb.cu - hl + 4, mb.cu + hl - 4, mb.cv - 1.9, mb.cv + 1.9), 22.6, { y0: 19.6, sidesMat: { u0: 2, u1: 2, v0: 7, v1: 7 } });
+  return C.finish({ u0: mb.cu - hl - 2, u1: mb.cu + hl + 2, v0: mb.cv - hw - 2, v1: mb.cv + hw + 2 });
+}
+/** Stacijas laukums 2 (49614921): the low platform building the mesh crumpled (22 mast spikes over a 5.6 m shed). A plain oriented box with a glazed long side and two skylights. */
+export function platformShed(hero, ctx) {
+  const mb = minBox(ctx.ring), th = (Math.atan2(mb.uz, mb.ux) * 180) / Math.PI, h = Math.min(7, Math.max(4.5, (ctx.d && ctx.d.h) || 5.6));
+  const C = new Civic([0, 0], th), hl = mb.L / 2, hw = mb.W / 2;
+  const r = R4(mb.cu - hl, mb.cu + hl, mb.cv - hw, mb.cv + hw);
+  C.boxM(r, h);
+  C.panel(mb.cu, mb.cv + hw, 0, 1, 1.4, h - 1.2, mb.L - 4, 7, 0.1);
+  C.panel(mb.cu, mb.cv - hw, 0, -1, 1.4, h - 1.2, mb.L - 4, 7, 0.1);
+  for (const t of [-0.3, 0.3]) C.boxM(R4(mb.cu + mb.L * t - 6, mb.cu + mb.L * t + 6, mb.cv - 2, mb.cv + 2), h + 1.3, { y0: h, sidesMat: { u0: 7, u1: 7, v0: 7, v1: 7 } });
+  return C.finish({ u0: mb.cu - hl - 2, u1: mb.cu + hl + 2, v0: mb.cv - hw - 2, v1: mb.cv + hw + 2 });
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 // FEATURES: extra geometry merged by build-meshes.mjs into the MEASURED mesh of a hero (hero.features = name). Same frame conventions as above.
 /** triangular pediment facing +u (ridge along u), over rect r at height y, rise `rise`: tympanum (plain) + two roof planes */
@@ -259,4 +283,4 @@ export function featOpera() {
 }
 export const FEATURES = { opera: featOpera };
 
-export const CURATED_CIVIC = { stationhead: stationHead, stationhall: stationHall, stationwing: stationWing, marketvault: marketVault };
+export const CURATED_CIVIC = { stationhead: stationHead, stationhall: stationHall, stationwing: stationWing, marketvault: marketVault, marketmeat: marketVaultMeasured, platformshed: platformShed };

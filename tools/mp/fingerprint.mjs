@@ -9,7 +9,7 @@ import { MAPS, mapPaths } from '../maps.mjs';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CODE = [
-  'src/world.js', 'src/scatter.js', 'src/propModels.js', 'src/riga.js', 'src/traffic.js', 'src/buildings.js', 'src/shapes.js', 'src/landmarks.js',
+  'src/world.js', 'src/scatter.js', 'src/propModels.js', 'src/riga.js', 'src/traffic.js', 'src/buildings.js', 'src/shapes.js', 'src/landmarks.js', 'src/sights.js', 'src/sightFeatures.js',
   'src/geo.js', 'src/config.js', 'src/maps.js', 'src/rng.js', 'src/water.js', 'src/data.js', 'src/rules.js', 'src/spawn.js', 'src/placements.js',
   'tools/maps.mjs', 'worker/mp/table.js', 'public/data/riga-areas.json',
 ];
@@ -23,7 +23,7 @@ export const fileOf = (slug) => path.join(root, 'public', mapPaths(slug).objects
 export function fingerprint(slug) {
   const p = mapPaths(slug);
   const h = crypto.createHash('sha256');
-  for (const f of [...CODE, 'public' + p.data, 'public' + p.shapes]) {
+  for (const f of [...CODE, 'public' + p.data, 'public' + p.shapes, 'public' + p.sights]) {
     const abs = path.join(root, f);
     h.update(f + '\0');
     if (fs.existsSync(abs)) h.update(fs.readFileSync(abs));

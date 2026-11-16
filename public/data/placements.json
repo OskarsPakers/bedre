@@ -3,13 +3,13 @@
  "maps": {
   "centrs": {
    "file": "data/riga-objects.bin.gz",
-   "hash": "43e9ac7c2dad42d1",
+   "hash": "4fa488758265f362",
    "objects": 20900,
    "buildings": 5276,
    "movers": 1076,
    "spawns": 1239,
    "bytes": 441504,
-   "gz": 196433
+   "gz": 196432
   },
   "agenskalns": {
    "file": "data/agenskalns/riga-objects.bin.gz",

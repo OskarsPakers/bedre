@@ -16,7 +16,7 @@ export const CIVIC_SHOTS = [
   { slug: 'blackheads', ids: [49614347, 49614380], name: 'Melngalvju nams' },
   { slug: 'guilds', ids: [49616381, 49616364], name: 'Lielā un Mazā ģilde' },
   { slug: 'brothers', ids: [49614971, 49614596, 49615271], name: 'Trīs brāļi' },
-  { slug: 'cathouse', ids: [49614702], name: 'Kaķu nams' },
+  { slug: 'cathouse', ids: [49616370], name: 'Kaķu nams' },
   { slug: 'castle', ids: [49615051, 49614975], name: 'Rīgas pils' },
   { slug: 'saeima', ids: [49614901], name: 'Saeima' },
   { slug: 'freedom', kind: 'freedom', dist: 90, el: 22, y: 20, name: 'Brīvības piemineklis' },
@@ -56,6 +56,8 @@ export const CIVIC = [
   { slug: 'market', name: 'Centrāltirgus (Zivju paviljons)', ids: [49614728], source: 'mesh', curated: 'marketvault', style: 11, wall: 0xd9d2c0, roof: 0xaebbb2, dome: 0xaebbb2, note: 'zeppelin-hangar pavilion' },
   { slug: 'market-2', name: 'Centrāltirgus (Sakņu paviljons)', ids: [49615403], source: 'mesh', curated: 'marketvault', style: 11, wall: 0xd9d2c0, roof: 0xaebbb2, dome: 0xaebbb2, note: 'zeppelin-hangar pavilion' },
   { slug: 'market-3', name: 'Centrāltirgus (Gastronomijas paviljons)', ids: [49614778], source: 'mesh', curated: 'marketvault', style: 11, wall: 0xd9d2c0, roof: 0xaebbb2, dome: 0xaebbb2, note: 'zeppelin-hangar pavilion' },
+  { slug: 'market-5', name: 'Centrāltirgus (Gaļas paviljons)', ids: [49615202], source: 'mesh', curated: 'marketmeat', style: 11, wall: 0xd9d2c0, roof: 0xaebbb2, dome: 0xaebbb2, note: 'fifth hangar pavilion (5491 m2 piece), ridge crosswise to the other four' },
+  { slug: 'station-shed', name: 'Centrālā stacija (perona ēka)', ids: [49614921], source: 'mesh', curated: 'platformshed', style: 10, wall: 0xd6d0c4, roof: 0x8e9a98, dome: 0x8e9a98, note: 'low platform building (was a crumpled mesh with mast spikes)' },
   { slug: 'market-4', name: 'Centrāltirgus (Piena paviljons)', ids: [49615303], source: 'mesh', curated: 'marketvault', style: 11, wall: 0xd9d2c0, roof: 0xaebbb2, dome: 0xaebbb2, note: 'zeppelin-hangar pavilion' },
 ];
 /** replace-or-append civic hero entries into the base list (entry with an existing slug replaces it in place) */

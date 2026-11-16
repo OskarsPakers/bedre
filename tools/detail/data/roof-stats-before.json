@@ -1,0 +1,122 @@
+{
+ "centrs": {
+  "all": {
+   "red": 923453.9199999988,
+   "grey": 848198.5000000012,
+   "green": 268569.2350000011,
+   "cool": 18240.780000000777,
+   "other": 0
+  },
+  "sights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  },
+  "pct": {
+   "red": 44.9,
+   "grey": 41.2,
+   "green": 13,
+   "cool": 0.9,
+   "other": 0
+  },
+  "pctSights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  }
+ },
+ "agenskalns": {
+  "all": {
+   "red": 615275.5100000264,
+   "grey": 308322.8050000077,
+   "green": 189395.31500002462,
+   "cool": 4064.0900000003166,
+   "other": 0
+  },
+  "sights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  },
+  "pct": {
+   "red": 55.1,
+   "grey": 27.6,
+   "green": 17,
+   "cool": 0.4,
+   "other": 0
+  },
+  "pctSights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  }
+ },
+ "mezaparks": {
+  "all": {
+   "red": 128939.30000001239,
+   "grey": 128413.29500004882,
+   "green": 28414.630000005476,
+   "cool": 0,
+   "other": 0
+  },
+  "sights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  },
+  "pct": {
+   "red": 45.1,
+   "grey": 44.9,
+   "green": 9.9,
+   "cool": 0,
+   "other": 0
+  },
+  "pctSights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  }
+ },
+ "purvciems": {
+  "all": {
+   "red": 232379.99000000523,
+   "grey": 761670.5300000028,
+   "green": 57451.29500000029,
+   "cool": 0,
+   "other": 0
+  },
+  "sights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  },
+  "pct": {
+   "red": 22.1,
+   "grey": 72.4,
+   "green": 5.5,
+   "cool": 0,
+   "other": 0
+  },
+  "pctSights": {
+   "red": 0,
+   "grey": 0,
+   "green": 0,
+   "cool": 0,
+   "other": 0
+  }
+ }
+}

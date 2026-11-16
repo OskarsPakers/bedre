@@ -106,17 +106,20 @@ export function landmarkRule(it) {
   return null;
 }
 
-/** pick the Cat House: the small building nearest the real location (Meistaru iela 10) */
+/** pick the Cat House (Kaķu nams, Meistaru iela 10/12): the lead cadastre piece of the tier A sight 'cathouse' (public/data/sights.json, src/sights.js); without a sights file the
+ * large building addressed "Meistaru iela 10" (cadastre id 49616370, ~(-275, 148), next to the guilds), else the nearest sizeable building to that point. */
 export function pickCatHouse(items) {
-  let best = null, bd = 60;
+  let best = null, bd = 90;
   for (const it of items) {
-    if (it.area < 100 || it.area > 450 || it.landmark) continue;
-    const d = Math.hypot(it.x + 429, it.z - 279);
+    if (it.sight && it.sight[3] === 'cathouse' && it.sight[2]) return it;
+  }
+  for (const it of items) {
+    if (it.area < 100 || it.area > 1500 || it.landmark) continue;
+    const d = Math.hypot(it.x + 275, it.z - 148) - (/^Meistaru iela 10$/.test(it.name || '') ? 60 : 0);
     if (d < bd) { bd = d; best = it; }
   }
   return best;
 }
-
 
 /** black cat silhouette sitting on a tip at (x, y, z): body, head, ears, arched tail */
 export function addCat(b, x, y, z) {

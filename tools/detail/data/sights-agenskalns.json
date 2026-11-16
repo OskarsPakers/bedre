@@ -1,0 +1,7616 @@
+{
+ "map": "agenskalns",
+ "generated": "2026-11-16",
+ "count": 372,
+ "sights": [
+  {
+   "hint": null,
+   "key": "ag-market",
+   "name": "Āgenskalna tirgus",
+   "en": "Āgenskalns Market",
+   "cat": "market",
+   "tier": "A",
+   "lead": 49634808,
+   "ids": [
+    49634808
+   ],
+   "area": 988,
+   "h": 12.8,
+   "x": -2648,
+   "z": 1727,
+   "why": [
+    "tierA"
+   ],
+   "album": "agmarket"
+  },
+  {
+   "hint": null,
+   "key": "ag-wooden",
+   "name": "Kalnciema kvartāls (koka nami)",
+   "en": "Kalnciema quarter (wooden houses)",
+   "cat": "wooden",
+   "tier": "A",
+   "lead": 49636186,
+   "ids": [
+    49636186
+   ],
+   "area": 369,
+   "h": 8.4,
+   "x": -3441,
+   "z": 1270,
+   "why": [
+    "tierA"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Da Vinci",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49639148,
+   "ids": [
+    49639148
+   ],
+   "area": 8765,
+   "h": 5.2,
+   "x": -1599,
+   "z": 574,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "A korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49636166,
+   "ids": [
+    49636166
+   ],
+   "area": 7641,
+   "h": 12.8,
+   "x": -2977,
+   "z": 2141,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Van Genechten Packaging",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49632216,
+   "ids": [
+    49632216
+   ],
+   "area": 6524,
+   "h": 14.8,
+   "x": -1409,
+   "z": 2307,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "LIDL Arena",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49653998,
+   "ids": [
+    49653998
+   ],
+   "area": 5782,
+   "h": 3.2,
+   "x": -3799,
+   "z": 1807,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zunda Towers",
+   "en": null,
+   "cat": "public",
+   "tier": "B",
+   "lead": 49637749,
+   "ids": [
+    49637749
+   ],
+   "area": 4064,
+   "h": 11.6,
+   "x": -2007,
+   "z": 469,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "B3 korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49634685,
+   "ids": [
+    49634685
+   ],
+   "area": 3898,
+   "h": 16,
+   "x": -3003,
+   "z": 2264,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "B1 korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635765,
+   "ids": [
+    49635765
+   ],
+   "area": 2943,
+   "h": 9.6,
+   "x": -2882,
+   "z": 2245,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lidl",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49639014,
+   "ids": [
+    49639014
+   ],
+   "area": 2821,
+   "h": 8.4,
+   "x": -2816,
+   "z": 986,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-21",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635720,
+   "ids": [
+    49635720
+   ],
+   "area": 2766,
+   "h": 6.4,
+   "x": -2866,
+   "z": 2140,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "B1 korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635486,
+   "ids": [
+    49635486
+   ],
+   "area": 2374,
+   "h": 6.4,
+   "x": -2939,
+   "z": 2305,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-25",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49634824,
+   "ids": [
+    49634824
+   ],
+   "area": 2285,
+   "h": 9.9,
+   "x": -2749,
+   "z": 2079,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Land Rover",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49651719,
+   "ids": [
+    49651719
+   ],
+   "area": 2239,
+   "h": 3.2,
+   "x": -3296,
+   "z": 2586,
+   "why": [
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "PSKUS Moduļu korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635304,
+   "ids": [
+    49635304,
+    49634869,
+    49633035
+   ],
+   "area": 2163,
+   "h": 3.2,
+   "x": -2834,
+   "z": 2273,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zvārdes iela 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49632084,
+   "ids": [
+    49632084
+   ],
+   "area": 2147,
+   "h": 9.6,
+   "x": -2508,
+   "z": 2891,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sporta skola \"Arkādija\"",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49635670,
+   "ids": [
+    49635670
+   ],
+   "area": 1976,
+   "h": 11.6,
+   "x": -2332,
+   "z": 2161,
+   "why": [
+    "tag:amenity=school",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža iela 15",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637856,
+   "ids": [
+    49637856
+   ],
+   "area": 1945,
+   "h": 21.2,
+   "x": -2232,
+   "z": 737,
+   "why": [
+    "tag:building=dormitory",
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Valsts vēstures arhīvs",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49637896,
+   "ids": [
+    49637896
+   ],
+   "area": 1756,
+   "h": 21.2,
+   "x": -2376,
+   "z": 571,
+   "why": [
+    "tag:amenity=archive",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 10 k-3",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638779,
+   "ids": [
+    49638779
+   ],
+   "area": 1663,
+   "h": 8.4,
+   "x": -2199,
+   "z": 710,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētā Alberta baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49635756,
+   "ids": [
+    49635756
+   ],
+   "area": 1521,
+   "h": 3.2,
+   "x": -2703,
+   "z": 2349,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 10 k-1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638191,
+   "ids": [
+    49638191
+   ],
+   "area": 1519,
+   "h": 8.4,
+   "x": -2198,
+   "z": 676,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zeļļu iela 4",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49634649,
+   "ids": [
+    49634649
+   ],
+   "area": 1496,
+   "h": 14.8,
+   "x": -2337,
+   "z": 1757,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Park Inn by Radisson",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49637726,
+   "ids": [
+    49637726
+   ],
+   "area": 1479,
+   "h": 16,
+   "x": -2196,
+   "z": 550,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-38",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49633107,
+   "ids": [
+    49633107
+   ],
+   "area": 1475,
+   "h": 8.4,
+   "x": -2963,
+   "z": 2388,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna baptistu baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49635717,
+   "ids": [
+    49635717,
+    49635719
+   ],
+   "area": 1454,
+   "h": 6.4,
+   "x": -2405,
+   "z": 2257,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vaivaru tehnisko palīglīdzekļu centrs",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49651732,
+   "ids": [
+    49651732
+   ],
+   "area": 1440,
+   "h": 11.6,
+   "x": -3749,
+   "z": 2160,
+   "why": [
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Tehniskā universitāte",
+   "en": "Riga Technical University",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638698,
+   "ids": [
+    49638698
+   ],
+   "area": 1429,
+   "h": 14.8,
+   "x": -1983,
+   "z": 802,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RSU dienesta viesnīca",
+   "en": "RSU Dormitory",
+   "cat": "market",
+   "tier": "B",
+   "lead": 49633158,
+   "ids": [
+    49633158
+   ],
+   "area": 1358,
+   "h": 18,
+   "x": -2511,
+   "z": 2204,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lavīzes iela 2",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638825,
+   "ids": [
+    49638825
+   ],
+   "area": 1342,
+   "h": 5.2,
+   "x": -2481,
+   "z": 1113,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU Inženierekonomikas un vadības fakultāte",
+   "en": "RTU Faculty of Engineering Economics and Management",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637680,
+   "ids": [
+    49637680
+   ],
+   "area": 1328,
+   "h": 21.2,
+   "x": -2094,
+   "z": 696,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Arcada",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49635335,
+   "ids": [
+    49635335
+   ],
+   "area": 1320,
+   "h": 6.4,
+   "x": -2588,
+   "z": 1684,
+   "why": [
+    "tag:shop=mall",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas valsts arhīvs",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49638608,
+   "ids": [
+    49638608
+   ],
+   "area": 1301,
+   "h": 19.2,
+   "x": -2353,
+   "z": 556,
+   "why": [
+    "tag:amenity=archive",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raņķa dambis 3",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49629619,
+   "ids": [
+    49629619
+   ],
+   "area": 1254,
+   "h": 8.4,
+   "x": -1291,
+   "z": 1080,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 2",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638521,
+   "ids": [
+    49638521
+   ],
+   "area": 1194,
+   "h": 18,
+   "x": -1973,
+   "z": 695,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-24",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635887,
+   "ids": [
+    49635887
+   ],
+   "area": 1192,
+   "h": 9.6,
+   "x": -2788,
+   "z": 2100,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RISEBA",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638135,
+   "ids": [
+    49638135,
+    49637799
+   ],
+   "area": 1173,
+   "h": 14.8,
+   "x": -2030,
+   "z": 753,
+   "why": [
+    "tag:amenity=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-23",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49634901,
+   "ids": [
+    49634901
+   ],
+   "area": 1171,
+   "h": 5.2,
+   "x": -2823,
+   "z": 2116,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "B4 korpuss",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635259,
+   "ids": [
+    49635259
+   ],
+   "area": 1145,
+   "h": 14.8,
+   "x": -3061,
+   "z": 2230,
+   "why": [
+    "tag:building=hospital",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sētas iela 1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638105,
+   "ids": [
+    49638105
+   ],
+   "area": 1124,
+   "h": 18,
+   "x": -2016,
+   "z": 694,
+   "why": [
+    "tag:building=university",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RSU Dienesta Viesnīca (Jaunais korpuss)",
+   "en": "RSU Dormitory (New block)",
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636301,
+   "ids": [
+    49636301
+   ],
+   "area": 1122,
+   "h": 18,
+   "x": -2471,
+   "z": 2276,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU sporta centrs",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637824,
+   "ids": [
+    49637824
+   ],
+   "area": 1060,
+   "h": 12,
+   "x": -1923,
+   "z": 757,
+   "why": [
+    "tag:building=university",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mindeļa villa",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49634339,
+   "ids": [
+    49634339
+   ],
+   "area": 1050,
+   "h": 6.4,
+   "x": -2769,
+   "z": 1589,
+   "why": [
+    "tag:historic=building",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RSU Nukleārās medicīnas klīnika",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49634713,
+   "ids": [
+    49634713
+   ],
+   "area": 1041,
+   "h": 9.6,
+   "x": -2522,
+   "z": 2686,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gregora iela 13A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49640916,
+   "ids": [
+    49640916
+   ],
+   "area": 1039,
+   "h": 11.6,
+   "x": -3715,
+   "z": 788,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-9",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49634803,
+   "ids": [
+    49634803
+   ],
+   "area": 1038,
+   "h": 9.9,
+   "x": -2750,
+   "z": 2269,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zasulauks",
+   "en": null,
+   "cat": "station",
+   "tier": "B",
+   "lead": 49638172,
+   "ids": [
+    49638172
+   ],
+   "area": 1003,
+   "h": 8.4,
+   "x": -3716,
+   "z": 1103,
+   "why": [
+    "tag:building=train_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Torņakalna baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49632471,
+   "ids": [
+    49632471
+   ],
+   "area": 958,
+   "h": 15.5,
+   "x": -1587,
+   "z": 2537,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-18",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49636320,
+   "ids": [
+    49636320
+   ],
+   "area": 933,
+   "h": 5.2,
+   "x": -2864,
+   "z": 2176,
+   "why": [
+    "tag:building=hospital"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Slokas iela 1 k-2",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49629643,
+   "ids": [
+    49629643
+   ],
+   "area": 916,
+   "h": 34,
+   "x": -1982,
+   "z": 1111,
+   "why": [
+    "tag:building=hotel",
+    "tall"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 6 k-1",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49631674,
+   "ids": [
+    49631674
+   ],
+   "area": 872,
+   "h": 11.6,
+   "x": -1838,
+   "z": 2437,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lutera Draudzes nams",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49632390,
+   "ids": [
+    49632390
+   ],
+   "area": 846,
+   "h": 5.2,
+   "x": -1647,
+   "z": 2554,
+   "why": [
+    "osm-name",
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 21A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637293,
+   "ids": [
+    49637293
+   ],
+   "area": 818,
+   "h": 11.6,
+   "x": -3040,
+   "z": 518,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema kvartāls",
+   "en": null,
+   "cat": "market",
+   "tier": "B",
+   "lead": 49638374,
+   "ids": [
+    49638374,
+    49612403,
+    49637428
+   ],
+   "area": 816,
+   "h": 9.9,
+   "x": -2845,
+   "z": 946,
+   "why": [
+    "tag:amenity=marketplace",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Altonavas iela 6",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49632407,
+   "ids": [
+    49632407
+   ],
+   "area": 777,
+   "h": 13.1,
+   "x": -1549,
+   "z": 2896,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "RTU studentu viesnīca",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637887,
+   "ids": [
+    49637887
+   ],
+   "area": 764,
+   "h": 11.6,
+   "x": -2083,
+   "z": 770,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pārslas iela 16",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49634836,
+   "ids": [
+    49634836
+   ],
+   "area": 743,
+   "h": 16.5,
+   "x": -3137,
+   "z": 1963,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža iela 7",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638343,
+   "ids": [
+    49638343
+   ],
+   "area": 741,
+   "h": 21.2,
+   "x": -2121,
+   "z": 751,
+   "why": [
+    "tag:building=education",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valsts sociālās aprūpes centrs, Filiāle Rīga , Zīdaiņu nodaļa",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636657,
+   "ids": [
+    49636657
+   ],
+   "area": 736,
+   "h": 11.6,
+   "x": -3233,
+   "z": 1274,
+   "why": [
+    "tag:building=kindergarten",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bišu iela 5",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636224,
+   "ids": [
+    49636224
+   ],
+   "area": 695,
+   "h": 3.2,
+   "x": -2191,
+   "z": 1111,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lavīzes iela 2A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638570,
+   "ids": [
+    49638570
+   ],
+   "area": 686,
+   "h": 14.8,
+   "x": -2453,
+   "z": 1098,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 39",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49639026,
+   "ids": [
+    49639026
+   ],
+   "area": 684,
+   "h": 8.4,
+   "x": -2593,
+   "z": 674,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 4",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638507,
+   "ids": [
+    49638507
+   ],
+   "area": 667,
+   "h": 8.4,
+   "x": -3311,
+   "z": 1403,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 8A",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636736,
+   "ids": [
+    49636736,
+    49638604,
+    49637116,
+    49636885
+   ],
+   "area": 658,
+   "h": 8.4,
+   "x": -2565,
+   "z": 1027,
+   "why": [
+    "tag:building=school"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Viļa Plūdoņa iela 1",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49636905,
+   "ids": [
+    49636905
+   ],
+   "area": 651,
+   "h": 6.4,
+   "x": -2463,
+   "z": 1226,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Ģeotelpiskās informācijas aģentūra",
+   "en": "Latvian Geospatial Information Agency (LGIA)",
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49632576,
+   "ids": [
+    49632576
+   ],
+   "area": 638,
+   "h": 8.4,
+   "x": -2249,
+   "z": 2887,
+   "why": [
+    "tag:office=government",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zvārdes iela 1B",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49631676,
+   "ids": [
+    49631676
+   ],
+   "area": 634,
+   "h": 5.2,
+   "x": -2539,
+   "z": 2920,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes dienesta viesnīca",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49634674,
+   "ids": [
+    49634674
+   ],
+   "area": 630,
+   "h": 18,
+   "x": -2105,
+   "z": 1909,
+   "why": [
+    "tag:building=dormitory",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 18",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636591,
+   "ids": [
+    49636591
+   ],
+   "area": 605,
+   "h": 8.4,
+   "x": -3265,
+   "z": 1336,
+   "why": [
+    "tag:building=kindergarten"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Stradiņa universitāte",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637531,
+   "ids": [
+    49637531,
+    49638846,
+    49613597
+   ],
+   "area": 600,
+   "h": 11.6,
+   "x": -2469,
+   "z": 658,
+   "why": [
+    "tag:building=yes",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Stradiņa universitātes Psihosomatiskās medicīnas un psihoterapijas klīnika un katedra",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49637577,
+   "ids": [
+    49637577
+   ],
+   "area": 594,
+   "h": 14.8,
+   "x": -2618,
+   "z": 599,
+   "why": [
+    "tag:amenity=clinic",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nometņu iela 31",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49638180,
+   "ids": [
+    49638180
+   ],
+   "area": 566,
+   "h": 3.2,
+   "x": -2368,
+   "z": 1226,
+   "why": [
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Universitātes Bioloģijas institūts",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49631694,
+   "ids": [
+    49631694
+   ],
+   "area": 555,
+   "h": 14.8,
+   "x": -1853,
+   "z": 2258,
+   "why": [
+    "tag:amenity=research_institute",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas pašvaldības policijas Zemgales pārvalde",
+   "en": null,
+   "cat": "gov",
+   "tier": "B",
+   "lead": 49634538,
+   "ids": [
+    49634538
+   ],
+   "area": 534,
+   "h": 11.6,
+   "x": -2267,
+   "z": 1761,
+   "why": [
+    "tag:amenity=police",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Futurimo Rīga",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49638434,
+   "ids": [
+    49638434
+   ],
+   "area": 529,
+   "h": 5.2,
+   "x": -1951,
+   "z": 751,
+   "why": [
+    "tag:amenity=education_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Vasarsvētku draudze „Dzīvā ūdens avots”",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49636198,
+   "ids": [
+    49636198
+   ],
+   "area": 529,
+   "h": 3.2,
+   "x": -2380,
+   "z": 1344,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:pub",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētās Trijādības Pārdaugavas pareizticīgo baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49636436,
+   "ids": [
+    49636436
+   ],
+   "area": 517,
+   "h": 3.2,
+   "x": -1935,
+   "z": 845,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "tag:man_made=tower",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "K11",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635340,
+   "ids": [
+    49635340
+   ],
+   "area": 492,
+   "h": 6.4,
+   "x": -2823,
+   "z": 2319,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Torņakalns",
+   "en": null,
+   "cat": "station",
+   "tier": "B",
+   "lead": 49631865,
+   "ids": [
+    49631865
+   ],
+   "area": 488,
+   "h": 5.2,
+   "x": -1464,
+   "z": 2148,
+   "why": [
+    "tag:building=train_station",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "K10",
+   "en": null,
+   "cat": "hospital",
+   "tier": "B",
+   "lead": 49635511,
+   "ids": [
+    49635511
+   ],
+   "area": 483,
+   "h": 6.4,
+   "x": -2785,
+   "z": 2293,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša memoriālais muzejs",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49632648,
+   "ids": [
+    49632648
+   ],
+   "area": 473,
+   "h": 8.4,
+   "x": -1972,
+   "z": 2401,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristus uzvara",
+   "en": null,
+   "cat": "industrial",
+   "tier": "B",
+   "lead": 49634318,
+   "ids": [
+    49634318
+   ],
+   "area": 433,
+   "h": 5.2,
+   "x": -3021,
+   "z": 1624,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "SUNSstudio",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49635741,
+   "ids": [
+    49635741
+   ],
+   "area": 385,
+   "h": 3.2,
+   "x": -3187,
+   "z": 1733,
+   "why": [
+    "tag:amenity=events_venue",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Stradiņa universitāte",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49637973,
+   "ids": [
+    49637973
+   ],
+   "area": 362,
+   "h": 6.4,
+   "x": -3032,
+   "z": 1186,
+   "why": [
+    "tag:amenity=university",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Centrālās bibliotēkas Torņakalna filiālbibliotēka",
+   "en": null,
+   "cat": "theatre",
+   "tier": "B",
+   "lead": 49632951,
+   "ids": [
+    49632951
+   ],
+   "area": 354,
+   "h": 5.2,
+   "x": -1583,
+   "z": 1979,
+   "why": [
+    "tag:amenity=library",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bloka muiža",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49632264,
+   "ids": [
+    49632264
+   ],
+   "area": 339,
+   "h": 5.2,
+   "x": -1441,
+   "z": 2832,
+   "why": [
+    "tag:historic=manor",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Eduarda Smiļģa Teātra muzejs",
+   "en": null,
+   "cat": "museum",
+   "tier": "B",
+   "lead": 49635519,
+   "ids": [
+    49635519
+   ],
+   "area": 322,
+   "h": 11.6,
+   "x": -2293,
+   "z": 1558,
+   "why": [
+    "tag:tourism=museum",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "OK Hotel",
+   "en": null,
+   "cat": "hotel",
+   "tier": "B",
+   "lead": 49638054,
+   "ids": [
+    49638054
+   ],
+   "area": 312,
+   "h": 18,
+   "x": -2308,
+   "z": 719,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Studija Bambino",
+   "en": null,
+   "cat": "school",
+   "tier": "B",
+   "lead": 49636507,
+   "ids": [
+    49636507
+   ],
+   "area": 306,
+   "h": 9.9,
+   "x": -2301,
+   "z": 1081,
+   "why": [
+    "tag:amenity=kindergarten",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Sporta un aktīvās atpūtas centrs Uzvaras parkā",
+   "en": null,
+   "cat": "sports",
+   "tier": "B",
+   "lead": 49612885,
+   "ids": [
+    49612885
+   ],
+   "area": 294,
+   "h": 5.2,
+   "x": -1642,
+   "z": 1912,
+   "why": [
+    "tag:leisure=sports_centre",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Borherta muiža",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49631920,
+   "ids": [
+    49631920
+   ],
+   "area": 291,
+   "h": 5.2,
+   "x": -2478,
+   "z": 2951,
+   "why": [
+    "tag:historic=manor",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Svētās Terēzes draudzes nams",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49632133,
+   "ids": [
+    49632133
+   ],
+   "area": 262,
+   "h": 3.2,
+   "x": -1781,
+   "z": 2456,
+   "why": [
+    "osm-name",
+    "t:rel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gustava Šķiltera muzejs",
+   "en": null,
+   "cat": "historic",
+   "tier": "B",
+   "lead": 49638599,
+   "ids": [
+    49638599
+   ],
+   "area": 252,
+   "h": 5.2,
+   "x": -2027,
+   "z": 533,
+   "why": [
+    "tag:historic=building",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Hartmaņa muiža",
+   "en": null,
+   "cat": "castle",
+   "tier": "B",
+   "lead": 49636900,
+   "ids": [
+    49636900
+   ],
+   "area": 215,
+   "h": 8.4,
+   "x": -2639,
+   "z": 889,
+   "why": [
+    "tag:historic=manor",
+    "osm-name",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Rīgas Svētās Terēzes no Bērna Jēzus Romas katoļu baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49631730,
+   "ids": [
+    49631730
+   ],
+   "area": 198,
+   "h": 5.2,
+   "x": -1802,
+   "z": 2446,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Latvijas Apvienotā metodistu baznīca",
+   "en": null,
+   "cat": "church",
+   "tier": "B",
+   "lead": 49637556,
+   "ids": [
+    49637556
+   ],
+   "area": 193,
+   "h": 11.6,
+   "x": -2238,
+   "z": 820,
+   "why": [
+    "tag:amenity=place_of_worship",
+    "osm-name",
+    "t:rel",
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna televīzijas tornis",
+   "en": null,
+   "cat": "castle",
+   "tier": "B",
+   "lead": 49635713,
+   "ids": [
+    49635713
+   ],
+   "area": 145,
+   "h": 3.2,
+   "x": -2510,
+   "z": 1630,
+   "why": [
+    "landmark"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 10",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629776,
+   "ids": [
+    49629776
+   ],
+   "area": 3738,
+   "h": 8.4,
+   "x": -1364,
+   "z": 1410,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": "chimney",
+   "key": null,
+   "name": "RSU sporta komplekss",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49631912,
+   "ids": [
+    49631912
+   ],
+   "area": 2891,
+   "h": 3.2,
+   "x": -1724,
+   "z": 2377,
+   "why": [
+    "osm-name",
+    "tag:man_made=chimney",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baldones iela 7",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638699,
+   "ids": [
+    49638699
+   ],
+   "area": 2424,
+   "h": 3.2,
+   "x": -3146,
+   "z": 593,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pārslas iela 14",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633182,
+   "ids": [
+    49633182
+   ],
+   "area": 2258,
+   "h": 6.4,
+   "x": -3198,
+   "z": 1912,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Melnsila iela 6",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638336,
+   "ids": [
+    49638336
+   ],
+   "area": 2090,
+   "h": 14.8,
+   "x": -2638,
+   "z": 1088,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Slokas iela 1 k-1",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49629684,
+   "ids": [
+    49629684
+   ],
+   "area": 2067,
+   "h": 8.4,
+   "x": -1935,
+   "z": 1095,
+   "why": [
+    "tag:building=hotel"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629640,
+   "ids": [
+    49629640
+   ],
+   "area": 2002,
+   "h": 11.6,
+   "x": -1514,
+   "z": 1667,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alīses iela 19",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637730,
+   "ids": [
+    49637730
+   ],
+   "area": 1887,
+   "h": 21.4,
+   "x": -2782,
+   "z": 475,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zeļļu iela 25",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634342,
+   "ids": [
+    49634342
+   ],
+   "area": 1597,
+   "h": 8.4,
+   "x": -2103,
+   "z": 1835,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kuldīgas iela 45",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49640613,
+   "ids": [
+    49640613
+   ],
+   "area": 1568,
+   "h": 13.3,
+   "x": -3558,
+   "z": 613,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "LNS Rehabilitācijas centrs",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49640809,
+   "ids": [
+    49640809
+   ],
+   "area": 1442,
+   "h": 8.4,
+   "x": -3753,
+   "z": 542,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 12",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629595,
+   "ids": [
+    49629595
+   ],
+   "area": 1421,
+   "h": 8.4,
+   "x": -1346,
+   "z": 1489,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 47",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634646,
+   "ids": [
+    49634646
+   ],
+   "area": 1372,
+   "h": 3.2,
+   "x": -2956,
+   "z": 1636,
+   "why": [
+    "tag:building=public"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Talsu iela 7A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635218,
+   "ids": [
+    49635218
+   ],
+   "area": 1099,
+   "h": 9.6,
+   "x": -2389,
+   "z": 1532,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 39",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634507,
+   "ids": [
+    49634507
+   ],
+   "area": 1087,
+   "h": 11.6,
+   "x": -2783,
+   "z": 1702,
+   "why": [
+    "tag:building=public"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 6",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49631968,
+   "ids": [
+    49631968
+   ],
+   "area": 1064,
+   "h": 9.6,
+   "x": -1838,
+   "z": 2395,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Indriķa iela 8A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49632221,
+   "ids": [
+    49632221
+   ],
+   "area": 935,
+   "h": 18,
+   "x": -1665,
+   "z": 2719,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Altonavas iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634136,
+   "ids": [
+    49634136
+   ],
+   "area": 926,
+   "h": 8.4,
+   "x": -1525,
+   "z": 2801,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 40D",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637783,
+   "ids": [
+    49637783
+   ],
+   "area": 892,
+   "h": 14.8,
+   "x": -2857,
+   "z": 1026,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Spāres iela 3",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49654073,
+   "ids": [
+    49654073,
+    49650220
+   ],
+   "area": 885,
+   "h": 9.9,
+   "x": -3762,
+   "z": 2508,
+   "why": [
+    "tag:building=hotel",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gardenes iela 8 k-41",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635355,
+   "ids": [
+    49635355
+   ],
+   "area": 883,
+   "h": 3.2,
+   "x": -2677,
+   "z": 2711,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baldones iela 7",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637264,
+   "ids": [
+    49637264
+   ],
+   "area": 882,
+   "h": 6.4,
+   "x": -3148,
+   "z": 560,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Raņķa dambis 14",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638473,
+   "ids": [
+    49638473
+   ],
+   "area": 787,
+   "h": 18,
+   "x": -1813,
+   "z": 724,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 9",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637156,
+   "ids": [
+    49637156
+   ],
+   "area": 741,
+   "h": 6.4,
+   "x": -2625,
+   "z": 913,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kolkasraga iela 18",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633043,
+   "ids": [
+    49633043
+   ],
+   "area": 717,
+   "h": 8.4,
+   "x": -3012,
+   "z": 1982,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Biešu iela 2A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49632528,
+   "ids": [
+    49632528
+   ],
+   "area": 707,
+   "h": 8.4,
+   "x": -1628,
+   "z": 2788,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 10A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639070,
+   "ids": [
+    49639070
+   ],
+   "area": 693,
+   "h": 6.4,
+   "x": -3381,
+   "z": 926,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 10",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637604,
+   "ids": [
+    49637604
+   ],
+   "area": 686,
+   "h": 8.4,
+   "x": -2140,
+   "z": 520,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zeļļu iela 23",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634438,
+   "ids": [
+    49634438
+   ],
+   "area": 665,
+   "h": 18,
+   "x": -2169,
+   "z": 1839,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Vienības gatve 30",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633617,
+   "ids": [
+    49633617
+   ],
+   "area": 533,
+   "h": 8.4,
+   "x": -1336,
+   "z": 2613,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Alīses iela 3A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637470,
+   "ids": [
+    49637470
+   ],
+   "area": 521,
+   "h": 14.8,
+   "x": -2650,
+   "z": 743,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gardenes iela 8 k-42",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633111,
+   "ids": [
+    49633111
+   ],
+   "area": 500,
+   "h": 3.2,
+   "x": -2726,
+   "z": 2701,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Cieceres iela 3",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49634766,
+   "ids": [
+    49634766
+   ],
+   "area": 486,
+   "h": 8.4,
+   "x": -2273,
+   "z": 2295,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 19",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639137,
+   "ids": [
+    49639137
+   ],
+   "area": 481,
+   "h": 5.2,
+   "x": -2525,
+   "z": 711,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 10 k-2",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49638334,
+   "ids": [
+    49638334
+   ],
+   "area": 474,
+   "h": 18,
+   "x": -2157,
+   "z": 678,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 15",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49636675,
+   "ids": [
+    49636675
+   ],
+   "area": 470,
+   "h": 3.2,
+   "x": -2833,
+   "z": 1095,
+   "why": [
+    "tag:building=hangar"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 2",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49632753,
+   "ids": [
+    49632753
+   ],
+   "area": 467,
+   "h": 3.2,
+   "x": -1587,
+   "z": 2032,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 15",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49637168,
+   "ids": [
+    49637168
+   ],
+   "area": 459,
+   "h": 3.2,
+   "x": -2825,
+   "z": 1084,
+   "why": [
+    "tag:building=hangar"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ventspils iela 13A",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49633028,
+   "ids": [
+    49633028
+   ],
+   "area": 454,
+   "h": 8.4,
+   "x": -2624,
+   "z": 1955,
+   "why": [
+    "tag:building=kindergarten",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārupes iela 16",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635892,
+   "ids": [
+    49635892
+   ],
+   "area": 453,
+   "h": 14.8,
+   "x": -2354,
+   "z": 2258,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krūzes iela 21",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49651928,
+   "ids": [
+    49651928
+   ],
+   "area": 407,
+   "h": 3.2,
+   "x": -3488,
+   "z": 1893,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-12",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49635142,
+   "ids": [
+    49635142
+   ],
+   "area": 399,
+   "h": 6.4,
+   "x": -2883,
+   "z": 2377,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-109",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49635769,
+   "ids": [
+    49635769
+   ],
+   "area": 396,
+   "h": 6.4,
+   "x": -2819,
+   "z": 2071,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-7",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49633027,
+   "ids": [
+    49633027
+   ],
+   "area": 388,
+   "h": 6.4,
+   "x": -2764,
+   "z": 2207,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 25",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636291,
+   "ids": [
+    49636291
+   ],
+   "area": 387,
+   "h": 6.4,
+   "x": -3059,
+   "z": 1201,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Kuldīgas iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637325,
+   "ids": [
+    49637325
+   ],
+   "area": 384,
+   "h": 8.4,
+   "x": -3603,
+   "z": 1105,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49613072,
+   "ids": [
+    49613072
+   ],
+   "area": 383,
+   "h": 9.9,
+   "x": -3361,
+   "z": 1064,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kokles iela 12B",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635787,
+   "ids": [
+    49635787
+   ],
+   "area": 378,
+   "h": 12.8,
+   "x": -1969,
+   "z": 1940,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 32",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636867,
+   "ids": [
+    49636867
+   ],
+   "area": 376,
+   "h": 6.7,
+   "x": -3026,
+   "z": 1341,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 12",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636888,
+   "ids": [
+    49636888
+   ],
+   "area": 368,
+   "h": 6.4,
+   "x": -3159,
+   "z": 1291,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Torņakalna iela 15",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49632824,
+   "ids": [
+    49632824
+   ],
+   "area": 359,
+   "h": 8.4,
+   "x": -1888,
+   "z": 2509,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Gregora iela 13A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49640918,
+   "ids": [
+    49640918
+   ],
+   "area": 357,
+   "h": 3.2,
+   "x": -3696,
+   "z": 808,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nometņu iela 48",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49636560,
+   "ids": [
+    49636560
+   ],
+   "area": 357,
+   "h": 6.4,
+   "x": -2419,
+   "z": 1391,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krogus iela 12",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638222,
+   "ids": [
+    49638222
+   ],
+   "area": 354,
+   "h": 6.4,
+   "x": -2144,
+   "z": 546,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 18",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638836,
+   "ids": [
+    49638836
+   ],
+   "area": 353,
+   "h": 9.9,
+   "x": -3436,
+   "z": 993,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nometņu iela 64A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634432,
+   "ids": [
+    49634432
+   ],
+   "area": 349,
+   "h": 8.4,
+   "x": -2546,
+   "z": 1713,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 14",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638828,
+   "ids": [
+    49638828
+   ],
+   "area": 349,
+   "h": 8.4,
+   "x": -3410,
+   "z": 1080,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lavīzes iela 2B",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49637901,
+   "ids": [
+    49637901
+   ],
+   "area": 340,
+   "h": 11.6,
+   "x": -2444,
+   "z": 1134,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 80",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652221,
+   "ids": [
+    49652221
+   ],
+   "area": 340,
+   "h": 8.4,
+   "x": -3780,
+   "z": 1498,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637107,
+   "ids": [
+    49637107
+   ],
+   "area": 338,
+   "h": 8.4,
+   "x": -3302,
+   "z": 1475,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Cieceres iela 3A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635410,
+   "ids": [
+    49635410
+   ],
+   "area": 334,
+   "h": 8.4,
+   "x": -2255,
+   "z": 2257,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kokles iela 12",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635776,
+   "ids": [
+    49635776
+   ],
+   "area": 332,
+   "h": 11.6,
+   "x": -1961,
+   "z": 1987,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Indriķa iela 8",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633983,
+   "ids": [
+    49633983
+   ],
+   "area": 329,
+   "h": 3.2,
+   "x": -1688,
+   "z": 2637,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 14",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637949,
+   "ids": [
+    49637949
+   ],
+   "area": 328,
+   "h": 6.4,
+   "x": -3199,
+   "z": 1307,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-8",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49635281,
+   "ids": [
+    49635281
+   ],
+   "area": 326,
+   "h": 9.6,
+   "x": -2796,
+   "z": 2205,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Struteles iela 2A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49636958,
+   "ids": [
+    49636958
+   ],
+   "area": 324,
+   "h": 3.2,
+   "x": -3058,
+   "z": 1454,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Cieceres iela 1",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635488,
+   "ids": [
+    49635488
+   ],
+   "area": 319,
+   "h": 8.4,
+   "x": -2226,
+   "z": 2317,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 11",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637752,
+   "ids": [
+    49637752
+   ],
+   "area": 316,
+   "h": 8.4,
+   "x": -2065,
+   "z": 510,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 88",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652241,
+   "ids": [
+    49652241
+   ],
+   "area": 315,
+   "h": 6.4,
+   "x": -3584,
+   "z": 1557,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 15",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637237,
+   "ids": [
+    49637237
+   ],
+   "area": 315,
+   "h": 8.4,
+   "x": -3500,
+   "z": 1103,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 15",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639078,
+   "ids": [
+    49639078
+   ],
+   "area": 315,
+   "h": 8.4,
+   "x": -3467,
+   "z": 1060,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Melnsila iela 19A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637578,
+   "ids": [
+    49637578
+   ],
+   "area": 313,
+   "h": 5.2,
+   "x": -2928,
+   "z": 790,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": null,
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635284,
+   "ids": [
+    49635284
+   ],
+   "area": 313,
+   "h": 6.4,
+   "x": -2672,
+   "z": 2213,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 19",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637312,
+   "ids": [
+    49637312
+   ],
+   "area": 313,
+   "h": 8.4,
+   "x": -3543,
+   "z": 1149,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 12",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49638238,
+   "ids": [
+    49638238
+   ],
+   "area": 312,
+   "h": 18,
+   "x": -2226,
+   "z": 673,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638929,
+   "ids": [
+    49638929
+   ],
+   "area": 312,
+   "h": 6.4,
+   "x": -3285,
+   "z": 1078,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 80A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652417,
+   "ids": [
+    49652417
+   ],
+   "area": 310,
+   "h": 6.4,
+   "x": -3717,
+   "z": 1450,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 43",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636124,
+   "ids": [
+    49636124
+   ],
+   "area": 309,
+   "h": 6.4,
+   "x": -3206,
+   "z": 1444,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 41",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636666,
+   "ids": [
+    49636666
+   ],
+   "area": 304,
+   "h": 9.9,
+   "x": -3146,
+   "z": 1439,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 8",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49638260,
+   "ids": [
+    49638260
+   ],
+   "area": 297,
+   "h": 18,
+   "x": -2113,
+   "z": 523,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārupes iela 1A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635258,
+   "ids": [
+    49635258
+   ],
+   "area": 297,
+   "h": 11.6,
+   "x": -2582,
+   "z": 1822,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Kuldīgas iela 1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637538,
+   "ids": [
+    49637538
+   ],
+   "area": 296,
+   "h": 5.2,
+   "x": -3599,
+   "z": 1025,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 21",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637308,
+   "ids": [
+    49637308
+   ],
+   "area": 295,
+   "h": 8.4,
+   "x": -3561,
+   "z": 1168,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 97",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49651727,
+   "ids": [
+    49651727
+   ],
+   "area": 294,
+   "h": 6.4,
+   "x": -3729,
+   "z": 1502,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krūzes iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652277,
+   "ids": [
+    49652277
+   ],
+   "area": 287,
+   "h": 6.4,
+   "x": -3678,
+   "z": 1553,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Viļa Plūdoņa iela 1",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49636826,
+   "ids": [
+    49636826
+   ],
+   "area": 284,
+   "h": 8.4,
+   "x": -2455,
+   "z": 1187,
+   "why": [
+    "tag:building=hospital",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mārupes iela 22",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49636127,
+   "ids": [
+    49636127
+   ],
+   "area": 283,
+   "h": 8.4,
+   "x": -2359,
+   "z": 2333,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ventspils iela 25",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634975,
+   "ids": [
+    49634975
+   ],
+   "area": 276,
+   "h": 8.4,
+   "x": -2955,
+   "z": 1998,
+   "why": [
+    "tag:building:material=wood"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-5",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49633038,
+   "ids": [
+    49633038
+   ],
+   "area": 276,
+   "h": 6.4,
+   "x": -2733,
+   "z": 2194,
+   "why": [
+    "tag:building=hospital"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 6",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636792,
+   "ids": [
+    49636792
+   ],
+   "area": 275,
+   "h": 8.4,
+   "x": -3341,
+   "z": 1333,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baložu iela 24",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49637565,
+   "ids": [
+    49637565
+   ],
+   "area": 273,
+   "h": 8.4,
+   "x": -2581,
+   "z": 468,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": "chimney",
+   "key": null,
+   "name": "Ojāra Vācieša iela 43",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49632921,
+   "ids": [
+    49632921
+   ],
+   "area": 273,
+   "h": 5.2,
+   "x": -2326,
+   "z": 2868,
+   "why": [
+    "tag:man_made=chimney"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 10A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637098,
+   "ids": [
+    49637098
+   ],
+   "area": 270,
+   "h": 8.4,
+   "x": -3119,
+   "z": 1271,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "LNS Rehabilitācijas centrs",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49641326,
+   "ids": [
+    49641326
+   ],
+   "area": 263,
+   "h": 11.6,
+   "x": -3810,
+   "z": 548,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 27",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49639138,
+   "ids": [
+    49639138
+   ],
+   "area": 263,
+   "h": 8.4,
+   "x": -2696,
+   "z": 863,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 9",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638483,
+   "ids": [
+    49638483
+   ],
+   "area": 263,
+   "h": 8.4,
+   "x": -3165,
+   "z": 1252,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 76",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635839,
+   "ids": [
+    49635839
+   ],
+   "area": 261,
+   "h": 8.4,
+   "x": -3283,
+   "z": 1588,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637095,
+   "ids": [
+    49637095
+   ],
+   "area": 261,
+   "h": 6.4,
+   "x": -3091,
+   "z": 1302,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 82A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635251,
+   "ids": [
+    49635251
+   ],
+   "area": 260,
+   "h": 9.9,
+   "x": -3392,
+   "z": 1582,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 69",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634594,
+   "ids": [
+    49634594
+   ],
+   "area": 260,
+   "h": 8.4,
+   "x": -3251,
+   "z": 1577,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nometņu iela 26A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635063,
+   "ids": [
+    49635063
+   ],
+   "area": 259,
+   "h": 3.2,
+   "x": -2258,
+   "z": 1157,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 9",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637593,
+   "ids": [
+    49637593
+   ],
+   "area": 259,
+   "h": 8.4,
+   "x": -3383,
+   "z": 1012,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 17",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636714,
+   "ids": [
+    49636714
+   ],
+   "area": 257,
+   "h": 8.4,
+   "x": -3195,
+   "z": 1183,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 39",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49638537,
+   "ids": [
+    49638537
+   ],
+   "area": 254,
+   "h": 3.2,
+   "x": -3088,
+   "z": 1442,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atpūtas iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634693,
+   "ids": [
+    49634693
+   ],
+   "area": 250,
+   "h": 6.4,
+   "x": -3365,
+   "z": 1666,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 95",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652253,
+   "ids": [
+    49652253
+   ],
+   "area": 248,
+   "h": 6.4,
+   "x": -3702,
+   "z": 1511,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Two Wheels",
+   "en": null,
+   "cat": "hotel",
+   "tier": "C",
+   "lead": 49637669,
+   "ids": [
+    49637669
+   ],
+   "area": 245,
+   "h": 3.2,
+   "x": -2406,
+   "z": 734,
+   "why": [
+    "tag:tourism=hotel",
+    "osm-name"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 31",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637178,
+   "ids": [
+    49637178
+   ],
+   "area": 243,
+   "h": 3.2,
+   "x": -3420,
+   "z": 845,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": "watertower",
+   "key": null,
+   "name": "Alīses iela 4",
+   "en": null,
+   "cat": "industrial",
+   "tier": "C",
+   "lead": 49614141,
+   "ids": [
+    49614141
+   ],
+   "area": 241,
+   "h": 9.6,
+   "x": -2716,
+   "z": 736,
+   "why": [
+    "tag:man_made=water_tower"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kuldīgas iela 55",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640765,
+   "ids": [
+    49640765
+   ],
+   "area": 241,
+   "h": 8.4,
+   "x": -3623,
+   "z": 990,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 67",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634414,
+   "ids": [
+    49634414
+   ],
+   "area": 237,
+   "h": 9.9,
+   "x": -3211,
+   "z": 1597,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-40",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635305,
+   "ids": [
+    49635305
+   ],
+   "area": 236,
+   "h": 3.2,
+   "x": -3006,
+   "z": 2462,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636771,
+   "ids": [
+    49636771
+   ],
+   "area": 235,
+   "h": 9.6,
+   "x": -3148,
+   "z": 1346,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Bišu iela 20",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635986,
+   "ids": [
+    49635986
+   ],
+   "area": 234,
+   "h": 6.4,
+   "x": -2270,
+   "z": 1309,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tapešu iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638627,
+   "ids": [
+    49638627
+   ],
+   "area": 228,
+   "h": 8.4,
+   "x": -3653,
+   "z": 1181,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 33",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49637864,
+   "ids": [
+    49637864
+   ],
+   "area": 227,
+   "h": 8.4,
+   "x": -2777,
+   "z": 910,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 45A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636957,
+   "ids": [
+    49636957
+   ],
+   "area": 227,
+   "h": 9.9,
+   "x": -3252,
+   "z": 1449,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Krūzes iela 2 k-1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49651785,
+   "ids": [
+    49651785
+   ],
+   "area": 226,
+   "h": 6.4,
+   "x": -3669,
+   "z": 1586,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 10",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636753,
+   "ids": [
+    49636753
+   ],
+   "area": 224,
+   "h": 8.4,
+   "x": -3346,
+   "z": 1257,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 2E",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49632846,
+   "ids": [
+    49632846
+   ],
+   "area": 221,
+   "h": 3.2,
+   "x": -1737,
+   "z": 2211,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Struteles iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636403,
+   "ids": [
+    49636403
+   ],
+   "area": 221,
+   "h": 6.4,
+   "x": -3041,
+   "z": 1466,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 4A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49631761,
+   "ids": [
+    49631761
+   ],
+   "area": 220,
+   "h": 3.2,
+   "x": -1851,
+   "z": 2306,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 6",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636779,
+   "ids": [
+    49636779
+   ],
+   "area": 220,
+   "h": 3.2,
+   "x": -3139,
+   "z": 1204,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 38",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636401,
+   "ids": [
+    49636401
+   ],
+   "area": 217,
+   "h": 9.6,
+   "x": -3194,
+   "z": 1410,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atpūtas iela 7A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49633120,
+   "ids": [
+    49633120
+   ],
+   "area": 212,
+   "h": 6.4,
+   "x": -3343,
+   "z": 1696,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 11A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652696,
+   "ids": [
+    49652696
+   ],
+   "area": 212,
+   "h": 3.2,
+   "x": -3797,
+   "z": 1365,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Struteles iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638807,
+   "ids": [
+    49638807
+   ],
+   "area": 211,
+   "h": 8.4,
+   "x": -3051,
+   "z": 1401,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 13",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653255,
+   "ids": [
+    49653255
+   ],
+   "area": 209,
+   "h": 3.2,
+   "x": -3801,
+   "z": 1406,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Pilsoņu iela 13 k-4",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49634772,
+   "ids": [
+    49634772
+   ],
+   "area": 207,
+   "h": 11.6,
+   "x": -2702,
+   "z": 2244,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638707,
+   "ids": [
+    49638707
+   ],
+   "area": 207,
+   "h": 9.9,
+   "x": -3127,
+   "z": 1241,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636988,
+   "ids": [
+    49636988
+   ],
+   "area": 204,
+   "h": 8.4,
+   "x": -3338,
+   "z": 1503,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 8",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638289,
+   "ids": [
+    49638289
+   ],
+   "area": 202,
+   "h": 3.2,
+   "x": -3351,
+   "z": 951,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Kuldīgas iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637571,
+   "ids": [
+    49637571
+   ],
+   "area": 199,
+   "h": 8.4,
+   "x": -3670,
+   "z": 1092,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Struteles iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636147,
+   "ids": [
+    49636147
+   ],
+   "area": 199,
+   "h": 6.4,
+   "x": -3024,
+   "z": 1406,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kokles iela 12A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49635784,
+   "ids": [
+    49635784
+   ],
+   "area": 197,
+   "h": 3.2,
+   "x": -1958,
+   "z": 1959,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atpūtas iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634832,
+   "ids": [
+    49634832
+   ],
+   "area": 196,
+   "h": 6.4,
+   "x": -3362,
+   "z": 1692,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 46A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636571,
+   "ids": [
+    49636571
+   ],
+   "area": 196,
+   "h": 6.4,
+   "x": -3026,
+   "z": 1101,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 13",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637253,
+   "ids": [
+    49637253
+   ],
+   "area": 192,
+   "h": 8.4,
+   "x": -3442,
+   "z": 1117,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636128,
+   "ids": [
+    49636128
+   ],
+   "area": 192,
+   "h": 6.4,
+   "x": -3113,
+   "z": 1480,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636581,
+   "ids": [
+    49636581
+   ],
+   "area": 191,
+   "h": 6.4,
+   "x": -3141,
+   "z": 1367,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 10",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49654081,
+   "ids": [
+    49654081
+   ],
+   "area": 190,
+   "h": 6.4,
+   "x": -3826,
+   "z": 1382,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 51",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639114,
+   "ids": [
+    49639114
+   ],
+   "area": 190,
+   "h": 8.4,
+   "x": -3228,
+   "z": 1113,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 76",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49649497,
+   "ids": [
+    49649497
+   ],
+   "area": 189,
+   "h": 6.4,
+   "x": -3633,
+   "z": 1400,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Fridriha Candera iela 2B",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49654422,
+   "ids": [
+    49654422
+   ],
+   "area": 189,
+   "h": 3.2,
+   "x": -3820,
+   "z": 1133,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 78",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635823,
+   "ids": [
+    49635823
+   ],
+   "area": 188,
+   "h": 6.4,
+   "x": -3341,
+   "z": 1585,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Darba iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640903,
+   "ids": [
+    49640903
+   ],
+   "area": 187,
+   "h": 9.9,
+   "x": -3702,
+   "z": 932,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Olīvu iela 5A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49633742,
+   "ids": [
+    49633742
+   ],
+   "area": 185,
+   "h": 8.4,
+   "x": -1588,
+   "z": 2965,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "K13",
+   "en": null,
+   "cat": "hospital",
+   "tier": "C",
+   "lead": 49635890,
+   "ids": [
+    49635890
+   ],
+   "area": 183,
+   "h": 6.4,
+   "x": -2901,
+   "z": 2340,
+   "why": [
+    "tag:building=hospital",
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Lapu iela 24",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49636381,
+   "ids": [
+    49636381
+   ],
+   "area": 183,
+   "h": 5.2,
+   "x": -2669,
+   "z": 1281,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 42",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638981,
+   "ids": [
+    49638981
+   ],
+   "area": 183,
+   "h": 9.6,
+   "x": -3245,
+   "z": 1523,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 7",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637927,
+   "ids": [
+    49637927
+   ],
+   "area": 182,
+   "h": 8.4,
+   "x": -2022,
+   "z": 569,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 10",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639035,
+   "ids": [
+    49639035
+   ],
+   "area": 181,
+   "h": 6.4,
+   "x": -3381,
+   "z": 965,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 27",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637202,
+   "ids": [
+    49637202
+   ],
+   "area": 181,
+   "h": 8.4,
+   "x": -3288,
+   "z": 971,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 31",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638274,
+   "ids": [
+    49638274
+   ],
+   "area": 181,
+   "h": 8.4,
+   "x": -3332,
+   "z": 867,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 32A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636939,
+   "ids": [
+    49636939
+   ],
+   "area": 179,
+   "h": 6.7,
+   "x": -3051,
+   "z": 1355,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 11",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637402,
+   "ids": [
+    49637402
+   ],
+   "area": 178,
+   "h": 6.7,
+   "x": -3161,
+   "z": 1013,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 65",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636376,
+   "ids": [
+    49636376
+   ],
+   "area": 177,
+   "h": 9.9,
+   "x": -3189,
+   "z": 1604,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baložu iela 18",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49637494,
+   "ids": [
+    49637494
+   ],
+   "area": 176,
+   "h": 6.4,
+   "x": -2505,
+   "z": 573,
+   "why": [
+    "tag:building=kindergarten"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 41",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634569,
+   "ids": [
+    49634569
+   ],
+   "area": 176,
+   "h": 6.4,
+   "x": -3216,
+   "z": 1549,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zeļļu iela 29",
+   "en": null,
+   "cat": "school",
+   "tier": "C",
+   "lead": 49634673,
+   "ids": [
+    49634673
+   ],
+   "area": 175,
+   "h": 5.2,
+   "x": -2071,
+   "z": 1868,
+   "why": [
+    "tag:building=school",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 6",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638218,
+   "ids": [
+    49638218
+   ],
+   "area": 175,
+   "h": 6.4,
+   "x": -3326,
+   "z": 937,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49656108,
+   "ids": [
+    49656108
+   ],
+   "area": 174,
+   "h": 3.2,
+   "x": -3800,
+   "z": 1227,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kuldīgas iela 53",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640830,
+   "ids": [
+    49640830
+   ],
+   "area": 173,
+   "h": 6.7,
+   "x": -3550,
+   "z": 943,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Fridriha Candera iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49654285,
+   "ids": [
+    49654285
+   ],
+   "area": 172,
+   "h": 6.4,
+   "x": -3807,
+   "z": 1119,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Uzvaras bulvāris 15",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49629616,
+   "ids": [
+    49629616
+   ],
+   "area": 168,
+   "h": 3.2,
+   "x": -1970,
+   "z": 1722,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Darba iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49641054,
+   "ids": [
+    49641054
+   ],
+   "area": 168,
+   "h": 8.4,
+   "x": -3670,
+   "z": 892,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ojāra Vācieša iela 6A",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49631758,
+   "ids": [
+    49631758
+   ],
+   "area": 166,
+   "h": 8.4,
+   "x": -1929,
+   "z": 2469,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 81",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638552,
+   "ids": [
+    49638552
+   ],
+   "area": 166,
+   "h": 6.7,
+   "x": -3456,
+   "z": 1533,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 65B",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634495,
+   "ids": [
+    49634495
+   ],
+   "area": 166,
+   "h": 6.4,
+   "x": -3182,
+   "z": 1569,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 12",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638341,
+   "ids": [
+    49638341
+   ],
+   "area": 166,
+   "h": 8.4,
+   "x": -3203,
+   "z": 1046,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 46C",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636815,
+   "ids": [
+    49636815
+   ],
+   "area": 165,
+   "h": 6.4,
+   "x": -3019,
+   "z": 1124,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Zvārdes iela 1C",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49632802,
+   "ids": [
+    49632802
+   ],
+   "area": 164,
+   "h": 5.2,
+   "x": -2464,
+   "z": 2924,
+   "why": [
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 40",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639028,
+   "ids": [
+    49639028
+   ],
+   "area": 164,
+   "h": 6.4,
+   "x": -3210,
+   "z": 1522,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 26",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637446,
+   "ids": [
+    49637446
+   ],
+   "area": 164,
+   "h": 8.4,
+   "x": -3337,
+   "z": 844,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kaķu palīdzības centrs REMI",
+   "en": null,
+   "cat": "public",
+   "tier": "C",
+   "lead": 49651585,
+   "ids": [
+    49651585
+   ],
+   "area": 162,
+   "h": 3.2,
+   "x": -3597,
+   "z": 1916,
+   "why": [
+    "osm-name",
+    "t:pub"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 20",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637574,
+   "ids": [
+    49637574
+   ],
+   "area": 160,
+   "h": 8.4,
+   "x": -3480,
+   "z": 985,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 45",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636805,
+   "ids": [
+    49636805
+   ],
+   "area": 159,
+   "h": 9.9,
+   "x": -3226,
+   "z": 1445,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49656271,
+   "ids": [
+    49656271
+   ],
+   "area": 158,
+   "h": 3.2,
+   "x": -3777,
+   "z": 1275,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 13",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639090,
+   "ids": [
+    49639090
+   ],
+   "area": 158,
+   "h": 6.4,
+   "x": -3120,
+   "z": 994,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 11A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637367,
+   "ids": [
+    49637367
+   ],
+   "area": 157,
+   "h": 3.2,
+   "x": -3454,
+   "z": 1156,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tapešu iela 6",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640716,
+   "ids": [
+    49640716
+   ],
+   "area": 157,
+   "h": 6.7,
+   "x": -3741,
+   "z": 960,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 63A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634456,
+   "ids": [
+    49634456
+   ],
+   "area": 157,
+   "h": 6.4,
+   "x": -3147,
+   "z": 1600,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 42A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638064,
+   "ids": [
+    49638064
+   ],
+   "area": 157,
+   "h": 6.4,
+   "x": -3229,
+   "z": 1505,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 75",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637572,
+   "ids": [
+    49637572
+   ],
+   "area": 155,
+   "h": 8.4,
+   "x": -3557,
+   "z": 1324,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 63",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635663,
+   "ids": [
+    49635663
+   ],
+   "area": 155,
+   "h": 9.9,
+   "x": -3160,
+   "z": 1615,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 87A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636726,
+   "ids": [
+    49636726
+   ],
+   "area": 152,
+   "h": 9.9,
+   "x": -3529,
+   "z": 1478,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 16 k-7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638673,
+   "ids": [
+    49638673
+   ],
+   "area": 152,
+   "h": 8.4,
+   "x": -3586,
+   "z": 1105,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 19",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637766,
+   "ids": [
+    49637766
+   ],
+   "area": 150,
+   "h": 3.2,
+   "x": -3504,
+   "z": 1017,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 8",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653298,
+   "ids": [
+    49653298
+   ],
+   "area": 150,
+   "h": 6.4,
+   "x": -3843,
+   "z": 1347,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 98",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653303,
+   "ids": [
+    49653303
+   ],
+   "area": 149,
+   "h": 6.4,
+   "x": -3773,
+   "z": 1531,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 23",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638766,
+   "ids": [
+    49638766
+   ],
+   "area": 149,
+   "h": 3.2,
+   "x": -3540,
+   "z": 991,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 42",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637026,
+   "ids": [
+    49637026
+   ],
+   "area": 147,
+   "h": 6.4,
+   "x": -3235,
+   "z": 1383,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 16 k-6",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637763,
+   "ids": [
+    49637763
+   ],
+   "area": 144,
+   "h": 8.4,
+   "x": -3583,
+   "z": 1088,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 30",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638731,
+   "ids": [
+    49638731
+   ],
+   "area": 143,
+   "h": 8.4,
+   "x": -3419,
+   "z": 905,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 12",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652180,
+   "ids": [
+    49652180
+   ],
+   "area": 142,
+   "h": 6.4,
+   "x": -3835,
+   "z": 1405,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652985,
+   "ids": [
+    49652985
+   ],
+   "area": 142,
+   "h": 3.2,
+   "x": -3770,
+   "z": 1243,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 36",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638759,
+   "ids": [
+    49638759
+   ],
+   "area": 142,
+   "h": 6.4,
+   "x": -3176,
+   "z": 1524,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 47A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638934,
+   "ids": [
+    49638934
+   ],
+   "area": 141,
+   "h": 6.7,
+   "x": -3286,
+   "z": 1456,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Volguntes iela 3A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49656549,
+   "ids": [
+    49656549
+   ],
+   "area": 140,
+   "h": 5.2,
+   "x": -3836,
+   "z": 1237,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 44",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637866,
+   "ids": [
+    49637866
+   ],
+   "area": 140,
+   "h": 6.4,
+   "x": -3259,
+   "z": 1525,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 83",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637838,
+   "ids": [
+    49637838
+   ],
+   "area": 138,
+   "h": 5.2,
+   "x": -3481,
+   "z": 1530,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 32",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638491,
+   "ids": [
+    49638491
+   ],
+   "area": 138,
+   "h": 8.4,
+   "x": -3437,
+   "z": 939,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Darba iela 4A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49641605,
+   "ids": [
+    49641605
+   ],
+   "area": 138,
+   "h": 9.9,
+   "x": -3712,
+   "z": 943,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 27",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637135,
+   "ids": [
+    49637135
+   ],
+   "area": 136,
+   "h": 6.4,
+   "x": -3104,
+   "z": 1222,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Volguntes iela 2",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652864,
+   "ids": [
+    49652864
+   ],
+   "area": 135,
+   "h": 3.2,
+   "x": -3759,
+   "z": 1173,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 8",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638745,
+   "ids": [
+    49638745
+   ],
+   "area": 134,
+   "h": 6.4,
+   "x": -3133,
+   "z": 1174,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 85",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638162,
+   "ids": [
+    49638162
+   ],
+   "area": 133,
+   "h": 6.4,
+   "x": -3504,
+   "z": 1525,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Darba iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640906,
+   "ids": [
+    49640906
+   ],
+   "area": 132,
+   "h": 8.4,
+   "x": -3653,
+   "z": 921,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 92",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653244,
+   "ids": [
+    49653244
+   ],
+   "area": 131,
+   "h": 6.4,
+   "x": -3693,
+   "z": 1556,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Nomales iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49633129,
+   "ids": [
+    49633129
+   ],
+   "area": 130,
+   "h": 6.4,
+   "x": -3408,
+   "z": 1707,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 17",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637466,
+   "ids": [
+    49637466
+   ],
+   "area": 130,
+   "h": 8.4,
+   "x": -3516,
+   "z": 1118,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 65A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636372,
+   "ids": [
+    49636372
+   ],
+   "area": 130,
+   "h": 9.9,
+   "x": -3177,
+   "z": 1609,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 75A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638465,
+   "ids": [
+    49638465
+   ],
+   "area": 129,
+   "h": 3.2,
+   "x": -3377,
+   "z": 1516,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 92A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49649561,
+   "ids": [
+    49649561
+   ],
+   "area": 129,
+   "h": 6.4,
+   "x": -3693,
+   "z": 1571,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 35",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634607,
+   "ids": [
+    49634607
+   ],
+   "area": 128,
+   "h": 8.4,
+   "x": -3090,
+   "z": 1547,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 29",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638452,
+   "ids": [
+    49638452
+   ],
+   "area": 128,
+   "h": 8.4,
+   "x": -3316,
+   "z": 893,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 96",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49652117,
+   "ids": [
+    49652117
+   ],
+   "area": 126,
+   "h": 3.2,
+   "x": -3749,
+   "z": 1561,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 36",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636132,
+   "ids": [
+    49636132
+   ],
+   "area": 125,
+   "h": 3.2,
+   "x": -3170,
+   "z": 1406,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 45",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638438,
+   "ids": [
+    49638438
+   ],
+   "area": 124,
+   "h": 8.4,
+   "x": -3122,
+   "z": 1047,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atpūtas iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636190,
+   "ids": [
+    49636190
+   ],
+   "area": 121,
+   "h": 3.2,
+   "x": -3369,
+   "z": 1642,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Atpūtas iela 2C",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635223,
+   "ids": [
+    49635223
+   ],
+   "area": 120,
+   "h": 3.2,
+   "x": -3270,
+   "z": 1665,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 23",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638248,
+   "ids": [
+    49638248
+   ],
+   "area": 120,
+   "h": 8.4,
+   "x": -3258,
+   "z": 1017,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 87",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638015,
+   "ids": [
+    49638015
+   ],
+   "area": 119,
+   "h": 3.2,
+   "x": -3508,
+   "z": 1484,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Darba iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49641283,
+   "ids": [
+    49641283
+   ],
+   "area": 119,
+   "h": 3.2,
+   "x": -3609,
+   "z": 916,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 11",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639067,
+   "ids": [
+    49639067
+   ],
+   "area": 117,
+   "h": 3.2,
+   "x": -3457,
+   "z": 1145,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 25",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638142,
+   "ids": [
+    49638142
+   ],
+   "area": 114,
+   "h": 5.2,
+   "x": -3269,
+   "z": 987,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 8A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636926,
+   "ids": [
+    49636926
+   ],
+   "area": 113,
+   "h": 3.2,
+   "x": -3124,
+   "z": 1167,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 9B",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49637990,
+   "ids": [
+    49637990
+   ],
+   "area": 112,
+   "h": 6.4,
+   "x": -2050,
+   "z": 536,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 32A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639087,
+   "ids": [
+    49639087
+   ],
+   "area": 112,
+   "h": 8.4,
+   "x": -3474,
+   "z": 948,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638564,
+   "ids": [
+    49638564
+   ],
+   "area": 112,
+   "h": 6.7,
+   "x": -3133,
+   "z": 1392,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 47",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636683,
+   "ids": [
+    49636683
+   ],
+   "area": 110,
+   "h": 6.4,
+   "x": -3308,
+   "z": 1454,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 40B",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636861,
+   "ids": [
+    49636861
+   ],
+   "area": 109,
+   "h": 6.4,
+   "x": -3211,
+   "z": 1491,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 33",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636944,
+   "ids": [
+    49636944
+   ],
+   "area": 108,
+   "h": 3.2,
+   "x": -3280,
+   "z": 1234,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 82",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634699,
+   "ids": [
+    49634699
+   ],
+   "area": 107,
+   "h": 3.2,
+   "x": -3372,
+   "z": 1571,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Baseina iela 3",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653743,
+   "ids": [
+    49653743
+   ],
+   "area": 106,
+   "h": 3.2,
+   "x": -3866,
+   "z": 1373,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 27A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637546,
+   "ids": [
+    49637546
+   ],
+   "area": 106,
+   "h": 5.2,
+   "x": -3286,
+   "z": 955,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Volguntes iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49655196,
+   "ids": [
+    49655196
+   ],
+   "area": 105,
+   "h": 3.2,
+   "x": -3784,
+   "z": 1174,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Volguntes iela 4 k-1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49655781,
+   "ids": [
+    49655781
+   ],
+   "area": 105,
+   "h": 3.2,
+   "x": -3799,
+   "z": 1187,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Āgenskalna iela 28",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637691,
+   "ids": [
+    49637691
+   ],
+   "area": 104,
+   "h": 5.2,
+   "x": -3384,
+   "z": 875,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 36A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636725,
+   "ids": [
+    49636725
+   ],
+   "area": 104,
+   "h": 3.2,
+   "x": -3175,
+   "z": 1505,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 5",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637320,
+   "ids": [
+    49637320
+   ],
+   "area": 103,
+   "h": 6.4,
+   "x": -3275,
+   "z": 1066,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 63",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638256,
+   "ids": [
+    49638256
+   ],
+   "area": 99,
+   "h": 6.4,
+   "x": -3442,
+   "z": 1202,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 37",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635491,
+   "ids": [
+    49635491
+   ],
+   "area": 97,
+   "h": 6.4,
+   "x": -3141,
+   "z": 1563,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Valentīna iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637877,
+   "ids": [
+    49637877
+   ],
+   "area": 96,
+   "h": 5.2,
+   "x": -3368,
+   "z": 997,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 10A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638635,
+   "ids": [
+    49638635
+   ],
+   "area": 94,
+   "h": 8.4,
+   "x": -3173,
+   "z": 1061,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kuldīgas iela 55A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49641548,
+   "ids": [
+    49641548
+   ],
+   "area": 93,
+   "h": 8.4,
+   "x": -3610,
+   "z": 976,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653773,
+   "ids": [
+    49653773
+   ],
+   "area": 92,
+   "h": 3.2,
+   "x": -3759,
+   "z": 1296,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Smārdes iela 1",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653798,
+   "ids": [
+    49653798
+   ],
+   "area": 92,
+   "h": 3.2,
+   "x": -3742,
+   "z": 1230,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 38",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636795,
+   "ids": [
+    49636795
+   ],
+   "area": 92,
+   "h": 3.2,
+   "x": -3190,
+   "z": 1519,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 13A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638758,
+   "ids": [
+    49638758
+   ],
+   "area": 91,
+   "h": 3.2,
+   "x": -3130,
+   "z": 997,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 7",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639101,
+   "ids": [
+    49639101
+   ],
+   "area": 89,
+   "h": 5.2,
+   "x": -3251,
+   "z": 1055,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 45A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637874,
+   "ids": [
+    49637874
+   ],
+   "area": 88,
+   "h": 3.2,
+   "x": -3124,
+   "z": 1031,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Dreiliņu iela 19",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49639099,
+   "ids": [
+    49639099
+   ],
+   "area": 87,
+   "h": 3.2,
+   "x": -3226,
+   "z": 1079,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Struteles iela 4A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636413,
+   "ids": [
+    49636413
+   ],
+   "area": 82,
+   "h": 5.2,
+   "x": -3063,
+   "z": 1424,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Tapešu iela 4",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49640711,
+   "ids": [
+    49640711
+   ],
+   "area": 80,
+   "h": 5.2,
+   "x": -3731,
+   "z": 970,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 7A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638559,
+   "ids": [
+    49638559
+   ],
+   "area": 80,
+   "h": 5.2,
+   "x": -3241,
+   "z": 1050,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Kuldīgas iela 1A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637360,
+   "ids": [
+    49637360
+   ],
+   "area": 79,
+   "h": 3.2,
+   "x": -3625,
+   "z": 1075,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 13A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637542,
+   "ids": [
+    49637542
+   ],
+   "area": 79,
+   "h": 3.2,
+   "x": -3473,
+   "z": 1143,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 43",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635016,
+   "ids": [
+    49635016
+   ],
+   "area": 79,
+   "h": 6.4,
+   "x": -3234,
+   "z": 1543,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ernestīnes iela 44",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638093,
+   "ids": [
+    49638093
+   ],
+   "area": 75,
+   "h": 6.4,
+   "x": -3256,
+   "z": 1387,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 76A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653356,
+   "ids": [
+    49653356
+   ],
+   "area": 74,
+   "h": 6.4,
+   "x": -3643,
+   "z": 1416,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 45B",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637467,
+   "ids": [
+    49637467
+   ],
+   "area": 74,
+   "h": 6.4,
+   "x": -3138,
+   "z": 1038,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kristapa iela 2A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637403,
+   "ids": [
+    49637403
+   ],
+   "area": 73,
+   "h": 3.2,
+   "x": -3381,
+   "z": 1057,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 18A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638708,
+   "ids": [
+    49638708
+   ],
+   "area": 72,
+   "h": 3.2,
+   "x": -3402,
+   "z": 976,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kapseļu iela 14A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637728,
+   "ids": [
+    49637728
+   ],
+   "area": 71,
+   "h": 3.2,
+   "x": -3217,
+   "z": 1315,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ķemeru iela 8A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49656458,
+   "ids": [
+    49656458
+   ],
+   "area": 69,
+   "h": 6.4,
+   "x": -3824,
+   "z": 1349,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 40A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49636664,
+   "ids": [
+    49636664
+   ],
+   "area": 69,
+   "h": 3.2,
+   "x": -3217,
+   "z": 1510,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Ormaņu iela 39",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49634391,
+   "ids": [
+    49634391
+   ],
+   "area": 68,
+   "h": 3.2,
+   "x": -3179,
+   "z": 1547,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Kuldīgas iela 1B",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49637355,
+   "ids": [
+    49637355
+   ],
+   "area": 65,
+   "h": 3.2,
+   "x": -3620,
+   "z": 1056,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Mazā Nometņu iela 86",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49635374,
+   "ids": [
+    49635374
+   ],
+   "area": 64,
+   "h": 5.2,
+   "x": -3504,
+   "z": 1557,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Kalnciema iela 79A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49653383,
+   "ids": [
+    49653383
+   ],
+   "area": 64,
+   "h": 3.2,
+   "x": -3677,
+   "z": 1390,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Daugavgrīvas iela 11A",
+   "en": null,
+   "cat": "historic",
+   "tier": "C",
+   "lead": 49638194,
+   "ids": [
+    49638194
+   ],
+   "area": 63,
+   "h": 3.2,
+   "x": -2057,
+   "z": 529,
+   "why": [
+    "tag:historic=building"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Fridriha Candera iela 2C",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49654408,
+   "ids": [
+    49654408
+   ],
+   "area": 62,
+   "h": 5.2,
+   "x": -3832,
+   "z": 1100,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Margrietas iela 14A",
+   "en": null,
+   "cat": "wooden",
+   "tier": "C",
+   "lead": 49638463,
+   "ids": [
+    49638463
+   ],
+   "area": 60,
+   "h": 3.2,
+   "x": -3395,
+   "z": 1059,
+   "why": [
+    "wooden-quarter"
+   ],
+   "album": null
+  },
+  {
+   "hint": null,
+   "key": null,
+   "name": "Meža iela 2B",
+   "en": null,
+   "cat": "church",
+   "tier": "C",
+   "lead": 49636360,
+   "ids": [
+    49636360
+   ],
+   "area": 46,
+   "h": 8.4,
+   "x": -1919,
+   "z": 830,
+   "why": [
+    "tag:building=chapel"
+   ],
+   "album": null
+  }
+ ],
+ "tierAMissing": []
+}

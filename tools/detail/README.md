@@ -28,6 +28,9 @@ Node >= 20, no build step. Only optional dependency: `draco3d` (see "Draco" belo
 | `planar.mjs` | plane-fitted roofs (RANSAC planes, lathe domes / pyramid spires, shared-chain boundaries, straightened ridges, CDT, welded heights + vertical step walls), see "Plane-fitted mesher" |
 | `parts.mjs` | OSM `building:part` list -> exact prisms + planar gable/hip/skillion roofs + smooth lathe domes / onion domes / cones (+ optional gilded crosses) |
 | `curated.mjs` | parametric heroes (Art Museum, Art Academy): prisms + mansard / gable / pyramid primitives, stepped gables, built in the building's own measured axis frame; selected with `curated: '<name>'` in `heroes.mjs` |
+| `sights.mjs` | the sights list per map (album, landmarks, OSM names / tags, pub / rel, >= 30 m; categories A / B / C tiers) -> `data/sights-<map>.json`, `public/data/<map>/sights.json` (loaded by the game), `audit-sights.md` (generated list + the hand-written `audit-sights.tail.md`). See the main README section 4.0 |
+| `fetch-osm-sights.mjs` | Overpass (polite, cached in `tools/.cache/osm_sights_<slug>.json`): every building carrying a sight-relevant OSM tag, whatever its name / height / levels |
+| `sights-report.mjs` | release gate `npm run check:sights`: sights that still look like apartment blocks (style 0 / housing palette / plain flat box), before -> after per map and tier, exit 1 on violations |
 | `roof-report.mjs` | `node tools/detail/roof-report.mjs [--map=<slug>] [--list]`: roof-colour assertion over a shapes file (exit 1 on violations), lists every building with an accent |
 | `heroes.mjs` | curated config of the ~25 landmark buildings: ids, source (`parts` / `mesh` / `auto`), facade style, palette, camera notes; `BLOCK_IDS` = 6 fixed ordinary blocks for before/after shots |
 | `preview-shapes.mjs` | software-rendered preview of what is in `riga-shapes.bin.gz` (no browser): `node preview-shapes.mjs nativity blocks heroes <id>` -> `tools/.cache/detail/shape-<name>.png` (env `PITCH=25`, `SHAPES=<file>`) |
@@ -175,3 +178,10 @@ a compact leftover blob at a nave end becomes a polygonal apse (8-gon prism + co
 Churches with no height grid (outside the reality-mesh coverage) use `kit.synth = { eave, rise, tower?, dome? }`: `synthChurchGrid` makes a 0.5 m grid from the cadastre footprint and these few numbers (heights from the cadastre / landmark height), then the same kit runs on it.
 Hooks: `build-meshes.mjs` (`hero.church` -> `churchFromField`, and the synthetic-grid pre-pass), `heroes.mjs` (`mergeChurches`), `src/buildings.js` (facade styles 7 = plastered baroque / classicist with round-arched tall windows, 8 = wooden, 9 = Orthodox; window shader code frac 0.65 = round arch), `src/flags.js` (rooftop flags skip corners whose roof height is a tower / spire flank).
 Review: `PORT=5185 GPU=1 node scripts/church-shots.mjs [slug ...] --prefix=church-after-` (`MAP=<slug>`, `THEME=`), `--compose=church-before-,church-after- [--sheet]`, `--skyline` (Old Town from the Daugava).
+
+
+## Sights (2026-11, `sights.mjs`, `src/sights.js`, `src/sightFeatures.js`)
+Category treatment of every important building is applied by the GAME at load time (`src/buildings.js`), not baked into the shapes file, so it covers shaped and flat-extruded buildings alike and the `low` quality tier. The shapes pipeline only gained
+the geometry that cannot be made at runtime: `marketmeat` (`curated-civic.mjs marketVaultMeasured`, host 49615202 = the fifth Central Market pavilion, 5491 m2 cadastre piece, ridge crosswise to the other four, oriented from the footprint's minimum box),
+`platformshed` (49614921, the former crumpled station platform building), the House of the Blackheads' two DIFFERENT stepped gables (7 steps / 5 steps, `build-meshes.mjs stepGable`; the light trim is runtime geometry, `sightFeatures.js gabletrim`),
+and the old `cathouse` hero was dropped (the Cat House is the cadastre piece "Meistaru iela 10", id 49616370, ~(-275, 148) next to the guilds, not Tirgoņu iela 5/7 49614702; the cadastre address is the evidence, the brief's (-318, 225) is the Small Guild).
