@@ -172,7 +172,9 @@ export class RoomSim {
       for (const p of this.pickSpawns(this.holes.length, [])) placed.push(p);
     }
     // humans get the first (densest) spots in a random order, bots the rest
-    const order = this.holes.slice().sort((a, b) => (a.bot - b.bot) || (this.rng() - 0.5));
+    // seeded Fisher-Yates within each group (humans first), never a random comparator
+    const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(this.rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const order = [...shuffle(this.holes.filter((h) => !h.bot)), ...shuffle(this.holes.filter((h) => h.bot))];
     order.forEach((h, i) => { const p = placed[i % placed.length]; h.x = p.x; h.z = p.z; h.tx = p.x; h.tz = p.z; });
     for (const h of this.holes) { h.lastPosAt = this.playAt; h.budget = 0; h.claimBudget = this.cfg.claimBurst; h.moverBudget = this.cfg.moverPointsBurst; }
   }
@@ -467,6 +469,7 @@ class BotBrain {
         if (gap < zone) { const w = 1 - gap / zone + 0.2; fx += (dx / d) * w; fz += (dz / d) * w; if (w > tw) { tw = w; threat = o; } }
       } else if (r >= o.r * D.ratio * 1.02 && !safe && nowMs >= h.protectUntil && nowMs >= o.protectUntil - 500) {
         if (o.id === this.preyBan && now < this.preyBanUntil) continue;
+        if (!o.bot && now < sim.playAt / 1000 + (sim.cfg.botHumanGrace || 0)) continue; // no early dogpile on people: they get a quiet first minute
         if (o.score < h.score * B.preyMinFrac) continue;
         const gap = d - r * D.reach;
         if (gap > Math.max(18, r * B.huntRange) * (0.5 + this.aggr * 0.7)) continue;

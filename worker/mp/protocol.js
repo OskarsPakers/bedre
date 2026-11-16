@@ -19,13 +19,14 @@
 //    {t:'end', rank:[...], saved}                 final ranking (server authoritative)
 //    {t:'err', code}                              version | started | full | room | gone | ratelimit | name
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;   // 2: handshake id = hash of the placement file bytes (was: hash over the client's float-built world)
 
 export const MP = {
   maxHumans: 12,
   totalHoles: 8,             // humans + bots (bots fill up to this)
-  botSkill: 0.55,            // server-bot difficulty: 1 = the full solo-bot strength, lower = slower / clumsier (each bot gets +-22 % spread). Tuned with scripts/mp-bot-bench.mjs
-                             // so that a first-time human can finish mid-table (bots score ~60-70 % of what they did at 1.0: mean 60 %, best bot ~73 %; a casual human reaching ~27k points lands mid-table)
+  botSkill: 0.38,            // server-bot difficulty: 1 = the full solo-bot strength, lower = slower / clumsier (each bot gets +-22 % spread). Tuned with scripts/mp-bot-bench.mjs
+                             // so that a casual human (~25-30k points on their own) finishes in the top 3 of 8 (see README 6.2 for the bench numbers)
+  botHumanGrace: 60,         // seconds from the round start in which server bots do not hunt humans (they still eat and flee)
   lobbySeconds: 20,          // countdown starts when the first player arrives
   roundSeconds: 300,
   introMs: 3700,             // whole-city fly-in (CFG.intro.hold + glide), the round clock starts after it
@@ -61,6 +62,7 @@ export function mpConfig(env) {
     resultsSeconds: num(e.MP_RESULTS_SECONDS, MP.resultsSeconds, 2, 600),
     maxHumans: num(e.MP_MAX_HUMANS, MP.maxHumans, 1, 12),
     botSkill: num(e.MP_BOT_SKILL, MP.botSkill, 0.2, 1),
+    botHumanGrace: num(e.MP_BOT_GRACE, MP.botHumanGrace, 0, 300),
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === '1' || e.MP_TEST_CLOSE_SPAWN === 1,
   };
 }

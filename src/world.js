@@ -12,7 +12,9 @@ import { mulberry32 } from './rng.js';
 import { LIFE } from './config.js';
 import { bus } from './events.js';
 import { Effects } from './effects.js';
-import { RoadNet, Traffic, planMovers } from './traffic.js';
+import { RoadNet, Traffic, planMovers, moverParks, moverFromRecord, moverRecord, netSignature } from './traffic.js';
+import { generateRequested } from './placements.js';
+import { MOVER_STRIDE } from '../worker/mp/table.js';
 import { rigaProps } from './riga.js';
 
 const CELL = 24;
@@ -45,6 +47,15 @@ export class World {
     scene.add(this.ground);
 
     const b = buildBuildings(data);
+    // placement file (worker/mp/table.js): the canonical object list. Valid -> props + movers are built FROM it and every building takes its
+    // canonical fit / value from it (float geometry math differs between JS engines); otherwise the procedural scatter runs (generator / fallback).
+    this.generate = generateRequested();
+    const pr = data.placements || null;
+    let pt = (!this.generate && pr && pr.table) || null;
+    let why = pr ? pr.reason : null;
+    if (pt) { why = this._checkPlacements(pt, b.items, data); if (why) pt = null; }
+    this.placements = { source: pt ? 'file' : 'procedural', hash: pt ? pt.hash : null, reason: this.generate ? 'generate' : (why || (pr ? null : 'none')), table: pt };
+    if (pt) for (let i = 0; i < b.items.length; i++) { b.items[i].fit = pt.fit[i]; b.items[i].value = pt.value[i]; }
     this.buildingMesh = b.mesh;
     scene.add(b.mesh);
     this.buildingItems = b.items;
@@ -58,8 +69,14 @@ export class World {
       });
     }
     this.blockers = new Blockers(b.items.map((it) => it.ring), data.water);
-    { const bb = this.bounds, dist = data.meta.slug && data.meta.slug !== 'centrs'; this.spawn = this.findSpawn(dist ? (bb.minX + bb.maxX) / 2 : 0, dist ? (bb.minZ + bb.maxZ) / 2 : 0); } // district maps: map middle; centre: origin as before
-    this._buildProps(data);
+    if (pt && pt.meta.spawn) this.spawn = pt.meta.spawn;
+    else { const bb = this.bounds, dist = data.meta.slug && data.meta.slug !== 'centrs'; this.spawn = this.findSpawn(dist ? (bb.minX + bb.maxX) / 2 : 0, dist ? (bb.minZ + bb.maxZ) / 2 : 0); } // district maps: map middle; centre: origin as before
+    this._buildProps(data, pt);
+    if (pt) { // ids must be exactly the file's indices (the server's table): any drift disables online instead of desyncing it
+      let bad = this.objects.length !== pt.n;
+      for (let i = pt.nB; !bad && i < pt.n; i++) if (this.objects[i].kind !== pt.kinds[pt.kind[i]] || this.objects[i].x !== pt.x[i] && !(pt.flags[i] & 1)) bad = true;
+      if (bad) { console.warn('[placements] object ids drifted from the file: online disabled'); this.placements.hash = null; this.placements.reason = 'order'; }
+    }
     shuffleInPlace(this.traffic.list, mulberry32(CFG.seed + 3));
     this.counts.props = this.objects.length - b.items.length;
     this.counts.buildings = b.items.length;
@@ -91,7 +108,45 @@ export class World {
     return o;
   }
 
-  _buildProps(data) {
+  /** Does the placement file belong to these buildings / this road graph? Returns null when fine, else a reason string. */
+  _checkPlacements(pt, items, data) {
+    if (pt.nB !== items.length) return 'buildings';
+    for (let i = 0; i < items.length; i++) {
+      if (!(pt.flags[i] & 2) || Math.abs(pt.x[i] - items[i].x) > 0.1 || Math.abs(pt.z[i] - items[i].z) > 0.1) return 'buildings';
+    }
+    const sig = netSignature(this.net, data), want = pt.meta.roads || {};
+    for (const k of Object.keys(sig)) if (sig[k] !== want[k]) return 'roads';
+    return null;
+  }
+
+  /** Placements from the file: one entry per object id >= nB, in id order (which regroups to exactly the same ids). */
+  _placementsFromFile(pt, data) {
+    const out = [], parks = moverParks(data);
+    let mi = 0;
+    for (let i = pt.nB; i < pt.n; i++) {
+      const p = { kind: pt.kinds[pt.kind[i]], x: pt.x[i], z: pt.z[i], yaw: pt.yaw[i], s: pt.s[i], tint: pt.tint[i] === 65535 ? undefined : pt.tint[i] / 4094, fit: pt.fit[i], value: pt.value[i], name: null, landmark: !!(pt.flags[i] & 4) };
+      if (pt.flags[i] & 1) {
+        p.m = moverFromRecord(pt.movers.subarray(mi * MOVER_STRIDE, (mi + 1) * MOVER_STRIDE), this.net, parks, p, this.blockers);
+        mi++;
+      }
+      out.push(p);
+    }
+    for (const [id, name] of pt.meta.names || []) if (id >= pt.nB) out[id - pt.nB].name = name;
+    return out;
+  }
+
+  _buildProps(data, pt) {
+    let placements;
+    if (pt) placements = this._placementsFromFile(pt, data);
+    else {
+      placements = this._planProcedural(data);
+      if (this.generate) for (const p of placements) if (p.m) p.rec = moverRecord(p);
+    }
+    this._instantiate(placements);
+  }
+
+  /** The procedural scatter (generator + fallback). Engine-dependent: never the source of truth for online play. */
+  _planProcedural(data) {
     const VEH = new Set(['car', 'van', 'bus', 'tram', 'kiosk']);
     const placements = scatterProps(data, this.blockers).filter((p) =>
       !(VEH.has(p.kind) && Math.hypot(p.x - this.spawn[0], p.z - this.spawn[1]) < 24));
@@ -116,6 +171,12 @@ export class World {
       !(['car', 'bus', 'tram'].includes(p.kind) && Math.hypot(p.x - this.spawn[0], p.z - this.spawn[1]) < 24));
     shuffleInPlace(movers, mrng);
     for (const p of movers) placements.push(p);
+    return placements;
+  }
+
+  _instantiate(placements) {
+    // generator: snap positions to the file's 1/16 m grid BEFORE chunking, so that re-grouping the file (src/world.js _placementsFromFile) reproduces exactly the same chunks and ids
+    if (this.generate) for (const p of placements) { p.x = Math.round(p.x * 16) / 16; p.z = Math.round(p.z * 16) / 16; }
     const groups = new Map();
     for (const p of placements) {
       // static props (trees included) are chunked into 250 m cells so each chunk can be frustum-culled: an un-chunked instanced mesh
@@ -153,8 +214,8 @@ export class World {
         }
         const val = def.value * (kind === 'tree' ? Math.max(1, Math.round(p.s * 1.5)) : kind === 'monument' ? p.s : 1);
         const o = this._add({
-          kind, cls: def.cls, x: p.x, z: p.z, fit: def.fit * p.s, value: Math.max(1, Math.round(val)), h: def.h * p.s,
-          name: p.name || null, landmark: !!p.landmark, yaw: p.yaw, s: p.s, mesh, idx: i, isBuilding: false, moverM: p.m || null,
+          kind, cls: def.cls, x: p.x, z: p.z, fit: p.fit ?? def.fit * p.s, value: p.value ?? Math.max(1, Math.round(val)), h: def.h * p.s,
+          name: p.name || null, landmark: !!p.landmark, yaw: p.yaw, s: p.s, mesh, idx: i, isBuilding: false, moverM: p.m || null, p: this.generate ? p : null,
         });
         if (p.m) { o.mover = true; this.traffic.register(o); }
         this._write(o, o.x, 0, o.z, null, o.s);

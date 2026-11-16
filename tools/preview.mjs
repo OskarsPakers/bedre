@@ -7,7 +7,9 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/data/riga.json'), 'utf8'));
+// node tools/preview.mjs [--map slug]  (default centrs); same layer order as src/ground.js: walkways under carriageways, tunnels hidden
+const slug = process.argv.includes('--map') ? process.argv[process.argv.indexOf('--map') + 1] : 'centrs';
+const d = JSON.parse(fs.readFileSync(path.join(ROOT, slug === 'centrs' ? 'public/data/riga.json' : `public/data/${slug}/riga.json`), 'utf8'));
 const b = d.meta.bounds;
 const S = 0.8; // px per metre
 const W = (b.maxX - b.minX) * S, H = (b.maxZ - b.minZ) * S;
@@ -26,8 +28,9 @@ for (const a of d.areas || []) if (a.c === 'pier' || a.c === 'brg') o.push(poly(
 for (const p of d.piers || []) o.push(poly(p, '#cfc5b0'));
 const col = { rail: '#777', pedestrian: '#d9d2c4', footway: '#e2dccf', service: '#b9b6ae' };
 const veh = new Set(['motorway', 'primary', 'secondary', 'tertiary', 'residential', 'service']);
-for (const r of d.roads) if (veh.has(r.k) && r.sw !== 0 && !r.br) o.push(`<polyline points="${pts(r.p)}" fill="none" stroke="#efe9db" stroke-width="${((r.w + 4) * S).toFixed(1)}" stroke-linejoin="round"/>`);
-for (const r of d.roads) o.push(`<polyline points="${pts(r.p)}" fill="none" stroke="${col[r.k] || '#8f8e8a'}" stroke-width="${(r.w * S).toFixed(1)}" stroke-linejoin="round"/>`);
+for (const r of d.roads) if (veh.has(r.k) && r.sw !== 0 && !r.br && !r.tn) o.push(`<polyline points="${pts(r.p)}" fill="none" stroke="#efe9db" stroke-width="${((r.w + 4) * S).toFixed(1)}" stroke-linejoin="round"/>`);
+const walk = (r) => r.k === 'footway' || r.k === 'pedestrian';
+for (const r of [...d.roads.filter(walk), ...d.roads.filter((r) => !walk(r))]) if (!r.tn && r.f !== 'c') o.push(`<polyline points="${pts(r.p)}" fill="none" stroke="${col[r.k] || '#8f8e8a'}" stroke-width="${(r.w * S).toFixed(1)}" stroke-linejoin="round"/>`);
 for (const c of d.crossings || []) {
   const a = (c[2] * Math.PI) / 180, dx = Math.cos(a) * c[3] / 2, dz = Math.sin(a) * c[3] / 2;
   o.push(`<line x1="${X(c[0] - dx)}" y1="${Z(c[1] - dz)}" x2="${X(c[0] + dx)}" y2="${Z(c[1] + dz)}" stroke="${c[4] ? '#fff' : '#c8c8c8'}" stroke-width="${(2.2 * S).toFixed(1)}"/>`);
@@ -39,7 +42,7 @@ for (const bl of d.buildings) {
 for (const t of d.trees) o.push(`<circle cx="${X(t[0])}" cy="${Z(t[1])}" r="1.6" fill="#2e8b3d"/>`);
 for (const l of d.landmarks) o.push(`<circle cx="${X(l.x)}" cy="${Z(l.z)}" r="4" fill="#e03030"/>`);
 o.push('</svg>');
-const out = path.join(ROOT, 'tools/.cache/preview.svg');
+const out = path.join(ROOT, slug === 'centrs' ? 'tools/.cache/preview.svg' : `tools/.cache/preview-${slug}.svg`);
 fs.writeFileSync(out, o.join('\n'));
 console.log('wrote', out, (fs.statSync(out).size / 1048576).toFixed(2), 'MB');
 try {

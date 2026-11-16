@@ -8,7 +8,7 @@ import { initLife } from './life.js';
 import { t, applyDom, setLang, onLang } from './i18n.js';
 import { initScoresUi } from './scoresUi.js';
 import { initOnline } from './net/index.js';
-import { initModes, BOT_CAPACITY, getMode } from './modes.js';
+import { initModes, BOT_CAPACITY, getMode, playLabel } from './modes.js';
 import { initTrace } from './trace.js';
 import { bindAnalytics } from './analytics.js';
 import { initMeta } from './meta/progress.js';
@@ -100,8 +100,8 @@ async function boot() {
   initRadio(); initPwa();
   const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden)');
 
-  game.hud.setReady(true, t('play'));
-  onLang(() => { if (!$('play').disabled) $('play').textContent = t('play'); });
+  game.hud.setReady(true, playLabel());
+  onLang(() => { if (!$('play').disabled) $('play').textContent = playLabel(); });
   $('play').addEventListener('click', () => game.start());
   $('again').addEventListener('click', () => game.start());
   $('pause-btn').addEventListener('click', () => game.pause(true));

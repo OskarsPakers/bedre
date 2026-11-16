@@ -87,33 +87,58 @@
 
   <div id="start" class="panel">
     <div class="panel-inner start-card">
-      <div class="langsw" role="group" aria-label="Language"><button type="button" data-lang="lv">LV</button><button type="button" data-lang="en">EN</button></div>
       <div class="start-head">
         <div class="logo"><span class="logo-hole"></span><span class="logo-text">BEDRE</span></div>
         <div class="sub">Rīga</div>
-        <p class="blurb" data-i18n="blurb"></p>
+        <p class="blurb" data-i18n="blurbShort"></p>
       </div>
       <div class="start-main">
         <label class="namebox"><span data-i18n="yourName">Your name</span><input id="name" type="text" maxlength="14" data-i18n-ph="namePh" placeholder="Tu" autocomplete="off" spellcheck="false" /></label>
-        <div class="modesw" id="modesw" role="radiogroup" data-i18n-title="modesAria">
-          <button type="button" role="radio" data-mode="classic" data-i18n="modeClassic">Classic</button>
-          <button type="button" role="radio" data-mode="quick" data-i18n="modeQuick">Quick</button>
-          <button type="button" role="radio" data-mode="daily" data-i18n="modeDaily">Daily</button>
-          <button type="button" role="radio" data-mode="free" data-i18n="modeFree">Free roam</button>
-        </div>
-        <p class="mode-desc" id="mode-desc"></p>
         <button id="play" class="btn" disabled>Loading map&hellip;</button>
         <!-- net/ui.js adds the Online button + #mp-status right after #play -->
         <div class="opts" id="opts">
-          <button id="opts-toggle" class="opts-sum" type="button" aria-expanded="false" aria-controls="opts-body"><span class="opts-lbl" data-i18n="optsTitle">Options</span><span class="opts-val" id="opts-val"></span><span class="chev" aria-hidden="true"></span></button>
-          <div id="opts-body" class="opts-body" hidden></div>
+          <button id="opts-toggle" class="opts-sum" type="button" aria-expanded="false" aria-controls="opts-body"><span class="opts-lbl" data-i18n="advTitle">Advanced</span><i class="opts-dot" id="opts-dot" hidden></i><span class="opts-val" id="opts-val"></span><span class="chev" aria-hidden="true"></span></button>
+          <div id="opts-body" class="opts-body" hidden>
+            <div class="adv-block" id="adv-mode">
+              <span class="adv-lbl" data-i18n="modeLbl">Game mode</span>
+              <div class="modesw" id="modesw" role="radiogroup" data-i18n-title="modesAria">
+                <button type="button" role="radio" data-mode="classic" data-i18n="modeClassic">Classic</button>
+                <button type="button" role="radio" data-mode="quick" data-i18n="modeQuick">Quick</button>
+                <button type="button" role="radio" data-mode="daily" data-i18n="modeDaily">Daily</button>
+                <button type="button" role="radio" data-mode="free" data-i18n="modeFree">Free roam</button>
+              </div>
+              <p class="mode-desc" id="mode-desc"></p>
+            </div>
+            <div class="adv-block" id="adv-diff">
+              <span class="adv-lbl" data-i18n="diffLbl">Difficulty</span>
+              <div class="modesw" id="diffsw" role="radiogroup" data-i18n-title="diffLbl">
+                <button type="button" role="radio" data-diff="easy" data-i18n="diffEasy">Easy</button>
+                <button type="button" role="radio" data-diff="normal" data-i18n="diffNormal">Normal</button>
+                <button type="button" role="radio" data-diff="hard" data-i18n="diffHard">Hard</button>
+              </div>
+              <p class="mode-desc" id="diff-desc"></p>
+            </div>
+            <!-- src/maps.js adds the district row here, src/theme.js the theme row -->
+            <div class="adv-block" id="adv-quality">
+              <span class="adv-lbl" data-i18n="qualLbl">Graphics</span>
+              <div class="modesw" id="qualsw" role="radiogroup" data-i18n-title="qualLbl">
+                <button type="button" role="radio" data-quality="auto" data-i18n="qualAuto">Auto</button>
+                <button type="button" role="radio" data-quality="low" data-i18n="qualLow">Low</button>
+                <button type="button" role="radio" data-quality="medium" data-i18n="qualMedium">Medium</button>
+                <button type="button" role="radio" data-quality="high" data-i18n="qualHigh">High</button>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="start-foot">
         <div class="linkrow">
           <button id="open-scores" class="link" type="button" data-i18n="topScores">Top scores</button>
           <button id="open-about" class="link" type="button" data-i18n="about">About</button>
+          <span class="langsw" role="group" aria-label="Language"><button type="button" data-lang="lv">LV</button><button type="button" data-lang="en">EN</button></span>
         </div>
+        <p class="credits"><span data-i18n="footInspired">Inspired by Hole.io</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</p>
       </div>
-      <p class="credits"><span data-i18n="footInspired">Inspired by Hole.io</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Rīgas valstspilsētas pašvaldība</p>
     </div>
   </div>
 

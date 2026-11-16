@@ -47,7 +47,7 @@ export class Minimap {
     g.lineCap = 'round'; g.lineJoin = 'round';
     for (const pass of [0, 1]) {
       for (const r of data.roads) {
-        if (!r.p || r.k === 'rail' || r.k === 'footway') continue;
+        if (!r.p || r.tn || r.k === 'rail' || r.k === 'footway') continue;
         const major = r.k === 'primary' || r.k === 'secondary' || r.k === 'tertiary';
         if ((pass === 1) !== major) continue;
         g.strokeStyle = major ? ROADM : ROAD;

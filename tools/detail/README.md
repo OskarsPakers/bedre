@@ -27,6 +27,8 @@ Node >= 20, no build step. Only optional dependency: `draco3d` (see "Draco" belo
 | `build-meshes.mjs` | grid / OSM parts -> clean low-poly shapes + outline loops + measured heights -> `public/data/riga-shapes.bin.gz` (~9 s, offline). `--only=<id,id> [--verbose] [--why] [--report]`; env `PLANAR_DEBUG=<id,id>` writes `tools/.cache/detail/labels-<id>.png` (height grid + plane labels), `PLANAR_WHY=1` prints fit diagnostics |
 | `planar.mjs` | plane-fitted roofs (RANSAC planes, lathe domes / pyramid spires, shared-chain boundaries, straightened ridges, CDT, welded heights + vertical step walls), see "Plane-fitted mesher" |
 | `parts.mjs` | OSM `building:part` list -> exact prisms + planar gable/hip/skillion roofs + smooth lathe domes / onion domes / cones (+ optional gilded crosses) |
+| `curated.mjs` | parametric heroes (Art Museum, Art Academy): prisms + mansard / gable / pyramid primitives, stepped gables, built in the building's own measured axis frame; selected with `curated: '<name>'` in `heroes.mjs` |
+| `roof-report.mjs` | `node tools/detail/roof-report.mjs [--map=<slug>] [--list]`: roof-colour assertion over a shapes file (exit 1 on violations), lists every building with an accent |
 | `heroes.mjs` | curated config of the ~25 landmark buildings: ids, source (`parts` / `mesh` / `auto`), facade style, palette, camera notes; `BLOCK_IDS` = 6 fixed ordinary blocks for before/after shots |
 | `preview-shapes.mjs` | software-rendered preview of what is in `riga-shapes.bin.gz` (no browser): `node preview-shapes.mjs nativity blocks heroes <id>` -> `tools/.cache/detail/shape-<name>.png` (env `PITCH=25`, `SHAPES=<file>`) |
 | `render.mjs` | tiny software rasteriser + PNG writer used by the previews |
@@ -131,6 +133,21 @@ there are real courtyards), per-class options (notable: 0.5 m cells, plane toler
 File format `BSH1` v2: header `stride: 14`, record = `id, nv, nt, nl, src, vol, hmax10, eave10, roofRGB, wallRGB, domeRGB, accentRGB, style, flags` (colours 0 = default palette).
 Triangle classes (`mats`): 0 flat roof, 1 pitched roof, 2 wall (windows; step walls, drums, towers), 3 dome / spire (hero `dome` colour or verdigris), 5 accent (gold crosses). `style`: 0 apartment windows,
 1 church (tall narrow windows, floors 8.5 m), 2 palace (large windows, floors 5.4 m), 3 plain stone (no windows).
+
+## Roof colours: one per building
+Every building has exactly ONE roof colour. File materials 0 (flat) and 1 (pitched) both render as the building's single roof colour (src/buildings.js `buildShapeGeometry`: mostly flat roof -> flat-roof grey,
+otherwise the neighbourhood / hero tile or tin colour); shading comes from the lighting only. Step walls, drums, parapet treads and dormer cheeks are wall colour (materials 2 / 6). The only second colour is an
+ACCENT: material 3 (a complete lathe dome / cone / round tower roof, an OSM dome / spire, a pyramid spire, a lantern cap) and 5 (gilded crosses). The mesher no longer marks "steep and high" facets as accent
+(that made orange / green / dark patchworks). `roof-report.mjs` asserts: buildings with more than one non-accent roof colour = 0 and every accent patch is a complete feature (>= 4 faces rising to an apex);
+it exits 1 otherwise and `--list` prints the buildings with accents (id, name, patches) for eyeballing. 2026-11: 146 accent buildings in the centre (was 608), 37 / 9 / 2 in the districts.
+
+## Curated heroes (`curated.mjs`)
+Art Museum (49615452): measured axis -47.5 deg, symmetric pavilions / wings / central risalit, convex 4-ring mansard + lantern, portico + pediment, one grey-green roof; the cadastre polygon includes the
+2016 terrace, which stays open ground (no mesh, only the building volume is stored). Art Academy (49615853 + 49615877, Kalpaka bulvaris 13): axis -49.8 deg, red-brick gables along the measured ridges, stepped gable
+ends, a slim prism + pyramid spire at the measured tower position (tip 45 m), pointed-arch windows with stone trim (style 6). Further cadastre pieces of a curated building (`hero.ids[1..]`) get an empty
+record with `flags` bit 0 = absorbed (the game skips them); `flags >> 4` = measured footprint area in m^2, used by the game for the fit radius instead of the cadastre polygon (src/buildings.js `shapeHull`).
+Facade styles added: 5 = tall palace (plain rusticated ground floor, two rows of tall windows), 6 = gothic brick (narrow tall pointed-arch windows; shader code frac 0.45; plinth / string courses / window surrounds in light stone).
+Review shots: `PORT=5185 GPU=1 node scripts/detail-shots.mjs --only=fix` -> `scripts/out/fix-*.png` (+ `THEME=evening|winter PAIRONLY=1`, `MAP=<slug>` for the per-district roof sheets).
 
 ## Heroes (`heroes.mjs`)
 

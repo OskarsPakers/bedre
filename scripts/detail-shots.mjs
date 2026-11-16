@@ -24,6 +24,7 @@ const prefix = opt('prefix', MAP === 'centrs' ? '' : `district-${MAP}-shapes-`);
 const only = opt('only', 'all');
 const sfx = quality === 'high' ? '' : '-' + quality;
 const want = (k) => only === 'all' || only === k;
+const fixMode = only === 'fix';
 const server = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'pipe' });
 const kill = () => { try { server.kill('SIGTERM'); } catch {} };
 process.on('exit', kill);
@@ -35,7 +36,7 @@ const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('console error', m.text()); });
 async function boot() {
-  await page.goto(`${base}/?quality=${quality}&intro=0&bots=0&theme=day${MAP === 'centrs' ? '' : '&map=' + MAP}`);
+  await page.goto(`${base}/?quality=${quality}&intro=0&bots=0&theme=${process.env.THEME || 'day'}${MAP === 'centrs' ? '' : '&map=' + MAP}`);
   await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 120000 });
   await page.evaluate(() => { window.__game.start(); });
   await page.waitForTimeout(2400);
@@ -86,7 +87,7 @@ const snap = async (file, setup, arg) => { // setup runs (again) whenever a dev-
 };
 
 const heroes = HEROES.filter((h) => (h.map || 'centrs') === MAP).filter((h) => (!names.length || names.includes(h.slug)) && h.ids.length);
-if (want('heroes')) {
+if (want('heroes') && !fixMode) {
   for (const h of heroes) {
     const info = await G((ids) => window.__heroInfo(ids), h.ids);
     if (!info) { console.log('hero not in this build:', h.slug); continue; }
@@ -98,6 +99,51 @@ if (want('heroes')) {
     }
     // gameplay zoom: the real game camera over the building with a mid-size hole
     await snap(`${prefix}hero-${h.slug}-play${sfx}.png`, (o) => { window.__release(); const g = window.__game; g.teleport(o.x, o.z); g.setRadius(o.r); g.step(0.8); }, { x: info.x, z: info.z, r: Math.max(10, Math.min(24, info.rad * 0.5)) });
+  }
+}
+if (only === 'fix') { // owner review set for the Art Museum / Art Academy / roof-colour work: scripts/out/fix-*.png (+ fix-roofs-*.png contact sheets)
+  const sfxT = process.env.THEME ? '-' + process.env.THEME : '';
+  const hero = (slug) => HEROES.find((h) => h.slug === slug);
+  const mu = await G((ids) => window.__heroInfo(ids), hero('artmuseum').ids), ac = await G((ids) => window.__heroInfo(ids), hero('artacademy').ids);
+  if (mu && ac && MAP === 'centrs') {
+    const both = { x: (mu.x + ac.x) / 2, z: (mu.z + ac.z) / 2 };
+    await snap(`fix-pair-park${sfxT}.png`, (o) => window.__freeCam(o), { ...both, y: 14, dist: 215, el: 15, az: 55 });
+    await snap(`fix-pair-park-high${sfxT}.png`, (o) => window.__freeCam(o), { ...both, y: 8, dist: 210, el: 30, az: 75 });
+    if (!sfxT && !process.env.PAIRONLY) {
+      for (const [nm, info, hh] of [['museum', mu, 14], ['academy', ac, 16]]) {
+        for (const [k, az] of [['ne', 45], ['se', 135], ['sw', 225], ['nw', 315]]) await snap(`fix-${nm}-${k}.png`, (o) => window.__freeCam(o), { x: info.x, z: info.z, y: hh, dist: 135, el: 25, az });
+      }
+      for (const [nm, info] of [['museum', mu], ['academy', ac]]) // gameplay-zoom shots last: they leave a hole decal on the ground
+        await snap(`fix-${nm}-play.png`, (o) => { window.__release(); const g = window.__game; g.teleport(o.x, o.z); g.setRadius(o.r); g.step(0.8); }, { x: info.x, z: info.z, r: 18 });
+    } else await snap(`fix-museum-close${sfxT}.png`, (o) => window.__freeCam(o), { x: mu.x, z: mu.z, y: 14, dist: 150, el: 22, az: 40 });
+  }
+  if (!sfxT && !process.env.PAIRONLY) { // roof-colour sheets: seeded random shaped buildings per zone
+    const cand = await G(() => window.__life.world.buildingItems.filter((i) => i.shaped && i.area > 120 && i.h > 8).map((i) => ({ id: i.id, x: i.x, z: i.z, h: i.h, area: i.area, zone: window.__zoneOf ? window.__zoneOf(i.x, i.z) : '' })));
+    const zoneOf = (x, z) => { const a = (x + 400) / 520, b = (z - 260) / 380; if (a * a + b * b < 1) return 'old'; if (x > -150 && x < 700 && z > -900 && z < -60) return 'centre'; return 'other'; };
+    let seed = 20261116; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const pick = (arr, n) => { const a = [...arr], o = []; while (o.length < n && a.length) o.push(a.splice(Math.floor(rnd() * a.length), 1)[0]); return o; };
+    const sets = MAP === 'centrs' ? [['old', pick(cand.filter((c) => zoneOf(c.x, c.z) === 'old'), 12)], ['centre', pick(cand.filter((c) => zoneOf(c.x, c.z) === 'centre'), 12)]] : [[MAP, pick(cand, 6)]];
+    for (const [nm, list] of sets) {
+      const files = [];
+      let n = 0;
+      for (const c of list) {
+        const f = `fix-roofs-${nm}-${++n}.png`;
+        await snap(f, (o) => window.__freeCam(o), { x: c.x, z: c.z, y: Math.min(c.h * 0.5, 12), dist: Math.max(75, Math.sqrt(c.area) * 2.4 + c.h * 1.2), el: 38, az: 25 + n * 47 });
+        files.push([f, c.id]);
+      }
+      const cellT = (f, id) => `<figure><img src="${pathToFileURL(path.join(out, f))}"><figcaption>${id}</figcaption></figure>`;
+      const html = `<html><body style="margin:0;background:#1d2127;font:12px sans-serif;color:#fff"><div style="display:grid;grid-template-columns:repeat(4,480px);gap:4px;padding:4px">${files.map(([f, id]) => cellT(f, id)).join('')}</div><style>figure{margin:0;position:relative}img{width:480px;height:300px;object-fit:cover;display:block}figcaption{position:absolute;left:4px;top:2px;text-shadow:0 0 3px #000}</style></body></html>`;
+      const tmp = path.join(os.tmpdir(), `roofs-${nm}.html`);
+      fs.writeFileSync(tmp, html);
+      const sp = await ctx.newPage();
+      await sp.setViewportSize({ width: 1980, height: 1000 });
+      await sp.goto(pathToFileURL(tmp).href);
+      await sp.waitForTimeout(800);
+      await sp.screenshot({ path: path.join(out, `fix-roofs-sheet-${nm}.png`), fullPage: true });
+      await sp.close();
+      for (const [f] of files) fs.rmSync(path.join(out, f), { force: true });
+      console.log('roof sheet', nm, files.map((x) => x[1]).join(','));
+    }
   }
 }
 if (want('blocks') && !names.length) {
@@ -113,7 +159,7 @@ if (want('overview') && !names.length) {
     await snap(`detail-${prefix}${n}${sfx}.png`, (o) => window.__freeCam(o), { x: ov.x, z: ov.z, y: 0, dist: d, el, az: 200 });
   }
 }
-if (want('sheet') || (only === 'all' && !names.length)) {
+if (!fixMode && (want('sheet') || (only === 'all' && !names.length))) {
   const cells = HEROES.filter((h) => (h.map || 'centrs') === MAP && h.ids.length && fs.existsSync(path.join(out, `${prefix}hero-${h.slug}-a${sfx}.png`)));
   const bl = BLOCK_IDS.map((_, n) => `${prefix}block-${n + 1}${sfx}.png`).filter((f) => fs.existsSync(path.join(out, f)));
   const cell = (f, label) => `<figure><img src="${pathToFileURL(path.join(out, f))}"><figcaption>${label}</figcaption></figure>`;

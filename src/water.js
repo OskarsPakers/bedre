@@ -73,7 +73,7 @@ export function waterRoutes(data, { minArea = 4000, cell = 5 } = {}) {
       pts[i] = [(pts[i - 1][0] + pts[i][0] * 2 + pts[i + 1][0]) / 4, (pts[i - 1][1] + pts[i][1] * 2 + pts[i + 1][1]) / 4];
     }
     let L = 0;
-    for (let i = 0; i < pts.length - 1; i++) L += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    for (let i = 0; i < pts.length - 1; i++) { const ex = pts[i + 1][0] - pts[i][0], ez = pts[i + 1][1] - pts[i][1]; L += Math.sqrt(ex * ex + ez * ez); } // sqrt (not hypot): identical on every engine
     if (L < 80) continue;
     out.push({ p: pts, w: maxD * c * 2, k: 'water', L, canal: maxD * c < 22 });
   }

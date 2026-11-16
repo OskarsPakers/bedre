@@ -8,6 +8,7 @@
 // Every call resolves (never throws) so the game works offline / on plain `vite dev` without the worker. The server
 // only accepts a score ~round-length after startRound(), together with the progress trace of src/trace.js. Free roam
 // and practice rounds never create a server round. Turnstile (optional, off by default) runs only at submit time.
+import { CFG } from './config.js';
 import { roundRequest } from './modes.js';
 import { getTrace } from './trace.js';
 
@@ -39,7 +40,7 @@ export async function startRound() {
   const data = await api('/api/rounds', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(req) });
   if (!data || typeof data.roundId !== 'string') return null;
   if (seq !== startSeq) return null;           // a newer round started meanwhile
-  round = { roundId: data.roundId, mode: data.mode || req.mode, map: data.map || req.map || 'centrs', day: data.day || null, turnstileSiteKey: data.turnstileSiteKey || null };
+  round = { difficulty: CFG.difficulty, roundId: data.roundId, mode: data.mode || req.mode, map: data.map || req.map || 'centrs', day: data.day || null, turnstileSiteKey: data.turnstileSiteKey || null };
   return { roundId: round.roundId, roundSeconds: data.roundSeconds, mode: round.mode, seed: data.seed };
 }
 
@@ -84,7 +85,7 @@ async function turnstileToken(siteKey) {
 export async function submitScore({ name, score, eaten, radius, rank, biggest } = {}) {
   if (!round) return null;
   const r = round;
-  const body = { roundId: r.roundId, mode: r.mode, map: r.map, name, score: Math.round(score), eaten: Math.round(eaten || 0), radius, rank, biggest, trace: getTrace() };
+  const body = { roundId: r.roundId, mode: r.mode, map: r.map, difficulty: r.mode === 'daily' ? 'normal' : r.difficulty, name, score: Math.round(score), eaten: Math.round(eaten || 0), radius, rank, biggest, trace: getTrace() };
   if (r.turnstileSiteKey) { const tok = await turnstileToken(r.turnstileSiteKey); if (tok) body.turnstile = tok; }
   const data = await api('/api/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }, r.turnstileSiteKey ? 15000 : TIMEOUT_MS);
   if (data && data.ok) {

@@ -35,7 +35,7 @@ class Net {
       if (!r.p || r.p.length < 2 || !kinds.has(r.k)) continue;
       const len = [];
       let L = 0;
-      for (let i = 0; i < r.p.length - 1; i++) { const d = Math.hypot(r.p[i + 1][0] - r.p[i][0], r.p[i + 1][1] - r.p[i][1]); len.push(d); L += d; }
+      for (let i = 0; i < r.p.length - 1; i++) { const ex = r.p[i + 1][0] - r.p[i][0], ez = r.p[i + 1][1] - r.p[i][1], d = Math.sqrt(ex * ex + ez * ez); len.push(d); L += d; } // sqrt, not hypot: hypot is not correctly rounded and differs between JS engines (road filter / ids must not)
       if (L < 8) continue;
       this.roads.push({ p: r.p, len, L, w: r.w || DEFAULT_W[r.k] || 6, k: r.k, canal: !!r.canal, foot: r.k === 'pedestrian' || r.k === 'footway', id: this.roads.length, stops: null, net: idx });
     }
@@ -148,6 +148,60 @@ function setSeg(m, road, a, dir) {
   }
 }
 
+/** Parks big enough for strollers (index = the `wander` record's park id). Pure exact arithmetic -> identical on every engine. */
+export function moverParks(data) {
+  const parks = [];
+  for (const pk of data.parks) {
+    const r = cleanRing(pk.p);
+    if (r.length < 3) continue;
+    const b = bbox(r);
+    const area = (b.x1 - b.x0) * (b.z1 - b.z0);
+    if (area > 1500) parks.push({ r, b, area });
+  }
+  return parks;
+}
+
+const CLS = ['car', 'bus', 'trolley', 'tram', 'walk', 'boat', 'swan', 'bird', 'wander'];
+/** Number of roads per network + parks: stored in the placements file so a client can verify its runtime road graph matches before using road ids. */
+export function netSignature(net, data) {
+  const o = {};
+  for (const k of Object.keys(net.nets)) o[k] = net.nets[k].roads.length;
+  o.parks = moverParks(data).length;
+  return o;
+}
+/** Initial state of a planned mover as 12 numbers (stored in the placements file): [cls, road, a, dir, s, side, cw, ph, base, e1, e2, e3]. Call before the sim runs. */
+export function moverRecord(p) {
+  const m = p.m, c = CLS.indexOf(m.cls);
+  const q = (v, d) => Math.round(v * d) / d;   // coarse values gzip far better; none of these is gameplay-relevant at that precision (motion is simulated per client)
+  if (m.cls === 'bird') return [c, -1, 0, 0, 0, 0, 0, q(m.ph, 16), q(m.base, 256), q(m.t, 16), q(m.hx, 16), q(m.hz, 16)];
+  if (m.cls === 'wander') return [c, m.parkIdx, 0, 0, 0, 0, 0, q(m.ph, 16), q(m.base, 256), q(m.t, 16), q(m.init.hd, 1024), 0];
+  return [c, m.init.road.id, m.init.a, m.init.dir, q(m.init.s, 16), m.side, q(m.cw, 256), q(m.ph, 16), q(m.base, 256), 0, 0, 0];
+}
+/** Rebuild the runtime mover state (`m`) from a stored record. net = RoadNet, parks = moverParks(data), o = {x, z, yaw} of the object. */
+export function moverFromRecord(rec, net, parks, o, blockers) {
+  ctx.inWater = (x, z) => blockers.inWater(x, z);
+  const cls = CLS[rec[0]];
+  if (!cls) throw new Error('mover record: bad class');
+  const base = rec[8];
+  if (cls === 'bird') {
+    return { cls, hx: rec[10], hz: rec[11], st: 0, t: rec[9], y: 0, yaw: o.yaw, off: false, cool: 0, v: 0, vt: 0, base, cx: 0, cz: 0, ph: rec[7], vx: 0, vz: 0, init: { x: rec[10], z: rec[11] } };
+  }
+  if (cls === 'wander') {
+    const pk = parks[rec[1]];
+    if (!pk) throw new Error('mover record: bad park');
+    return { cls, ring: pk.r, hd: rec[10], ph: rec[7], off: false, cool: 0, v: base, vt: base, base, yaw: o.yaw, cx: 0, cz: 0, t: rec[9], init: { x: o.x, z: o.z, hd: rec[10] } };
+  }
+  const nn = net.nets[NET_OF[cls]];
+  const road = nn && nn.roads[rec[1]];
+  if (!road) throw new Error('mover record: bad road');
+  const m = { cls, ni: nn.idx, side: rec[5], cw: rec[6], ph: rec[7], off: false, cool: 0, v: 0, vt: 0, cx: 0, cz: 0, yaw: o.yaw, init: null, dwell: 0, stopS: -1, stopDone: false };
+  setSeg(m, road, rec[2], rec[3]);
+  m.s = rec[4];
+  m.base = base; m.v = m.vt = base;
+  m.init = { road, a: m.a, dir: m.dir, s: m.s };
+  return m;
+}
+
 /** Build mover placements (kind, x, z, yaw, tint, m) for world._buildProps. */
 export function planMovers(net, blockers, rng) {
   const M = LIFE.movers;
@@ -228,14 +282,7 @@ export function planMovers(net, blockers, rng) {
   birds(M.gulls, 'pigeon', true);
 
   // park strollers
-  const parks = [];
-  for (const pk of net.data.parks) {
-    const r = cleanRing(pk.p);
-    if (r.length < 3) continue;
-    const b = bbox(r);
-    const area = (b.x1 - b.x0) * (b.z1 - b.z0);
-    if (area > 1500) parks.push({ r, b, area });
-  }
+  const parks = moverParks(net.data);
   if (parks.length) {
     const totA = parks.reduce((s, p) => s + p.area, 0);
     for (let i = 0, tries = 0; i < M.wanderers && tries < M.wanderers * 30; tries++) {
@@ -244,7 +291,7 @@ export function planMovers(net, blockers, rng) {
       const x = pk.b.x0 + rng() * (pk.b.x1 - pk.b.x0), z = pk.b.z0 + rng() * (pk.b.z1 - pk.b.z0);
       if (!pointInPoly(x, z, pk.r) || blockers.inBuilding(x, z, 1)) continue;
       const hd = rng() * TAU;
-      const m = { cls: 'wander', ring: pk.r, hd, ph: rng() * 20, off: false, cool: 0, v: 0, vt: 0, base: M.wanderSpeed * (0.6 + rng() * 0.8), yaw: hd, cx: 0, cz: 0, t: rng(), init: { x, z, hd } };
+      const m = { cls: 'wander', parkIdx: parks.indexOf(pk), ring: pk.r, hd, ph: rng() * 20, off: false, cool: 0, v: 0, vt: 0, base: M.wanderSpeed * (0.6 + rng() * 0.8), yaw: hd, cx: 0, cz: 0, t: rng(), init: { x, z, hd } };
       m.v = m.vt = m.base;
       out.push({ kind: 'person' + Math.floor(rng() * PEOPLE_COLORS.length), x, z, yaw: m.yaw, tint: rng(), s: 0.92 + rng() * 0.18, m });
       i++;

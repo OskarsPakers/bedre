@@ -22,9 +22,10 @@ for (let d = new Date('2026-12-01T00:00:00Z'), n = 0; n < 200 && Object.keys(day
   if (!days[id]) days[id] = day;
 }
 const baseCases = [];
-for (const mode of ['classic', 'quick']) for (const [strategy, speedMul] of [['greedy', 1], ['cluster', 1], ['greedy', 0.6], ['cluster', 0.45]]) baseCases.push({ mode, strategy, speedMul });
+// player strengths x bot difficulty levels (easy / normal / hard); 'casual' = the imperfect human of tools/sim-lib.mjs
+for (const mode of ['classic', 'quick']) for (const [strategy, speedMul] of [['greedy', 1], ['cluster', 1], ['greedy', 0.6], ['cluster', 0.45], ['casual', 1]]) for (const difficulty of ['easy', 'normal', 'hard']) baseCases.push({ mode, strategy, speedMul, difficulty });
 const centreCases = [...baseCases];
-for (const tw of TWISTS) centreCases.push({ mode: 'daily', day: days[tw.id], strategy: tw.id.length % 2 ? 'cluster' : 'greedy', speedMul: 1 });
+for (const tw of TWISTS) centreCases.push({ mode: 'daily', day: days[tw.id], strategy: tw.id.length % 2 ? 'cluster' : 'greedy', speedMul: 1, difficulty: 'normal' });
 
 const results = [], runs = [];
 for (const slug of WANT) {
@@ -40,7 +41,7 @@ for (const slug of WANT) {
       const seconds = MODES[r.mode].seconds;
       const v = validateSubmission({ mode: r.mode, map: slug, seconds, age: seconds + 5, score: r.final.score, eaten: r.final.eaten, radius: r.final.radius, rank: r.final.rank, trace: r.trace });
       results.push({ ...c, map: slug, bots, score: r.final.score, ...v });
-      console.log(`${v.verdict.padEnd(7)} ${slug} ${r.mode}${r.twist ? '/' + r.twist : ''} ${c.strategy} x${c.speedMul}${bots ? ' nobots' : ''} score ${r.final.score} kills ${r.final.kills} ${v.reasons.join(',')}`);
+      console.log(`${v.verdict.padEnd(7)} ${slug} ${r.mode}${r.twist ? '/' + r.twist : ''} ${c.difficulty || ''} ${c.strategy} x${c.speedMul}${bots ? ' nobots' : ''} score ${r.final.score} kills ${r.final.kills} ${v.reasons.join(',')}`);
     }
   }
 }

@@ -33,5 +33,7 @@
   "migrations": [
     { "tag": "mp-v1", "new_sqlite_classes": ["MpRoom", "MpMatchmaker"] }
   ],
+  // Public Turnstile site key (the secret is a Worker secret: TURNSTILE_SECRET). Remove to switch Turnstile off.
+  "vars": { "TURNSTILE_SITE_KEY": "0x4AAAAAAAGC5U3qB2moGU0J7" },
   "observability": { "logs": { "enabled": true } }
 }

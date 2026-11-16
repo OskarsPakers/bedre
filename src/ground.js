@@ -94,7 +94,7 @@ export function findBridges(data) {
   };
   const out = [];
   for (const rd of data.roads) {
-    if (!rd.p || rd.p.length < 2 || !BRIDGE_KINDS.has(rd.k)) continue;
+    if (!rd.p || rd.p.length < 2 || rd.tn || !BRIDGE_KINDS.has(rd.k)) continue;
     // sample every ~3 m
     const pts = [];
     for (let i = 0; i < rd.p.length - 1; i++) {
@@ -234,8 +234,26 @@ function offsetPoly(p, d) {
 function prep(data) {
   if (data._gp) return data._gp;
   const gp = { roads: [], byKind: {}, sidewalks: [], bridgeRoads: new Set() };
-  for (const r of data.roads) { if (r.p && r.p.length > 1) { r._bb = bbox(r.p); gp.roads.push(r); } }
+  // tunnels / underpasses (r.tn) are never painted on the surface
+  for (const r of data.roads) { if (r.p && r.p.length > 1 && !r.tn) { r._bb = bbox(r.p); gp.roads.push(r); } }
   for (const k of [...ROAD_ORDER, 'pedestrian', 'footway', 'rail']) gp.byKind[k] = gp.roads.filter((r) => r.k === k);
+  // walkway centre-lines that run over cobbled ground (Old Town squares, sett streets) are routing lines, not strips: the sett shows wall to wall
+  if (data.groundRaster) {
+    const R = data.groundRaster, bd = data.meta.bounds, rx = R.W / (bd.maxX - bd.minX), rz = R.H / (bd.maxZ - bd.minZ);
+    for (const r of [...gp.byKind.footway, ...gp.byKind.pedestrian]) {
+      let n = 0, sett = 0;
+      for (let i = 0; i < r.p.length - 1; i++) {
+        const [x0, z0] = r.p[i], [x1, z1] = r.p[i + 1];
+        const m = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 3));
+        for (let t = 0; t <= m; t++) {
+          const x = Math.floor((x0 + ((x1 - x0) * t) / m - bd.minX) * rx), z = Math.floor((z0 + ((z1 - z0) * t) / m - bd.minZ) * rz);
+          if (x < 0 || z < 0 || x >= R.W || z >= R.H) continue;
+          n++; if (R.cls[z * R.W + x] === GROUND_CLASS.SETT) sett++;
+        }
+      }
+      r._sett = n > 0 && sett / n > 0.3;
+    }
+  }
   for (const pk of data.parks) prepPoly(pk);
   for (const a of data.areas || []) prepPoly(a);
   for (const w of data.water) prepPoly(w);
@@ -285,9 +303,9 @@ function smoothRasterWindow(data, gp, view) {
         const j = jc + dj; if (j < 0 || j >= R.H) continue;
         for (let di = -1; di <= 1; di++) {
           const i = ic + di; if (i < 0 || i >= R.W) continue;
-          const dist = Math.hypot(i - fx, j - fy);
-          const wt = 1.35 - dist;
-          if (wt <= 0) continue;
+          const dist = Math.hypot(i - fx, j - fy) / 1.9;
+          if (dist >= 1) continue;
+          const wt = 1 - dist * dist; // quadratic kernel (radius 1.9 cells, 3x3 reads): rounds the 1 m stair-steps a little more than the old triangular one
           const c = R.cls[j * R.W + i];
           wgt[c] += wt;
           if (wgt[c] > bw) { bw = wgt[c]; best = c; }
@@ -334,7 +352,12 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
       const d = smoothRasterWindow(data, gp, view);
       ctx.drawImage(d.colour, x0, z0, w, h);
       sett = d.hasSett ? d.sett : null;
-    } else ctx.drawImage(gp.rasterCanvas, b.minX, b.minZ, b.maxX - b.minX, b.maxZ - b.minZ);
+    } else {
+      // base tiles: the 1 m class cells are stair-stepped when magnified; a ~0.9 m blur (no-op where ctx.filter is unsupported) rounds the corners
+      if ('filter' in ctx) ctx.filter = `blur(${(0.9 * sc).toFixed(2)}px)`;
+      ctx.drawImage(gp.rasterCanvas, b.minX, b.minZ, b.maxX - b.minX, b.maxZ - b.minZ);
+      if ('filter' in ctx) ctx.filter = 'none';
+    }
     if (sett && scratch) {
       // cobbles only where the raster says "sett": pattern on a scratch canvas, masked, then composited
       const sg = scratch.getContext('2d');
@@ -404,12 +427,34 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
     if (!sw) continue;
     for (const r of byKind(k)) {
       if (r.br || r.sw === 0) continue;
+      if (COBBLE_KINDS.has(k) && (r.s === 's' || (!r.s && inOld(r.p)))) continue; // cobbled street: sett wall to wall, no pavement strip
       const side = r.sw === 2 ? [1] : r.sw === 3 ? [-1] : [1, -1];
       if (side.length === 2) { path(ctx, r.p, false); ctx.lineWidth = (r.w || 6) + sw * 2; ctx.stroke(); }
       else { path(ctx, offsetPoly(r.p, side[0] * ((r.w || 6) / 2 + sw / 2 - 0.1)), false); ctx.lineWidth = sw; ctx.stroke(); }
     }
   }
   ctx.lineCap = 'round';
+  // pedestrian streets + footways / paths / cycleways / steps. They go UNDER the carriageways: carriageway asphalt always wins, a walkway
+  // is only visible on a road as a marked crossing (zebra, painted below). Walkways on bridges (overpasses) are painted after the roads.
+  const walkways = (over) => {
+    for (const r of byKind('pedestrian')) {
+      if (!!r.br !== over || r._sett || r.s === 's' || (!r.s && inOld(r.p))) continue; // cobbled streets: the sett itself
+      path(ctx, r.p, false); ctx.strokeStyle = '#cdbf9f'; ctx.lineWidth = (r.w || 5) + 1; ctx.stroke();
+      ctx.strokeStyle = (r.s && SURF_COL[r.s]) || '#e4dcc9'; ctx.lineWidth = r.w || 5; ctx.stroke();
+    }
+    for (const r of byKind('footway')) {
+      if (!!r.br !== over || r.f === 'c' || r._sett) continue; // crossings are zebras, not strips
+      if (r.s === 's') { path(ctx, r.p, false); ctx.strokeStyle = cobblePattern(ctx); ctx.lineWidth = Math.max(1.4, r.w || 2); ctx.stroke(); continue; }
+      let col = '#e6dfce';
+      if (r.f === 'y') col = '#c9a898';
+      else if (r.f === 's') col = C.walk;
+      else if (r.s === 'g' || r.s === 'd' || r.s === 'n' || (!r.s && r.f === 'p')) col = '#cdbb92';
+      else if (r.s && SURF_COL[r.s]) col = SURF_COL[r.s];
+      path(ctx, r.p, false); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, r.w || 2); ctx.stroke();
+      if (r.f === 't') { ctx.setLineDash([0.35, 0.35]); ctx.strokeStyle = '#a89f8f'; ctx.lineWidth = Math.max(1.4, r.w || 2); ctx.lineCap = 'butt'; ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'round'; }
+    }
+  };
+  walkways(false);
   // kerb line (slightly darker light-stone edge) then asphalt
   const surfAsphalt = (r) => !r.s || r.s === 'a' || r.s === 'c';
   for (const k of ROAD_ORDER) {
@@ -432,21 +477,9 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
     if (!sett) continue;
     path(ctx, r.p, false); ctx.strokeStyle = cobblePattern(ctx); ctx.lineWidth = (r.w || (k === 'pedestrian' ? 5 : 6)) + 0.4; ctx.stroke();
   }
-  // pedestrian streets + footways / paths / cycleways / steps
-  for (const r of byKind('pedestrian')) {
-    if (r.s === 's' || (!r.s && inOld(r.p))) continue; // cobbled above
-    path(ctx, r.p, false); ctx.strokeStyle = '#cdbf9f'; ctx.lineWidth = (r.w || 5) + 1; ctx.stroke();
-    ctx.strokeStyle = (r.s && SURF_COL[r.s]) || '#e4dcc9'; ctx.lineWidth = r.w || 5; ctx.stroke();
-  }
-  for (const r of byKind('footway')) {
-    let col = '#e6dfce';
-    if (r.f === 'y') col = '#c9a898';
-    else if (r.f === 's') col = '#dcd5c5';
-    else if (r.s === 'g' || r.s === 'd' || r.s === 'n' || (!r.s && r.f === 'p')) col = '#cdbb92';
-    else if (r.s && SURF_COL[r.s]) col = SURF_COL[r.s];
-    path(ctx, r.p, false); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.4, r.w || 2); ctx.stroke();
-    if (r.f === 't') { ctx.setLineDash([0.35, 0.35]); ctx.strokeStyle = '#a89f8f'; ctx.lineWidth = Math.max(1.4, r.w || 2); ctx.lineCap = 'butt'; ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'round'; }
-  }
+  if (detail) paintLaneMarks(ctx, gp, roadIn);
+  paintZebras(ctx, data, view, detail);
+  walkways(true);
   // rail: ballast bed + sleepers + two thin rails
   for (const r of byKind('rail')) {
     path(ctx, r.p, false); ctx.strokeStyle = '#a49c8e'; ctx.lineWidth = Math.max(3.2, r.w || 4); ctx.stroke();
@@ -467,7 +500,7 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
   // OSM bridge-structure polygons over water (deck), under the bridge roads
   for (const a of data.areas || []) if (a.c === 'brg' && inTile(a._r)) { polyPath(ctx, a); ctx.fillStyle = '#8f8c86'; ctx.fill('evenodd'); }
   paintBridges(ctx, data, inTile);
-  if (detail) paintMarkings(ctx, data, gp, roadIn, view);
+  if (detail) paintBridgeMarks(ctx, data);
   // building footprints (what is left when a building is swallowed)
   ctx.fillStyle = C.footprint;
   for (const bd of data.buildings) {
@@ -477,15 +510,13 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
   }
 }
 
-/** Lane markings + zebra crossings (close-up layer only). */
-function paintMarkings(ctx, data, gp, roadIn, view) {
-  const MARK = 'rgba(244,241,230,0.92)';
+const MARK = 'rgba(244,241,230,0.92)';
+/** Lane markings (close-up layer only). */
+function paintLaneMarks(ctx, gp, roadIn) {
   ctx.lineCap = 'butt';
-  const bridges = findBridges(data);
-  const onBridge = (r) => r.br || false;
   for (const k of ['primary', 'secondary', 'tertiary', 'residential']) {
     for (const r of gp.byKind[k]) {
-      if (!roadIn(r) || (r.w || 6) < 5.2 || onBridge(r)) continue;
+      if (!roadIn(r) || (r.w || 6) < 5.2 || r.br) continue;
       const lanes = r.l || Math.max(1, Math.round(((r.w || 6) - 0.6) / 3.4));
       const w = r.w || 6;
       if (r.ow) {
@@ -511,26 +542,35 @@ function paintMarkings(ctx, data, gp, roadIn, view) {
     }
   }
   ctx.setLineDash([]);
-  // bridges (twin carriageways etc.): dashed centre line on the main spans
-  for (const br of bridges) {
+}
+/** Dashed centre line on the main bridge spans (close-up layer only; after the decks). */
+function paintBridgeMarks(ctx, data) {
+  ctx.lineCap = 'butt';
+  for (const br of findBridges(data)) {
     if (br.k !== 'primary' && br.k !== 'secondary') continue;
     path(ctx, br.p, false); ctx.setLineDash([4, 6]); ctx.strokeStyle = MARK; ctx.lineWidth = 0.14; ctx.stroke();
   }
   ctx.setLineDash([]);
-  // zebra crossings
+  ctx.lineCap = 'round';
+}
+/**
+ * Marked pedestrian crossings (OSM highway=crossing nodes / footway=crossing ways) as zebra bars on the asphalt. Base tiles and the close-up
+ * layer paint the same bars (the base ones slightly translucent so they read as stripes at ~2.5 px/m instead of aliasing).
+ */
+function paintZebras(ctx, data, view, detail) {
   const { x0, z0, w, h } = view;
+  ctx.lineCap = 'butt';
+  ctx.fillStyle = detail ? MARK : 'rgba(244,241,230,0.8)';
   for (const c of data.crossings || []) {
     if (!c[4] || c[0] < x0 - 12 || c[0] > x0 + w + 12 || c[1] < z0 - 12 || c[1] > z0 + h + 12) continue;
-    const a = (c[2] * Math.PI) / 180, ux = Math.cos(a), uz = Math.sin(a); // across the road
     const len = Math.max(4, c[3]);
     ctx.save();
-    ctx.translate(c[0], c[1]); ctx.rotate(a);
-    ctx.fillStyle = MARK;
+    ctx.translate(c[0], c[1]); ctx.rotate((c[2] * Math.PI) / 180);
     // zebra: 3 m long bars (running along the road) every 0.9 m across the carriageway
     for (let s = -len / 2 + 0.7; s <= len / 2 - 0.6; s += 0.9) ctx.fillRect(s - 0.25, -1.5, 0.5, 3);
     ctx.restore();
-    void ux; void uz;
   }
+  ctx.lineCap = 'round';
 }
 
 /** Tile layout for a bounds rectangle: ~CFG.ground.tileM tiles at a uniform px/m (density by quality tier). */

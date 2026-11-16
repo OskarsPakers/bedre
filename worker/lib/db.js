@@ -1,6 +1,6 @@
 // D1 helpers for scores / rounds. `insertScore` is the ONE place that writes the scores table: the multiplayer
 // server (worker/mp/**) imports it to record finished online matches.
-import { BOARD_MODES } from '../../src/rules.js';
+import { BOARD_MODES, DIFFICULTIES } from '../../src/rules.js';
 import { isMapSlug, DEFAULT_MAP } from '../../tools/maps.mjs';
 import { now } from './util.js';
 import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
@@ -18,6 +18,7 @@ import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
  *   score     integer >= 0
  *   eaten, radius, rank, biggest, kills, deaths   optional
  *   map       map slug (default 'centrs'; online rows are always the centre)
+ *   difficulty 'easy' | 'normal' | 'hard' (informational tag, optional; null for online rows)
  *   day       'YYYY-MM-DD' (Riga day), daily mode only
  *   suspect   1 hides the row from public boards (default 0)
  *   flags     comma separated reason codes, trace  JSON string, roundId  optional forensics
@@ -32,12 +33,12 @@ export async function insertScore(env, row) {
   const name = sanitizeName(row.name) || ANON;
   const biggest = row.biggest == null ? null : sanitizeLabel(row.biggest);
   const res = await env.DB.prepare(
-    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map) ' +
-    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map, difficulty) ' +
+    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).bind(
     name, row.score, row.eaten ?? 0, row.radius ?? 0, row.rank ?? null, biggest, row.createdAt ?? now(), row.mode,
     row.mode === 'daily' ? row.day ?? null : null, row.suspect ? 1 : 0, row.flags ?? null, row.trace ?? null,
-    row.roundId ?? null, row.kills ?? null, row.deaths ?? null, map,
+    row.roundId ?? null, row.kills ?? null, row.deaths ?? null, map, DIFFICULTIES.includes(row.difficulty) ? row.difficulty : null,
   ).run();
   return { id: res.meta.last_row_id, name };
 }
@@ -51,7 +52,7 @@ export async function rankOf(env, { mode, day = null, score, since = 0, map = DE
 }
 
 export async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP }) {
-  const cols = 'name, score, radius, eaten, rank, biggest, created_at AS at';
+  const cols = 'name, score, radius, eaten, rank, biggest, difficulty, created_at AS at';
   const q = mode === 'daily'
     ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, limit)
     : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, since, limit);

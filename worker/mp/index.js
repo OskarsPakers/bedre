@@ -2,9 +2,9 @@
 //   POST /api/mp/join    -> {room, max}          matchmaker assigns the open lobby (or opens a new one)
 //   GET  /api/mp/ws?room -> WebSocket upgrade     forwarded to that room's Durable Object (protocol: worker/mp/protocol.js)
 //   GET  /api/mp/status  -> lobby / running-round summary for the lobby panel
-//   GET  /api/mp/info    -> {hash, bytes}         object-table hash the server expects (clients compare before joining)
+//   GET  /api/mp/info    -> {v, hash, objects}    content id of the object table (= placement file bytes) the server expects
 import { validRoom, PROTOCOL_VERSION } from './protocol.js';
-import { parseTable } from './table.js';
+import { loadTable } from './room.js';
 
 export { MpRoom } from './room.js';
 export { MpMatchmaker } from './matchmaker.js';
@@ -34,9 +34,7 @@ export async function handleMp(request, env, url) {
       return new Response(r.body, { status: r.status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
     }
     if (path === '/api/mp/info' && request.method === 'GET') {
-      const res = await env.ASSETS.fetch(new Request('https://assets.invalid/mp/objects.bin'));
-      if (!res.ok) return json({ error: 'no object table' }, 503);
-      const t = parseTable(await res.arrayBuffer());
+      const t = await loadTable(env);   // throws -> 503 below when the file is missing
       return json({ v: PROTOCOL_VERSION, hash: t.hash, objects: t.n });
     }
     if (path === '/api/mp/ws' && request.method === 'GET') {

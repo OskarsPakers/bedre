@@ -2,14 +2,14 @@
 // assets (env.ASSETS).
 //
 //   POST /api/rounds   {mode, map?, day?}  -> {roundId, roundSeconds, mode, map, day?, seed, turnstileSiteKey?}   (map = slug, default 'centrs')
-//   POST /api/scores   {roundId,map?,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,map,rankAllTime,rankToday}
+//   POST /api/scores   {roundId,map?,difficulty?,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,map,rankAllTime,rankToday}
 //   GET  /api/scores   ?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=YYYY-MM-DD][&limit=20]
 //   POST /api/e        cookieless analytics beacon {d:{key:n}}           (worker/lib/analytics.js)
 //   GET  /api/stats    ?days=30 aggregated counters                      (public, or bearer STATS_KEY)
 //
 // Anti-cheat = plausibility + friction (worker/lib/validate.js), NOT proof: the game runs in the browser.
 // See README "Anti-cheat" for the model and what stays bypassable.
-import { MODES, CLIENT_MODES, BOARD_MODES, dailySeed, rigaDay, isDayString, shiftDay } from '../src/rules.js';
+import { MODES, CLIENT_MODES, BOARD_MODES, DIFFICULTIES, dailySeed, rigaDay, isDayString, shiftDay } from '../src/rules.js';
 import { MAP_SLUGS, DEFAULT_MAP, isMapSlug } from '../tools/maps.mjs';
 import { json, err, now, readJson, sameOrigin, intIn, ipHashOf } from './lib/util.js';
 import { sanitizeName, sanitizeLabel } from './lib/moderation.js';
@@ -97,6 +97,7 @@ async function submitScore(request, env) {
   if (typeof body.roundId !== 'string' || body.roundId.length > 64) return err(400, 'invalid roundId');
   if (body.mode !== undefined && (typeof body.mode !== 'string' || !CLIENT_MODES.includes(body.mode))) return err(400, 'mode not accepted from clients');
   if (body.map !== undefined && !isMapSlug(body.map)) return err(400, 'invalid map');
+  if (body.difficulty !== undefined && body.difficulty !== null && !DIFFICULTIES.includes(body.difficulty)) return err(400, 'invalid difficulty');
 
   const t = now();
   const round = await env.DB.prepare('SELECT created_at, used, mode, day, seed, ip_hash, map FROM rounds WHERE id = ?').bind(body.roundId).first();
@@ -133,7 +134,7 @@ async function submitScore(request, env) {
   const tr = body.trace;
   const { id, name: stored } = await insertScore(env, {
     mode: round.mode, map: round.map, day: round.day, name, score, eaten, radius, rank, biggest,
-    suspect: check.verdict === 'suspect' ? 1 : 0, flags: check.reasons.join(',') || null,
+    difficulty: round.mode === 'daily' ? 'normal' : (typeof body.difficulty === 'string' ? body.difficulty : null), suspect: check.verdict === 'suspect' ? 1 : 0, flags: check.reasons.join(',') || null,
     trace: JSON.stringify(tr), roundId: body.roundId, kills: tr.kills, deaths: tr.deaths, createdAt: t,
   });
   const dayStart = t - (t % 86400);

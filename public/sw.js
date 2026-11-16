@@ -49,13 +49,25 @@ async function swr(req, name) {
   return hit || (await net) || Response.error();
 }
 
+async function versioned(req, url) {
+  const cache = await caches.open(DATA);
+  const hit = await cache.match(req, { ignoreVary: true });
+  if (hit) return hit;
+  const r = await fetch(req);
+  if (r.ok) {
+    for (const k of await cache.keys()) { const u = new URL(k.url); if (u.pathname === url.pathname && u.search !== url.search) await cache.delete(k); }
+    await cache.put(req, r.clone());
+  }
+  return r;
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;           // radio stream, CDN scripts, ...
   const p = url.pathname;
-  if (p.startsWith('/api/') || p === '/sw.js') return;       // never cached
+  if (p.startsWith('/api/') || p === '/sw.js' || p === '/data/placements.json') return;   // never cached (the manifest is how a stale tab learns about a new release)
   if (req.headers.has('range')) return;
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
@@ -79,6 +91,9 @@ self.addEventListener('fetch', (e) => {
     })());
     return;
   }
+  // placement files (/data[/<map>]/riga-objects.bin.gz): the client requests them as ?v=<content id>. A versioned URL is immutable ->
+  // cache-first (and older revisions of the same file are dropped); an unversioned request is never served stale (online ids must match the server).
+  if (/\/riga-objects\.bin\.gz$/.test(p)) { e.respondWith(url.searchParams.has('v') ? versioned(req, url) : fetch(req)); return; }
   if (p.startsWith('/data/')) { e.respondWith(swr(req, DATA)); return; }
   if (p.startsWith('/icons/') || p === '/favicon.svg' || p === '/manifest.webmanifest' || p === '/og.png') e.respondWith(swr(req, SHELL));
 });

@@ -4,7 +4,7 @@ import { t, extendStrings, onLang } from '../i18n.js';
 
 extendStrings({
   mpOnline: 'Tiešsaiste', mpBeta: 'BETA', mpConnecting: 'Savienojas…', mpUnavailable: 'Tiešsaiste šobrīd nav pieejama. Viena spēlētāja režīms darbojas.',
-  mpVersion: 'Spēles versija ir novecojusi. Pārlādē lapu.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
+  mpNewVersion: 'Ir pieejama jauna spēles versija.', mpReload: 'Jauna versija — pārlādēt', mpNoData: 'Tiešsaiste nav pieejama, kamēr nav ielādēti pilsētas dati. Viena spēlētāja režīms darbojas.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
   mpStartsIn: 'Kārta sākas pēc {n} s', mpNextIn: 'Nākamā kārta sākas pēc {n} s', mpFillBots: 'Visi sāk vienlaikus. Pretinieku bedres (AI) aizpildīs istabu līdz {n} bedrēm.',
   mpPlayers: 'Spēlētāji {n}/{max}', mpYou: 'tu', mpLeave: 'Atstāt', mpRunning: 'Notiek kārta · atlikušas {t}', mpRunningHint: 'Pievienoties var tikai nākamajai kārtai. Pa to laiku vari skatīties līderus.',
   mpReconnecting: 'Savienojums pārtrūka. Atjauno…', mpLost: 'Savienojums zaudēts.', mpSaved: 'Rezultāts saglabāts tiešsaistes tabulā.', mpSaving: 'Saglabā rezultātu…',
@@ -12,7 +12,7 @@ extendStrings({
   mpPing: '{n} ms', mpAi: 'AI',
 }, {
   mpOnline: 'Online', mpBeta: 'BETA', mpConnecting: 'Connecting…', mpUnavailable: 'Online play is not available right now. Single-player still works.',
-  mpVersion: 'Your game version is out of date. Please reload the page.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
+  mpNewVersion: 'A new game version is available.', mpReload: 'New version — reload', mpNoData: 'Online play is unavailable until the city data has loaded. Single-player still works.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
   mpStartsIn: 'Round starts in {n} s', mpNextIn: 'Next round starts in {n} s', mpFillBots: 'Everybody starts together. AI holes fill the room up to {n} holes.',
   mpPlayers: 'Players {n}/{max}', mpYou: 'you', mpLeave: 'Leave', mpRunning: 'Round in progress · {t} left', mpRunningHint: 'You can only join the next round. Meanwhile, watch the leaderboard.',
   mpReconnecting: 'Connection lost. Reconnecting…', mpLost: 'Connection lost.', mpSaved: 'Result saved to the online leaderboard.', mpSaving: 'Saving result…',
@@ -53,7 +53,19 @@ export class OnlineUi {
   }
 
   setButtonBusy(v) { if (this.btn) this.btn.disabled = v || !('WebSocket' in window); }
-  setStatus(text, ok = false) { const s = $('mp-status'); if (s) { s.textContent = text || ''; s.classList.toggle('ok', !!ok); } }
+  /** Status line under the buttons; `action` = { label, run } adds a small button after the text (e.g. the reload offer). */
+  setStatus(text, ok = false, action = null) {
+    const s = $('mp-status');
+    if (!s) return;
+    s.textContent = text || '';
+    s.classList.toggle('ok', !!ok);
+    if (action) {
+      const b = mk('button', 'mp-status-act', 'btn small', action.label);
+      b.type = 'button';
+      b.addEventListener('click', () => { b.disabled = true; action.run(); });
+      s.append(' ', b);
+    }
+  }
 
   _build() {
     if (this.lobby) return;

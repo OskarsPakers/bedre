@@ -90,6 +90,7 @@ class Brain {
     this.react = (B.reactMin + (B.reactMax - B.reactMin) * u()) / Math.max(0.5, d);
     this.aggr = B.aggressionMin + (B.aggressionMax - B.aggressionMin) * u();
     this.noise = B.aimNoise * Math.max(0.2, 1.4 - Math.min(1.2, d)) * (0.6 + u() * 0.8);
+    this.baseGain = hole.gainMul = B.gain * (0.92 + u() * 0.16);   // growth handicap (easy: bots earn fewer points per object)
     this.nextThink = (idx / Math.max(1, B.count)) / B.thinkHz + u() * 0.1;
   }
 
@@ -148,8 +149,9 @@ class Brain {
           fx += (dx / d) * w; fz += (dz / d) * w;
           if (w > tw) { tw = w; threat = o; }
         }
-      } else if (r >= o.radius * D.ratio * 1.02 && !safe && h.protectT <= 0 && o.protectT < 0.5) {
+      } else if (r >= o.radius * D.ratio * (o.isBot ? 1 : B.humanRatio) * 1.02 && !safe && h.protectT <= 0 && o.protectT < 0.5) {
         if (o === this.preyBan && now < this.preyBanUntil) continue;
+        if (!o.isBot && (now < B.humanGrace || now - (o.respawnedAt ?? -1e9) < B.respawnGrace)) continue; // easy: no early dogpile, no spawn camping
         if (o.score < h.score * B.preyMinFrac) continue; // not worth bullying tiny holes
         const gap = d - r * D.reach;
         if (gap > Math.max(18, r * B.huntRange) * (0.5 + this.aggr * 0.7)) continue;
@@ -397,8 +399,13 @@ export class Bots {
       this.rankAt = now;
       let s1 = 0, s2 = 0;
       for (const h of allHoles) { if (h.score > s1) { s2 = s1; s1 = h.score; } else if (h.score > s2) s2 = h.score; }
+      let human = 0;
+      for (const h of allHoles) if (!h.isBot && h.score > human) human = h.score;
       for (const br of this.brains) {
         const s = br.hole.score;
+        // easy: rubber band against runaway bots (only ever slows a bot that is far ahead of the human)
+        const cu = CFG.bots.catchUp;
+        br.hole.gainMul = cu > 0 ? br.baseGain * Math.max(0.45, Math.min(1, 1 - cu * (s / Math.max(600, human) - 1.2))) : br.baseGain;
         br.leader = s >= s1 && s > s2 * 1.3 && s > 2000;
         br.underdog = s < s1 * CFG.bots.underdogCare;
       }

@@ -2,7 +2,7 @@
 // Daily challenge (a fixed, date-seeded setup per Riga day). Mode rules live in src/rules.js (shared with the Worker);
 // this file picks the mode (start-screen selector), applies it to the Game on every round start via the `modeSetup`
 // bus event (emitted by Game.start) and tells src/scores.js what kind of server round to ask for.
-import { CFG } from './config.js';
+import { CFG, applyDifficulty, activeDifficulty, rememberDifficulty, isDifficulty } from './config.js';
 import { bus } from './events.js';
 import { MODES } from './rules.js';
 import { mulberry32 } from './rng.js';
@@ -16,12 +16,16 @@ extendStrings({
   modeDescClassic: '5:00 pret 7 botiem.',
   modeDescQuick: '2:00 sprints, ātrāka izaugsme.',
   modeDescFree: 'Bez taimera, botiem un reitinga.',
-  modeDescDaily: '{twist}. Viens reitinga mēģinājums dienā.',
-  modeDescDailyUsed: '{twist}. Reitinga mēģinājums izmantots — treniņš.',
+  modeDescDaily: '{twist}. Viens reitinga mēģinājums dienā, visiem vienāda grūtība (Vidēji).',
+  modeDescDailyUsed: '{twist}. Reitinga mēģinājums izmantots — treniņš (Vidēji).',
   modeDescDailyCentre: 'Dienas izaicinājums ir tikai Centra kartē.', modeDailyCentre: 'Dienas izaicinājums un Tiešsaiste: tikai Centra karte.',
   dailyIntroTitle: 'Dienas izaicinājums', twistLbl: 'Šodienas īpatnība', practiceTag: 'treniņš — nereitingots',
   twistoldtown: 'Starts Vecrīgā', twistcentre: 'Starts pie Brīvības pieminekļa', twistbots9: '9 boti', twistquiet: 'Tikai 3 boti',
   twisttough: 'Gudrāki, ātrāki boti', twistcrowd: '9 boti un starts Vecrīgā',
+  advTitle: 'Papildu iestatījumi', diffLbl: 'Grūtības pakāpe', diffEasy: 'Viegli', diffNormal: 'Vidēji', diffHard: 'Grūti',
+  diffDescEasy: 'Draudzīgāki, lēnāki boti, kas reti medī tevi.', diffDescNormal: 'Godīga cīņa ar līdzvērtīgiem botiem.', 
+  diffDescHard: 'Ātri, gudri un kaujinieciski boti.', diffDescDaily: 'Dienas izaicinājumā visiem ir vienāda grūtība (Vidēji).',
+  tsDiff: 'Grūtība', dailyFixed: 'Visiem vienāda grūtības pakāpe: Vidēji.',
   endBtn: 'Beigt', freeEnded: 'Pastaiga beigusies',
   practiceNote: 'Treniņš — šodienas reitinga mēģinājums jau izmantots', freeNote: 'Brīvā pastaiga — rezultāts netiek saglabāts',
   globalRankDaily: 'Dienas tabulā: #{n}',
@@ -32,12 +36,16 @@ extendStrings({
   modeDescClassic: '5:00 against 7 bots.',
   modeDescQuick: '2:00 sprint, faster growth.',
   modeDescFree: 'No timer, no bots, no ranking.',
-  modeDescDaily: '{twist}. One ranked attempt per day.',
+  modeDescDaily: '{twist}. One ranked attempt per day, the same difficulty (Normal) for everyone.',
   modeDescDailyUsed: '{twist}. Ranked attempt used — practice.',
   modeDescDailyCentre: 'The daily challenge is played on the Centre map only.', modeDailyCentre: 'Daily challenge and Online: Centre map only.',
   dailyIntroTitle: 'Daily challenge', twistLbl: "Today's twist", practiceTag: 'practice — not ranked',
   twistoldtown: 'Start in the Old Town', twistcentre: 'Start by the Freedom Monument', twistbots9: '9 bots', twistquiet: 'Only 3 bots',
   twisttough: 'Smarter, faster bots', twistcrowd: '9 bots and an Old Town start',
+  advTitle: 'Advanced', diffLbl: 'Difficulty', diffEasy: 'Easy', diffNormal: 'Normal', diffHard: 'Hard',
+  diffDescEasy: 'Friendlier, slower bots that rarely hunt you.', diffDescNormal: 'A fair fight against evenly matched bots.', 
+  diffDescHard: 'Fast, smart and aggressive bots.', diffDescDaily: 'The daily challenge has the same difficulty for everyone (Normal).',
+  tsDiff: 'Difficulty', dailyFixed: 'The same difficulty for everyone: Normal.',
   endBtn: 'End', freeEnded: 'Walk finished',
   practiceNote: "Practice — today's ranked attempt is already used", freeNote: 'Free roam — nothing is saved',
   globalRankDaily: 'Daily board: #{n}',
@@ -54,8 +62,9 @@ export const twistName = (twist) => t('twist' + twist.id);
 
 const KEY = 'bedre.mode';
 const ids = ['classic', 'quick', 'daily', 'free'];
-const state = { id: 'classic', daily: null, practice: false, ranked: true, bots: CFG.bots.count };
-let game = null, params = null, baseDifficulty = CFG.bots.difficulty, touched = false, savedNames = null;
+const state = { id: 'classic', daily: null, practice: false, ranked: true, bots: CFG.bots.count, difficulty: activeDifficulty() };
+let game = null, params = null, touched = false, savedNames = null, diffKey = null;
+const keyOf = (diff, skill, seed) => `${diff}|${skill}|${seed}`;
 
 try { const v = localStorage.getItem(KEY); if (ids.includes(v)) state.id = v; } catch { /* storage blocked */ }
 /** The daily challenge exists on the centre map only (fixed seeded setup, one board). */
@@ -70,6 +79,22 @@ export function setMode(id) {
   try { localStorage.setItem(KEY, id); } catch { /* ignore */ }
   refreshUi();
   bus.emit('modeChange', id);
+}
+
+/** Difficulty of the NEXT round (easy / normal / hard); remembered. The daily challenge always plays normal. */
+export const getDifficulty = () => state.difficulty;
+export function setDifficulty(id) {
+  if (!isDifficulty(id)) return;
+  state.difficulty = id;
+  rememberDifficulty(id);
+  refreshUi();
+  bus.emit('difficultyChange', id);
+}
+
+/** Play button text: plain "Play" for Classic, otherwise it names the mode ("Play — Quick", "Daily challenge", "Free roam"). */
+export function playLabel() {
+  const id = state.id;
+  return id === 'classic' ? t('play') : id === 'quick' ? `${t('play')} — ${t('modeQuick')}` : id === 'daily' ? `${t('play')} — ${t('dailyIntroTitle')}` : `${t('play')} — ${t('modeFree')}`;
 }
 
 /** What src/scores.js should ask the server for: null = no server round (free roam, daily practice). */
@@ -87,8 +112,12 @@ function refreshUi() {
     b.setAttribute('aria-checked', String(b.dataset.mode === state.id));
     if (b.dataset.mode === 'daily') { b.disabled = !isCentre(); b.title = isCentre() ? '' : t('modeDailyCentre'); }
   }
+  for (const b of document.querySelectorAll('#diffsw [data-diff]')) b.setAttribute('aria-checked', String(b.dataset.diff === state.difficulty));
+  const dsw = $('diffsw'); if (dsw) dsw.classList.toggle('locked', state.id === 'daily');
+  const dd = $('diff-desc'); if (dd) dd.textContent = state.id === 'daily' ? t('diffDescDaily') : t('diffDesc' + state.difficulty[0].toUpperCase() + state.difficulty.slice(1));
   document.body.classList.remove(...ids.map((i) => 'mode-' + i));
   document.body.classList.add('mode-' + state.id);
+  const pb = $('play'); if (pb && !pb.disabled) pb.textContent = playLabel();
   const el = $('mode-desc');
   if (!el) return;
   const key = state.id === 'daily' ? (dailyUsed(d.day) ? 'modeDescDailyUsed' : 'modeDescDaily')
@@ -158,10 +187,13 @@ function setup(g) {
   if (!urlBots) setBots(g, id === 'free' ? 0 : (tw && tw.bots) || M.bots);
 
   // deterministic bots + spawns for the daily challenge; back to normal afterwards
-  const wantDifficulty = tw && tw.difficulty ? tw.difficulty : baseDifficulty;
-  const special = !!daily || touched || CFG.bots.difficulty !== wantDifficulty;
+  // (the daily challenge is always NORMAL: everyone plays the same setup)
+  const diffId = daily ? 'normal' : state.difficulty, skill = tw && tw.difficulty ? tw.difficulty : 1;
+  const key = keyOf(diffId, skill, daily ? daily.seed : '');
+  const special = !!daily || touched || key !== diffKey;
   if (special) {
-    CFG.bots.difficulty = wantDifficulty;
+    applyDifficulty(diffId, skill);
+    diffKey = key;
     g.bots.reseed(daily ? daily.seed : null);
     g.picker.rng = mulberry32(daily ? (daily.seed ^ 0x9e3779b9) >>> 0 : (Math.random() * 4294967296) >>> 0);
     touched = !!daily;
@@ -179,16 +211,18 @@ function setup(g) {
 
 export function initModes(g, { params: p = new URLSearchParams(location.search) } = {}) {
   game = g; params = p;
-  baseDifficulty = CFG.bots.difficulty;
+  diffKey = keyOf(CFG.difficulty || state.difficulty, 1, '');   // applyMap() already wrote the profile of the chosen level
   const urlMode = p.get('mode');
   if (ids.includes(urlMode) && allowed(urlMode)) state.id = urlMode;
   if (!p.has('bots')) setBots(g, CFG.bots.count);          // main.js builds BOT_CAPACITY bots; classic uses the usual 7
   bus.on('modeSetup', setup);
   bus.on('roundGo', () => { if (state.id === 'daily' && state.ranked) markDailyUsed(state.daily.day); });
   for (const b of document.querySelectorAll('#modesw [data-mode]')) b.addEventListener('click', () => setMode(b.dataset.mode));
+  for (const b of document.querySelectorAll('#diffsw [data-diff]')) b.addEventListener('click', () => setDifficulty(b.dataset.diff));
   const end = $('end-free');
   if (end) end.addEventListener('click', () => { if (g.phase === 'playing') g.end(); });
   onLang(refreshUi);
   refreshUi();
-  window.__modes = { get state() { return modeState(); }, setMode, setDay: (d) => { dayOverride = d || null; refreshUi(); }, daily: () => dailyInfo(gameDay()), TWISTS };
+  bus.emit('modeChange', state.id);   // the URL ?mode= may differ from the remembered one: let the start screen summary catch up
+  window.__modes = { get state() { return modeState(); }, setMode, setDifficulty, reapply: () => { diffKey = null; }, setDay: (d) => { dayOverride = d || null; refreshUi(); }, daily: () => dailyInfo(gameDay()), TWISTS };
 }

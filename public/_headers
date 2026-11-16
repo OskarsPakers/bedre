@@ -26,6 +26,16 @@
 /data/*/thumb.png
   Cache-Control: public, max-age=86400
 
+# Placement files (the canonical swallowable-object list of each map, also the multiplayer object table): the client asks for them as
+# riga-objects.bin.gz?v=<content id> (id baked into its bundle), so a cached copy can never be the wrong revision; revalidate (ETag) anyway.
+/data/riga-objects.bin.gz
+  Cache-Control: no-cache
+/data/*/riga-objects.bin.gz
+  Cache-Control: no-cache
+# manifest of the current content ids: only read by a client that was refused online play (is its tab stale?). Never cached.
+/data/placements.json
+  Cache-Control: no-store
+
 # Entry points: always revalidate so new deploys show up immediately
 /
   Cache-Control: public, max-age=0, must-revalidate

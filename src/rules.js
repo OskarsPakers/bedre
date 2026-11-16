@@ -17,6 +17,8 @@ export const MODES = {
   free: { seconds: 0, growthK: 16, bots: 0, holes: 1, client: false, ranked: false },
   online: { seconds: 0, growthK: 16, bots: 0, holes: 16, client: false, ranked: true },
 };
+/** Bot difficulty levels (profiles: src/config.js DIFFICULTY). Stored with a score as an informational tag only. */
+export const DIFFICULTIES = ['easy', 'normal', 'hard'];
 export const CLIENT_MODES = ['classic', 'quick', 'daily'];
 export const BOARD_MODES = ['classic', 'quick', 'daily', 'online'];
 

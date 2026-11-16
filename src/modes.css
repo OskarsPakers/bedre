@@ -10,3 +10,8 @@
 .tabs.ts-modes { flex-wrap: wrap; }
 .tabs.ts-modes button, .tabs.ts-days button { padding: 5px 12px; font-size: 13px; }
 .ts-twist { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--ink2, #5b5346); }
+
+/* difficulty tag next to a name in Top scores (informational) */
+.ts .dtag { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .04em; vertical-align: 1px; background: #e9e1cf; color: var(--ink2, #5b5346); }
+.ts .dtag.d-hard { background: #f3d4c8; color: #8f3a1c; }
+.ts .dtag.d-easy { background: #dfe8d2; color: #4d6a2e; }

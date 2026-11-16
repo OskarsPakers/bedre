@@ -822,6 +822,8 @@ async function main() {
     const lanes = parseInt(tags.lanes, 10);
     const sf = surfOf(tags);
     const isBridge = tags.bridge && tags.bridge !== 'no';
+    // underground stretch (tunnel / underpass / layer < 0): kept in the list (traffic) but never painted on the surface (r.tn)
+    const isTunnel = k !== 'rail' && (tags.tunnel === 'yes' || tags.covered === 'yes' || parseFloat(tags.layer) < 0) && !isBridge;
     for (const seg of clipLine(pts)) {
       const s = dedupe(dpSimplify(dedupe(seg.map((p) => [r1(p[0]), r1(p[1])]), false), 1), false);
       if (s.length < 2) continue;
@@ -835,6 +837,7 @@ async function main() {
       if (sf) r.s = sf;
       if (isFinite(lanes) && lanes > 0 && k !== 'footway') r.l = lanes;
       if (isBridge) { r.br = 1; bridgeRoads++; }
+      if (isTunnel) r.tn = 1;
       if (tags.oneway === 'yes' || tags.oneway === '1') r.ow = 1;
       roads.push(r);
     }
@@ -1123,6 +1126,15 @@ async function main() {
     piers: piers.length,
     structureFixes: fixStats,
   };
+  if (process.env.ROADS_ONLY) {
+    // patch mode (ground work): replace ONLY roads + crossings in the existing file; buildings / trees / props / ids stay byte-identical
+    const cur = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+    cur.roads = roads; cur.crossings = crossings;
+    Object.assign(cur.meta.stats, { roads: out.meta.stats.roads, roadsByKind: out.meta.stats.roadsByKind, crossings: crossings.length, roadsBridge: bridgeRoads, roadsTunnel: roads.filter((r) => r.tn).length });
+    fs.writeFileSync(OUT, JSON.stringify(cur));
+    log(`ROADS_ONLY: patched ${OUT}: roads ${roads.length}, crossings ${crossings.length}, tunnels ${roads.filter((r) => r.tn).length}`);
+    return;
+  }
   fs.writeFileSync(OUT, JSON.stringify(out));
   const size = fs.statSync(OUT).size;
   out.meta.stats.fileBytes = size;

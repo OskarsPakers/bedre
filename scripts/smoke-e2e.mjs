@@ -53,7 +53,9 @@ async function newPage(viewport = { width: 1280, height: 720 }) {
   };
   return page;
 }
-const pick = (page, mode) => page.click(`#modesw [data-mode=${mode}]`);
+/** The mode selector lives in the collapsed "Advanced" section: open it (it stays open for the session), then choose. */
+const openAdv = async (page) => { if ((await page.getAttribute('#opts-toggle', 'aria-expanded')) !== 'true') await page.click('#opts-toggle'); };
+const pick = async (page, mode) => { await openAdv(page); await page.click(`#modesw [data-mode=${mode}]`); };
 const waitPlaying = (page) => page.waitForFunction(() => window.__game.state.phase === 'playing', null, { timeout: 30000 });
 const waitResults = (page) => page.waitForSelector('#results:not(.hidden)', { timeout: 40000 });
 const globalText = (page) => page.waitForFunction(() => /#\d+|saved|unranked|practice|Practice|Free roam|Treni|Brīvā/i.test(document.getElementById('r-global').textContent), null, { timeout: 15000 }).then(() => page.textContent('#r-global'));
@@ -76,6 +78,21 @@ try {
   await page.openGame('intro=0');
   await page.screenshot({ path: resolve(out, 'modes-start-desktop.png') });
   check('start screen: mode selector with 4 modes, Classic selected by default', (await page.$$eval('#modesw [data-mode]', (b) => b.map((x) => x.dataset.mode + ':' + x.getAttribute('aria-checked')))).join() === 'classic:true,quick:false,daily:false,free:false');
+  // ---- start screen redesign: calm by default, everything else under "Advanced" ----
+  check('start: Advanced is collapsed and the mode / difficulty / graphics selectors are hidden', (await page.getAttribute('#opts-toggle', 'aria-expanded')) === 'false' && (await page.isHidden('#modesw')) && (await page.isHidden('#diffsw')) && (await page.isHidden('#qualsw')));
+  check('start: no summary chip while everything is at its default', ((await page.textContent('#opts-val')) || '').trim() === '');
+  check('start: default difficulty is Easy, default Play label is plain', (await page.getAttribute('#diffsw [data-diff=easy]', 'aria-checked')) === 'true' && (await page.textContent('#play')) === 'Play', await page.textContent('#play'));
+  await page.keyboard.press('Tab');   // keyboard: the disclosure is a real button
+  await page.focus('#opts-toggle'); await page.keyboard.press('Enter');
+  check('start: Advanced opens from the keyboard (aria-expanded=true) and shows the settings', (await page.getAttribute('#opts-toggle', 'aria-expanded')) === 'true' && (await page.isVisible('#modesw')) && (await page.isVisible('#diffsw')) && (await page.isVisible('#qualsw')) && (await page.isVisible('#themesw')) && (await page.isVisible('#map-select')));
+  await page.click('#diffsw [data-diff=hard]');
+  check('start: choosing Hard is remembered and shown in the chip', (await page.evaluate(() => localStorage.getItem('bedre.difficulty'))) === 'hard' && /Hard/.test(await page.textContent('#opts-val')), await page.textContent('#opts-val'));
+  await page.click('#diffsw [data-diff=easy]');
+  await page.click('#modesw [data-mode=quick]');
+  check('start: a non-default mode shows in the chip and on the Play button', /Quick/.test(await page.textContent('#opts-val')) && /Quick/.test(await page.textContent('#play')), (await page.textContent('#opts-val')) + ' | ' + (await page.textContent('#play')));
+  await page.click('#modesw [data-mode=classic]');
+  check('start: back to defaults, the chip is empty again', ((await page.textContent('#opts-val')) || '').trim() === '' && (await page.textContent('#play')) === 'Play');
+  await page.click('#opts-toggle');
   check('9 bots are built, classic uses 7', (await page.evaluate(() => window.__game.botCount)) === 7);
   await page.fill('#name', 'E2E Tester');
   await page.click('#play');

@@ -19,3 +19,5 @@ scripts/.tmp-*/
 scripts/.wrangler/
 tools/out/*.partial.json
 .secrets/
+scripts/.state-eng*
+scripts/.worker-eng*

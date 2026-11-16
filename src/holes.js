@@ -5,6 +5,7 @@ import { CFG, radiusFromScore } from './config.js';
 export class Hole {
   constructor({ id, name, color, isPlayer = false, x = 0, z = 0 }) {
     this.speedMul = 1;
+    this.gainMul = 1;       // share of an object's points this hole receives (bots on easy < 1)
     this.id = id;
     this.name = name;
     this.color = new THREE.Color(color);
@@ -93,7 +94,7 @@ export function updateSwallow(world, hole, onSwallow) {
     if (o.fit < maxFit) {
       world.beginFall(o, hole);
       hole.eaten++;
-      hole.addScore(o.value);
+      hole.addScore(o.value * hole.gainMul);
       if (!hole.biggest || o.fit > hole.biggest.fit) hole.biggest = { name: o.name, kind: o.kind, fit: o.fit, value: o.value };
       onSwallow(hole, o);
     } else if (o.fit < wob && o.isBuilding) {

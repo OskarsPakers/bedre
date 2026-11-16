@@ -12,6 +12,7 @@ fs.mkdirSync(out, { recursive: true });
 const PORT = process.env.PORT || 5183;
 const base = `http://localhost:${PORT}`;
 const [prefix = 'ground', ...only] = process.argv.slice(2);
+const MAPSLUG = process.env.MAP || 'centrs';
 const server = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'pipe' });
 let log = ''; server.stdout.on('data', (d) => (log += d)); server.stderr.on('data', (d) => (log += d));
 const kill = () => { try { server.kill('SIGTERM'); } catch {} };
@@ -35,7 +36,7 @@ async function main() {
     await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 180000 });
     return page;
   };
-  const page = await mk(1280, 720, `${base}/?quality=high&intro=0&bots=0&theme=day&autostart=1`);
+  const page = await mk(1280, 720, `${base}/?quality=high&intro=0&bots=0&theme=day&autostart=1&map=${MAPSLUG}`);
   const G = (fn, arg) => page.evaluate(fn, arg);
   await G(() => window.__game.start());
   await page.waitForTimeout(2500);
@@ -58,6 +59,25 @@ async function main() {
   };
   const info = await G(() => { const w = window.__life.world; return { bounds: w.bounds, ground: w.ground.userData.stats, objects: w.objects.length, tris: window.__life.renderer.info.render.triangles }; });
   console.log('info', JSON.stringify(info));
+  // spots for the path/carriageway audit (MAP=centrs unless noted; coordinates in local metres)
+  if (MAPSLUG === 'centrs') {
+    await top('pf-freedom-top', -2, 20, 120);
+    await top('pf-freedom-wide', 0, 0, 300);
+    await tilt('pf-freedom-tilt', 0, 10, 110);
+    await play('pf-freedom-small', 20, -10, 2.5, 1);
+    await play('pf-freedom-large', 20, -10, 14, 1);
+    await top('pf-esplanade-w', 190, -330, 150);
+    await top('pf-bastejkalns', -150, 120, 150);
+    await top('pf-krastmala', -735, 330, 120);
+    await top('pf-station', 650, 590, 160);
+    await top('pf-market', 90, 850, 160);
+    await top('pf-vansu', -1020, 90, 170);
+    await top('pf-akmens', -740, 770, 170);
+    await top('pf-oldtown', -430, 230, 110);
+    await top('pf-zebra', 489, -538, 45);
+  } else if (process.env.SPOTS) {
+    for (const s of process.env.SPOTS.split(';')) { const [n, x, z, h] = s.split(','); await top('pf-' + MAPSLUG + '-' + n, +x, +z, +h); }
+  }
   // Freedom Monument plaza
   await top('freedom-top', -2, 20, 120);
   await tilt('freedom-tilt', -2, 20, 110);

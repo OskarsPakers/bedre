@@ -11,7 +11,7 @@ import { Hole, updateSwallow } from '../holes.js';
 import { bus } from '../events.js';
 import { t, kindName } from '../i18n.js';
 import { MpClient, fetchStatus } from './client.js';
-import { worldHash } from './table.js';
+import { expectedHash } from '../placements.js';
 import { OnlineUi } from './ui.js';
 import { MP } from '../../worker/mp/protocol.js';
 
@@ -21,6 +21,13 @@ const SEND_MS = 80;          // ~12 Hz position + claims
 const RECONNECT_GIVE_UP_MS = 14000;
 const hexOf = (n) => '#' + n.toString(16).padStart(6, '0');
 const r1 = (v) => Math.round(v * 10) / 10;
+
+/** Reload that really fetches the new release: drop the service worker + every cache first (the shell and /data/* are cached by public/sw.js). */
+export async function hardReload() {
+  try { const regs = (navigator.serviceWorker && (await navigator.serviceWorker.getRegistrations())) || []; for (const r of regs) await r.unregister(); } catch { /* ignore */ }
+  try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch { /* ignore */ }
+  location.reload();
+}
 
 export class OnlineMode {
   constructor(game, world) {
@@ -42,12 +49,13 @@ export class OnlineMode {
     this.finalRank = null;
     this.log = [];                    // recent control messages (tests / debugging)
     this.saved = null;
-    this._hash = null;
+    this._hash = world.placements ? world.placements.hash : null; // content id of the placement file the world was built from (null = fallback world)
     this.client.onMessage = (m) => this._onMessage(m);
     this.client.onClose = (info) => this._onClose(info);
     this.ui.mountButton(() => this.begin());
     this.ui.onLeave(() => this.leave());
     this._menuBtn = null;
+    if (!this._hash && !(CFG.map && CFG.map.slug !== 'centrs')) this.ui.setStatus(t('mpNoData')); // fallback world (placement file missing / stale): solo only, no blame
   }
 
   get active() { return this.state !== 'idle'; }
@@ -55,6 +63,7 @@ export class OnlineMode {
   // ---- entering / leaving -----------------------------------------------------------------------------------------
   async begin() {
     if (this.state !== 'idle' && this.state !== 'error') return;
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; } // world not built from the canonical placement file: online would desync
     const g = this.game;
     if (!this._enter) {
       this._enter = true;
@@ -67,7 +76,6 @@ export class OnlineMode {
     this.ui.setStatus(t('mpConnecting'), true);
     this.state = 'matching';
     try {
-      this._hash = this._hash || worldHash(this.world);
       const j = await this.client.matchmake(this._badRoom);
       this._badRoom = null;
       if (this.state !== 'matching') return;
@@ -164,13 +172,29 @@ export class OnlineMode {
   _note(m) { this.log.push({ ...m, at: Date.now() }); if (this.log.length > 60) this.log.shift(); }
 
   _onErr(m) {
-    const map = { version: 'mpVersion', started: 'mpStarted', full: 'mpFull', room: 'mpGone', gone: 'mpGone', name: 'mpUnavailable', ratelimit: 'mpUnavailable' };
+    if (m.code === 'version') return this._versionRefused();
+    const map = { started: 'mpStarted', full: 'mpFull', room: 'mpGone', gone: 'mpGone', name: 'mpUnavailable', ratelimit: 'mpUnavailable' };
     const retry = m.code === 'full' || m.code === 'started' || m.code === 'gone' || (m.code === 'room' && this.state !== 'intro' && this.state !== 'playing');
     if (retry && (this._retries = (this._retries || 0) + 1) <= 3 && (this.state === 'connecting' || this.state === 'lobby' || this.state === 'matching')) {
       this._badRoom = this.room; this.state = 'idle'; setTimeout(() => this.begin(), 400); return;
     }
     this._retries = 0;
     this._fail(map[m.code] || 'mpUnavailable');
+  }
+
+  /** The server expects another placement file than ours. Only a genuinely stale tab gets a reload offer: re-fetch the (never cached) manifest and compare with what this code was released with. */
+  async _versionRefused() {
+    this._retries = 0;
+    this._fail('mpUnavailable');          // back to the menu with the plain, blame-free message first
+    let fresh = false;
+    try {
+      const slug = CFG.map ? CFG.map.slug : 'centrs';
+      const r = await fetch('/data/placements.json?_=' + Date.now(), { cache: 'no-store' });
+      const man = r.ok ? await r.json() : null;
+      const h = man && man.maps && man.maps[slug] && man.maps[slug].hash;
+      fresh = !!h && h !== expectedHash(slug);
+    } catch { /* offline / blocked: keep the plain message */ }
+    if (fresh && this.state === 'idle') this.ui.setStatus(t('mpNewVersion'), false, { label: t('mpReload'), run: () => hardReload() });
   }
 
   _onClose(info) {

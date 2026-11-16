@@ -1,11 +1,12 @@
 // Plain-Node tests for the authoritative room simulation (worker/mp/sim.js): claim / position validator, kills, respawn,
-// bots, and a CPU benchmark with 12 simulated humans + bots. Uses public/mp/objects.bin when present (else a synthetic city).
+// bots, and a CPU benchmark with 12 simulated humans + bots. Uses the centre placement file (public/data/riga-objects.bin.gz = the server's table) when present (else a synthetic city).
 //   node scripts/test-mp-sim.mjs
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RoomSim, speedOf, radiusOf } from '../worker/mp/sim.js';
-import { parseTable, encodeTable, F_MOVER } from '../worker/mp/table.js';
+import { parseTable, encodeTable, F_MOVER, F_BUILDING } from '../worker/mp/table.js';
+import { readTableBytes } from '../tools/mp/load-table.mjs';
 import { mpConfig, parseClientMessage, RateLimiter } from '../worker/mp/protocol.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -17,18 +18,18 @@ function synthetic() {
   for (let i = 0; i < 40000; i++) {
     const x = ((i * 7919) % 3000) - 1500, z = ((i * 104729) % 2400) - 1200;
     const k = i % 10;
-    objs.push({ x, z, fit: k < 6 ? 0.5 : k < 8 ? 1.5 : k < 9 ? 4 : 30, value: k < 6 ? 1 : k < 8 ? 4 : k < 9 ? 14 : 400, mover: i % 17 === 0, isBuilding: k === 9 });
+    objs.push({ kind: 0, x, z, fit: k < 6 ? 0.5 : k < 8 ? 1.5 : k < 9 ? 4 : 30, value: k < 6 ? 1 : k < 8 ? 4 : k < 9 ? 14 : 400, flags: (i % 17 === 0 ? F_MOVER : 0) | (k === 9 ? F_BUILDING : 0), yaw: 0, s: 1, tint: null });
   }
   const spawns = [];
   for (let i = 0; i < 400; i++) spawns.push({ x: ((i * 131) % 1400) - 700, z: ((i * 71) % 1400) - 700, dens: 40 + (i % 50) });
-  return encodeTable(objs, spawns, { minX: -2100, maxX: 1200, minZ: -1200, maxZ: 1500 });
+  const movers = new Float32Array(objs.filter((o) => o.flags & F_MOVER).length * 12);
+  return encodeTable({ objs, nB: 0, movers, spawns, meta: { bounds: { minX: -2100, maxX: 1200, minZ: -1200, maxZ: 1500 }, kinds: ['x'] } });
 }
 
-const binPath = path.join(root, 'public', 'mp', 'objects.bin');
+const binPath = path.join(root, 'public', 'data', 'riga-objects.bin.gz');
 const real = fs.existsSync(binPath);
-const buf0 = real ? fs.readFileSync(binPath) : null;
-const table = parseTable(real ? buf0.buffer.slice(buf0.byteOffset, buf0.byteOffset + buf0.byteLength) : synthetic());
-console.log(`table: ${real ? 'public/mp/objects.bin' : 'synthetic'}  ${table.n} objects, ${table.spawn.n} spawns, hash ${table.hash}`);
+const table = parseTable(real ? readTableBytes('centrs') : synthetic());
+console.log(`table: ${real ? 'public/data/riga-objects.bin.gz' : 'synthetic'}  ${table.n} objects, ${table.spawn.n} spawns, hash ${table.hash}`);
 
 const cfg = mpConfig({});
 const mk = (names, close = false) => {
@@ -54,6 +55,7 @@ check('rate limiter caps a burst', allowed === 80, `allowed ${allowed}`);
   const { sim, hs } = mk(['A', 'B', 'C']);
   check('bots fill to 8 holes', sim.holes.length === 8 && sim.holes.filter((h) => h.bot).length === 5);
   check('everyone starts at start size / score 0', sim.holes.every((h) => h.score === 0 && Math.abs(h.r - 2.2) < 1e-9));
+  check('server bots are gentle by default: botSkill <= 0.4 and a quiet first minute for humans', mpConfig({}).botSkill <= 0.4 && mpConfig({}).botHumanGrace >= 60, JSON.stringify([mpConfig({}).botSkill, mpConfig({}).botHumanGrace]));
   check('humans start apart', Math.hypot(hs[0].x - hs[1].x, hs[0].z - hs[1].z) > 50);
 }
 
@@ -185,5 +187,24 @@ check('rate limiter caps a burst', allowed === 80, `allowed ${allowed}`);
   }
 }
 
+// ---- bots do not hunt humans during the grace period (first 60 s), but do afterwards ----
+{
+  const huntedBy = (graceSec, atSec) => {
+    const sim = new RoomSim(table, { ...mpConfig({}), botHumanGrace: graceSec, botSkill: 1, totalHoles: 2 }, 5);
+    const h = sim.addHuman('X', 'tokgrace12345678');
+    sim.start(0, 3700, 300000);
+    let now = 3700; sim.tick(now);
+    const bot = sim.holes.find((q) => q.bot);
+    bot.score = 3000; bot.r = radiusOf(3000); bot.x = h.x + 30; bot.z = h.z; h.tx = h.x; h.tz = h.z; h.score = 800; h.r = radiusOf(800);
+    now += atSec * 1000; sim.tick(now);                // jump into the round: the brain thinks at the (round) time given
+    bot.brain.think(sim, now / 1000);
+    return !!bot.brain.prey;
+  };
+  check('bot hunts a human prey when there is no grace (control)', huntedBy(0, 30) === true);
+  check('bot ignores human prey inside the grace period', huntedBy(60, 30) === false);
+  check('bot hunts humans again after the grace period', huntedBy(60, 75) === true);
+}
+
 console.log(fails ? `${fails} FAILED` : 'all passed');
 process.exit(fails ? 1 : 0);
+

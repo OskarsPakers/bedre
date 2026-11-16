@@ -49,10 +49,11 @@ export async function openSim({ port = 5191, noBuild = false, dist = path.join(r
  * strategy 'greedy' = Game.autoplay (value / distance), 'cluster' = greedy that also values clusters (stronger).
  * Returns { mode, trace, final, killGains, botScores, values }.
  */
-export async function simRound(page, { mode, day = null, strategy = 'greedy', seconds = 400, collectValues = false, k = null, speedMul = 1 }) {
-  return page.evaluate(({ mode, day, strategy, seconds, collectValues, k, speedMul }) => {
+export async function simRound(page, { mode, day = null, strategy = 'greedy', seconds = 400, collectValues = false, k = null, speedMul = 1, difficulty = null }) {
+  return page.evaluate(({ mode, day, strategy, seconds, collectValues, k, speedMul, difficulty }) => {
     const g = window.__G, bus = window.__life.bus, W = window.__W, C = window.__CFG;
     window.__modes.setMode(mode);
+    if (difficulty) window.__modes.setDifficulty(difficulty);
     if (day) window.__modes.setDay(day);
     const killGains = [];
     const off = bus.on('holeEaten', (e) => killGains.push(Math.round(e.gain)));
@@ -62,7 +63,36 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
     const p = g.player;
     p.speedMul = speedMul;
     if (strategy === 'greedy') g.autoplay(seconds);
-    else {
+    else if (strategy === 'casual') {
+      // A sensible but imperfect human: 0.65x speed (unless speedMul is given), re-targets every 0.5-1.4 s with a limited view, picks by
+      // noisy value / distance, wanders off now and then, reacts to a threat only after ~0.6 s. Used for balance + anti-cheat realism.
+      if (speedMul === 1) p.speedMul = 0.65;
+      g.autopilot = true;
+      let t = 0, nextPick = 0, goal = null, wander = 0, wDir = 0, threatT = 0;
+      while (t < seconds && g.phase === 'playing') {
+        if (t >= nextPick || !goal || goal.state !== 0) {
+          nextPick = t + 0.5 + Math.random() * 0.9;
+          if (wander <= 0 && Math.random() < 0.04) { wander = 1.2 + Math.random() * 1.8; wDir = Math.random() * Math.PI * 2; }
+          const R = Math.max(25, p.radius * 8);
+          let best = null, bs = -1;
+          W.query(p.x, p.z, R, (o, d) => {
+            if (o.state !== 0 || o.fit >= p.radius * C.swallow.fitRatio) return;
+            const s = o.value / (d + p.radius * 1.5 + 4) * (0.75 + Math.random() * 0.5);
+            if (s > bs) { bs = s; best = o; }
+          });
+          goal = best;
+        }
+        let threat = null;
+        for (const o of g.holes) if (o !== p && o.alive && !o.dying && o.radius >= p.radius * C.duel.ratio * 0.92 && Math.hypot(o.x - p.x, o.z - p.z) < o.radius * 3.2 + 14) threat = o;
+        threatT = threat ? threatT + 0.2 : 0;
+        if (threat && threatT >= 0.6) { const ax = p.x - threat.x, az = p.z - threat.z, l = Math.hypot(ax, az) || 1; p.control = { mode: 'target', x: p.x + (ax / l) * 60, z: p.z + (az / l) * 60 }; }
+        else if (wander > 0) { p.control = { mode: 'target', x: p.x + Math.cos(wDir) * 80, z: p.z + Math.sin(wDir) * 80 }; wander -= 0.2; }
+        else if (goal) p.control = { mode: 'target', x: goal.x + (Math.random() - 0.5) * p.radius * 0.5, z: goal.z + (Math.random() - 0.5) * p.radius * 0.5 };
+        else { const a = Math.random() * Math.PI * 2; p.control = { mode: 'target', x: p.x + Math.cos(a) * 100, z: p.z + Math.sin(a) * 100 }; }
+        for (let i = 0; i < 12 && g.phase === 'playing'; i++) { g.update(1 / 60, true); t += 1 / 60; }
+      }
+      g.autopilot = false;
+    } else {
       g.autopilot = true;
       let t = 0, iter = 0;
       const jitter = (i) => Math.sin(i * 12.9898) * 0.5;
@@ -95,7 +125,7 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
     const out = {
       mode, day: day || null, trace: window.__trace(),
       final: { score: Math.round(p.score), eaten: p.eaten, radius: Math.round(p.radius * 100) / 100, rank: me.rank, kills: p.kills, deaths: p.deaths, phase: g.phase },
-      killGains, botScores: g.bots.holes.map((h) => Math.round(h.score)), botCount: g.bots.holes.length, twist: mode === 'daily' ? window.__modes.daily().twist.id : null,
+      killGains, botScores: g.bots.holes.map((h) => Math.round(h.score)), difficulty: window.__CFG.difficulty, botCount: g.bots.holes.length, twist: mode === 'daily' ? window.__modes.daily().twist.id : null,
     };
     if (collectValues) {
       const v = {};
@@ -107,5 +137,5 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
       out.values = v;
     }
     return out;
-  }, { mode, day, strategy, seconds, collectValues, k, speedMul });
+  }, { mode, day, strategy, seconds, collectValues, k, speedMul, difficulty });
 }

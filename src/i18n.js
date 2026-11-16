@@ -31,7 +31,7 @@ const S = {
     themeWinterDay: 'Ziema', themeWinterEve: 'Ziemas vakars', themeNov18Name: 'Lāčplēša diena', themeLigo: 'Līgo vakars',
     themeNow: 'Šobrīd: {name}', themeNov18Cap: 'Lāčplēša diena — 18. novembra svētku vakars',
     optsTitle: 'Iestatījumi', aboutRadio: 'Radio (neobligāts, ieslēdz pats): Latvijas Radio 2 tiešraide no LSM', rtScore: 'Rezultāts', rtMap: 'Karte', rtAch: 'Sasniegumi', rtNone: 'Šoreiz nekā jauna.', tsMapAria: 'Karte', tsCentreOnly: 'Dienas izaicinājums un Tiešsaiste: tikai Centra karte.',
-    blurbShort: 'Vadi bedri pa Rīgu, norij visu, kas ietilpst, un izaugsti lielāks par pretiniekiem.',
+    blurbShort: 'Norij Rīgu pa gabaliņam un izaugsti.',
   },
   en: {
     score: 'Score', time: 'Time', swallowedLbl: 'Swallowed:', leaderboard: 'Leaderboard',
@@ -61,7 +61,7 @@ const S = {
     themeWinterDay: 'Winter', themeWinterEve: 'Winter evening', themeNov18Name: 'Lāčplēša Day', themeLigo: 'Līgo dusk',
     themeNow: 'Now: {name}', themeNov18Cap: "Lāčplēša Day — the 18 November festive evening",
     optsTitle: 'Options', aboutRadio: 'Radio (optional, you switch it on): Latvijas Radio 2 live stream from LSM', rtScore: 'Result', rtMap: 'Map', rtAch: 'Progress', rtNone: 'Nothing new this time.', tsMapAria: 'Map', tsCentreOnly: 'Daily challenge and Online: Centre map only.',
-    blurbShort: 'Steer a hole through Riga, swallow whatever fits and out-grow your rivals.',
+    blurbShort: 'Swallow Riga and out-grow your rivals.',
   },
 };
 

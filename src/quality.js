@@ -4,14 +4,24 @@ import { CFG, LIFE } from './config.js';
 
 const NAMES = ['low', 'medium', 'high'];
 
+const QKEY = 'bedre.quality';
+/** Graphics choice: `?quality=` beats the remembered start-screen choice (localStorage, set by src/ui.js) beats auto (null). */
+export function qualityChoice() {
+  try { const q = new URLSearchParams(location.search).get('quality'); if (NAMES.includes(q)) return q; } catch { /* ignore */ }
+  try { const v = localStorage.getItem(QKEY); if (NAMES.includes(v)) return v; } catch { /* storage blocked */ }
+  return null;
+}
+/** Remember (or with 'auto' forget) the graphics choice made on the start screen. */
+export function rememberQuality(v) { try { if (NAMES.includes(v)) localStorage.setItem(QKEY, v); else localStorage.removeItem(QKEY); } catch { /* ignore */ } }
+
 /**
  * Ground-texture / starting quality tier (0 low, 1 medium, 2 high) chosen BEFORE the world is built:
  * `?quality=` pins it; otherwise phones (coarse pointer + small screen) and <= 2 GB devices get low, tablets / <= 4 GB / <= 4 cores medium.
  */
 export function groundTier() {
   try {
-    const q = new URLSearchParams(location.search).get('quality');
-    if (NAMES.includes(q)) return NAMES.indexOf(q);
+    const q = qualityChoice();
+    if (q) return NAMES.indexOf(q);
     const mem = navigator.deviceMemory || 0, cores = navigator.hardwareConcurrency || 8;
     const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     const small = Math.min(screen.width, screen.height) <= 820;
@@ -24,8 +34,8 @@ export function groundTier() {
 export class Quality {
   constructor({ renderer, light, world, canvas }) {
     this.renderer = renderer; this.light = light; this.world = world; this.canvas = canvas;
-    const q = new URLSearchParams(location.search).get('quality');
-    this.auto = !NAMES.includes(q);
+    const q = qualityChoice();
+    this.auto = !q;
     this.level = this.auto ? groundTier() : NAMES.indexOf(q);
     this.frames = 0; this.sum = 0; this.hiccup = 0;
     this.upLock = 0; this.lastUp = -999; this.goodWindows = 0; this.badWindows = 0;

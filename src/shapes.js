@@ -3,6 +3,11 @@
 import { CFG } from './config.js';
 
 
+/** file triangle material -> render class (0/1 roof, 2 wall with windows, 3 spire / dome accent, 5 gilded accent, 6 plain wall-coloured tread); shared by buildings.js and tools/detail/roof-report.mjs */
+export function renderClass(m) { return m === 2 ? 2 : m === 3 ? 3 : m === 5 ? 5 : m === 4 ? 2 : m === 6 ? 6 : 1; }
+/** colour slot per render class: every roof face (class 0 and 1, any slope) shares the single 'roof' colour; accents are whole spires / domes only */
+export const COLOR_SLOT = ['roof', 'roof', 'wall', 'accent', 'wall', 'accent', 'wall']; // 6 = wall-coloured faces with their real normals (parapet / step treads)
+
 async function inflate(buf) {
   const u8 = new Uint8Array(buf);
   if (u8[0] === 0x1f && u8[1] === 0x8b) {
@@ -45,7 +50,7 @@ export async function loadShapes() {
     let ov = 0, ot = 0, ol = 0;
     for (let i = 0; i < nB; i++) {
       const r = head.b.slice(i * STRIDE, i * STRIDE + STRIDE);
-      recs.set(r[0], { id: r[0], nv: r[1], nt: r[2], nl: r[3], src: r[4], vol: r[5], hmax: r[6] / 10, eave: r[7] / 10, roofRGB: r[8], wallRGB: r[9] || 0, domeRGB: r[10] || 0, accentRGB: r[11] || 0, style: r[12] || 0, ov, ot, ol });
+      recs.set(r[0], { id: r[0], nv: r[1], nt: r[2], nl: r[3], src: r[4], vol: r[5], hmax: r[6] / 10, eave: r[7] / 10, roofRGB: r[8], wallRGB: r[9] || 0, domeRGB: r[10] || 0, accentRGB: r[11] || 0, style: r[12] || 0, flags: r[13] || 0, ov, ot, ol });
       ov += r[1]; ot += r[2]; ol += r[3];
     }
     return { q: head.q, V, T, M, L, hs, recs, meta: head.meta };

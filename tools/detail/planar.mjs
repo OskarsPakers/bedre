@@ -854,8 +854,8 @@ export function planarMesh(F, built, loops, o) {
       const na = node(t.a, ci), nb = node(t.b, ci), nc = node(t.c, ci);
       const a = gv(na), b = gv(nb), cc = gv(nc);
       const cy = (P[a][1] + P[b][1] + P[cc][1]) / 3;
-      let mat = sl < 0.12 ? 0 : 1;
-      if (sl > 0.55 && cy > eave + 3.0) mat = 3;
+      const mat = sl < 0.12 ? 0 : 1; // one roof colour per building: steep / high facets are NOT a second colour (class 3 = whole lathe features only, below)
+      void cy;
       pushTri(a, b, cc, mat, UP);
     }
   });

@@ -11,8 +11,10 @@
 export const HEROES = [
   { slug: 'nativity', name: 'Kristus Piedzimšanas pareizticīgo katedrāle', ids: [49615771], source: 'parts', style: 1, crosses: true, wall: 0xe6dcc0, roof: 0x66727e, dome: 0xe3b53c, accent: 0xe3b53c,
     note: 'neo-Byzantine cathedral: cream/ochre walls, a large gilded central dome and four gilded corner domes on drums, apse to the east' },
-  { slug: 'artmuseum', name: 'Latvijas Nacionālais mākslas muzejs', ids: [49615452], source: 'mesh', style: 2, ortho: true, ringTol: 0.9, opts: { contourTol: 0.9 }, fit: { minArea: 14, weld: 1.1 }, wall: 0xe4d8bd, roof: 0x6f9c8a, dome: 0x6f9c8a,
-    note: 'neo-baroque palace (Rozentāls square): pale sandstone, long symmetric wings, central block with a high copper-green mansard / dome' },
+  { slug: 'artmuseum', name: 'Latvijas Nacionālais mākslas muzejs', ids: [49615452], source: 'mesh', curated: 'artmuseum', style: 5, wall: 0xdcd2b8, roof: 0x739889, dome: 0x739889, cam: { a: 40, b: 220, dist: 150, el: 26, y: 12 },
+    note: 'neo-baroque palace (Rozentāls square): pale sandstone-cream, symmetric wings, projecting end pavilions + central risalit with pediment and a tall convex mansard with a lantern, one grey-green roof; the cadastre terrace stays open ground' },
+  { slug: 'artacademy', name: 'Latvijas Mākslas akadēmija', ids: [49615853, 49615877], source: 'mesh', curated: 'artacademy', style: 6, wall: 0xa03f2b, roof: 0x7e4a3a, dome: 0x5f7a6c, cam: { a: 35, b: 215, dist: 150, el: 26, y: 14 },
+    note: 'red-brick neo-gothic academy (Kalpaka bulvaris 13): steep tiled gables, stepped gable ends, a slim corner tower with a pointed spire, pointed-arch windows' },
   { slug: 'oldgertrude', name: 'Vecā Ģertrūdes baznīca', ids: [49619142], source: 'mesh', style: 1, wall: 0xb0553b, roof: 0x7a808a, dome: 0x6b747e,
     note: 'red-brick neo-gothic church: nave with steep roof, one tall slim spire' },
   { slug: 'stpeter', name: 'Svētā Pētera baznīca', ids: [49614351], source: 'mesh', style: 1, wall: 0xc9b9a0, roof: 0x7a808a, dome: 0x6a8a7c,

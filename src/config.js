@@ -1,5 +1,5 @@
 // All gameplay / rendering tunables live here.
-import { START_RADIUS, GROWTH_EXP, radiusAt, scoreAt } from './rules.js'; // shared with the Worker (anti-cheat)
+import { START_RADIUS, GROWTH_EXP, DIFFICULTIES, radiusAt, scoreAt } from './rules.js'; // shared with the Worker (anti-cheat)
 export const CFG = {
   roundSeconds: 300,
   dataUrl: '/data/riga.json',
@@ -88,6 +88,7 @@ export const CFG = {
 
   // ---- opponents -------------------------------------------------------
   bots: {
+    // the values below are the NORMAL profile; DIFFICULTY (further down) overrides them per level via applyDifficulty()
     count: 7,
     difficulty: 1.0,      // global skill multiplier (0.6 easy .. 1.3 hard); scales speed + decision quality
     thinkHz: 6,           // brain ticks per second per bot (staggered)
@@ -103,6 +104,11 @@ export const CFG = {
     leaderRestraint: 1.0, // a bot clearly leading the board adds this to huntGreed against other bots (less snowballing)
     underdogCare: 0.35,   // bots below 35% of the leader's score flee earlier (zone x1.3) and react faster
     roamGain: 1.4,        // roam only when another area scores this many times better than here (+ less for skilled bots)
+    gain: 1.0,            // growth handicap: bots receive this fraction of an object's points (easy: fewer, so the player can out-grow them)
+    humanGrace: 0,        // s from the round start in which bots do not hunt human players (they still eat and flee)
+    humanRatio: 1.0,      // bots hunt a human only when they are this many times bigger than the minimum duel ratio
+    respawnGrace: 0,      // s after a human respawn in which bots do not hunt it (no spawn camping)
+    catchUp: 0,           // easy: a bot more than 1.2x ahead of the human loses growth (gain x (1 - catchUp * (lead - 1.2)), floor 0.45): a runaway bot cannot end the race early
   },
   // ---- hole vs hole ------------------------------------------------------
   duel: {
@@ -111,14 +117,63 @@ export const CFG = {
     gain: 0.5,            // fraction of victim score the eater receives
     dyingTime: 0.7,       // victim shrink/spiral animation (s)
     respawnDelay: 3,      // s until victim reappears
-    keepScore: 0.5,       // fraction of score kept after respawn
-    protect: 3,           // spawn protection (s)
+    keepScore: 0.5,       // fraction of score kept after respawn (the HUMAN's value: set by the difficulty, easy 0.65)
+    protect: 3,           // spawn protection (s) (the human's value, easy 4.5)
+    botKeepScore: 0.5, botProtect: 3,   // bots always respawn with the classic numbers
     minRespawnDist: 140,  // preferred distance from other holes when respawning
   },
   intro: { hold: 1.2, glide: 2.5 },   // round-start fly-in: hold on the overview, then ease down to the player (s)
   roundWarn: 10,          // timer pulses in the last N seconds
   playerName: 'Tu',
 };
+
+// ---- difficulty levels ---------------------------------------------------------------------------------------
+// Easy (default) / Normal / Hard. A profile overrides CFG.bots + CFG.duel fields (see applyDifficulty). `difficulty` is the
+// skill multiplier of src/bots.js (per-map multiplier tools/maps.mjs mult.bots is applied on top). The daily challenge always
+// plays NORMAL so everybody gets the same setup (src/modes.js). Calibrated with scripts/balance-diff.mjs (README 6.1).
+export { DIFFICULTIES };
+export const DEFAULT_DIFFICULTY = 'easy';
+export const DIFFICULTY = {
+  easy: {
+    bots: { difficulty: 0.62, speedMin: 0.62, speedMax: 0.8, thinkHz: 4, reactMin: 0.5, reactMax: 1.4, aimNoise: 0.3, aggressionMin: 0.05, aggressionMax: 0.4,
+      huntRange: 1.2, huntGreed: 3.0, preyMinFrac: 0.45, gain: 0.67, humanGrace: 75, humanRatio: 1.45, respawnGrace: 25, catchUp: 0.6 },
+    duel: { keepScore: 0.65, protect: 4.5 },
+    mapSkill: 0.4,   // exponent of the per-map bot skill multiplier (tools/maps.mjs mult.bots): damped on easy
+  },
+  normal: {
+    bots: { difficulty: 0.9, speedMin: 0.82, speedMax: 0.96, thinkHz: 6, reactMin: 0.2, reactMax: 0.7, aimNoise: 0.22, aggressionMin: 0.15, aggressionMax: 0.7,
+      huntRange: 1.8, huntGreed: 2.2, preyMinFrac: 0.3, gain: 0.6, humanGrace: 20, humanRatio: 1.1, respawnGrace: 8, catchUp: 0 },
+    duel: { keepScore: 0.5, protect: 3 },
+  },
+  hard: {
+    bots: { difficulty: 1.0, speedMin: 0.86, speedMax: 1.0, thinkHz: 6, reactMin: 0.15, reactMax: 0.6, aimNoise: 0.22, aggressionMin: 0.2, aggressionMax: 0.9,
+      huntRange: 2, huntGreed: 2.0, preyMinFrac: 0.25, gain: 1.0, humanGrace: 0, humanRatio: 1.0, respawnGrace: 0, catchUp: 0 },
+    duel: { keepScore: 0.5, protect: 3 },
+  },
+};
+CFG.profiles = DIFFICULTY;   // live reference (balance scripts tweak it: --set profiles.easy.bots.gain=0.5)
+export const isDifficulty = (s) => DIFFICULTIES.includes(s);
+const DIFF_KEY = 'bedre.difficulty';
+/** ?difficulty= beats the remembered choice beats the default. */
+export function activeDifficulty() {
+  try { const q = new URLSearchParams(location.search).get('difficulty'); if (isDifficulty(q)) return q; } catch { /* no location */ }
+  try { const v = localStorage.getItem(DIFF_KEY); if (isDifficulty(v)) return v; } catch { /* storage blocked */ }
+  return DEFAULT_DIFFICULTY;
+}
+export function rememberDifficulty(id) { try { localStorage.setItem(DIFF_KEY, id); } catch { /* ignore */ } }
+/** Write a level's profile into CFG. `skillMul` = extra skill multiplier (daily twist 'tough'); the map's bot multiplier is applied here too. */
+export function applyDifficulty(id, skillMul = 1) {
+  const p = DIFFICULTY[isDifficulty(id) ? id : DEFAULT_DIFFICULTY];
+  Object.assign(CFG.bots, p.bots);
+  Object.assign(CFG.duel, p.duel);
+  const k = (CFG.map && CFG.map.mult) || {};
+  const lvl = isDifficulty(id) ? id : DEFAULT_DIFFICULTY;
+  CFG.bots.difficulty = p.bots.difficulty * Math.pow(k.bots ?? 1, p.mapSkill ?? 1) * skillMul;
+  const bg = k.botGain;   // per-map growth handicap (number, or { easy, normal, hard }): keeps the best bot at the same share of a player's score on every map
+  CFG.bots.gain = p.bots.gain * (typeof bg === 'object' && bg ? (bg[lvl] ?? 1) : (bg ?? 1));
+  CFG.difficulty = isDifficulty(id) ? id : DEFAULT_DIFFICULTY;
+  return CFG.difficulty;
+}
 
 export function radiusFromScore(score) {
   return radiusAt(score, CFG.growth.k, CFG.hole.startRadius, CFG.growth.exp);

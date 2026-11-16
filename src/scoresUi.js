@@ -56,6 +56,11 @@ export function initScoresUi() {
       const cell = (txt) => { const td = document.createElement('td'); td.textContent = txt; return td; };
       const nameTd = cell(r.name);
       if (i === mine) nameTd.textContent = `${r.name} ◂ ${t('you')}`;
+      if (r.difficulty === 'easy' || r.difficulty === 'normal' || r.difficulty === 'hard') {   // informational tag; boards are NOT split by difficulty
+        const tag = document.createElement('span'); tag.className = 'dtag d-' + r.difficulty;
+        tag.textContent = t('diff' + r.difficulty[0].toUpperCase() + r.difficulty.slice(1)); tag.title = t('tsDiff');
+        nameTd.append(' ', tag);
+      }
       tr.append(cell(String(i + 1)), nameTd, cell(fmt(r.score)), cell(`Ø ${(2 * (r.radius || 0)).toFixed(1)} m`));
       body.append(tr);
     });

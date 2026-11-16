@@ -49,7 +49,7 @@ async function main() {
     sql(cfg1, persistU, "INSERT INTO rounds (id, created_at, ip_hash, used) VALUES ('old-round', 1700000000, 'x', 1)");
     migrate(config, persistU);   // now the full set (0002 + 0003) on the same DB
     const row = sql(config, persistU, 'SELECT name, score, mode, map, day, suspect FROM scores')[0];
-    check('upgrade 0001 -> 0004: old score row becomes classic + centrs, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.map === 'centrs' && row.suspect === 0 && row.day === null, JSON.stringify(row));
+    check('upgrade 0001 -> 0005: old score row becomes classic + centrs, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.map === 'centrs' && row.suspect === 0 && row.day === null, JSON.stringify(row));
     const rr = sql(config, persistU, "SELECT mode, map FROM rounds WHERE id='old-round'")[0];
     check('upgrade: old round row becomes classic + centrs', rr && rr.mode === 'classic' && rr.map === 'centrs', JSON.stringify(rr));
     const tabs = sql(config, persistU, "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('stats','rate_limits') ORDER BY name").map((r) => r.name);
@@ -58,7 +58,7 @@ async function main() {
     check('migrations re-apply is a no-op', sql(config, persistU, 'SELECT COUNT(*) AS n FROM scores')[0].n === 1);
     migrate(config, persistA); migrate(config, persistB);
     const cols = sql(config, persistA, "SELECT name FROM pragma_table_info('scores')").map((r) => r.name);
-    check('fresh DB has the 0002 + 0004 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id', 'map'].every((c) => cols.includes(c)), cols.join());
+    check('fresh DB has the 0002 + 0004 + 0005 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id', 'map', 'difficulty'].every((c) => cols.includes(c)), cols.join());
   }
 
   const A = await startWorker({ config, persist: persistA, port: PORT, vars: { ROUND_SECONDS_OVERRIDE: 2, RATE_ROUNDS_PER_HOUR: 28, CAP_DAILY: 2 } });
@@ -113,9 +113,9 @@ async function main() {
   check('classic seeds are random per round', seeds.size === 2);
 
   // ---- create the rounds used below, then wait once for the round age
-  const roundNames = ['okA', 'dup', 'quick', 'daily', 'sus', 'rej', 'notrace', 'prof', 'modeMis', 'badTrace', 'invalid'];
+  const roundNames = ['okA', 'dup', 'quick', 'daily', 'sus', 'rej', 'notrace', 'prof', 'modeMis', 'badTrace', 'invalid', 'diffOk', 'diffBad', 'diffNone'];
   const R = {};
-  for (const n of roundNames) R[n] = (await newRound(n === 'quick' ? { mode: 'quick' } : n === 'daily' ? { mode: 'daily' } : {})).j.roundId;
+  for (const n of roundNames) R[n] = (await newRound(n === 'quick' ? { mode: 'quick' } : n === 'daily' ? { mode: 'daily' } : n.startsWith('diff') ? { map: 'mezaparks' } : {})).j.roundId;
   r = await post('/api/scores', body('classic', R.okA, okScore('classic')));
   check('immediate submit rejected (too early)', r.status === 403, `${r.status}`);
   await sleep(2400);
@@ -218,6 +218,21 @@ async function main() {
     check('limits: every map has a table with the three required parts', MAP_SLUGS.every((m) => { const L = limitsFor(m); return L && L.modes.classic && L.modes.quick && L.value && L.valueOther > 0; }));
     check('limits: daily limits exist for the centre only', !!limitsFor('centrs').modes.daily && MAP_SLUGS.filter((m) => m !== 'centrs').every((m) => !limitsFor(m).modes.daily));
     check('limits: unknown map falls back to the centre', limitsFor('nope') === limitsFor('centrs'));
+  }
+
+  {
+  // difficulty tag (migration 0005): informational, optional, validated; never splits a board
+  r = await post('/api/scores', body('classic', R.diffBad, okScore('classic'), { map: 'mezaparks', difficulty: 'impossible' }));
+  check('invalid difficulty -> 400 (round not burnt)', r.status === 400, `${r.status}`);
+  r = await post('/api/scores', body('classic', R.diffBad, okScore('classic'), { map: 'mezaparks', difficulty: 'hard' }));
+  check('difficulty hard accepted', r.status === 201, `${r.status}`);
+  r = await post('/api/scores', body('classic', R.diffOk, okScore('classic') + 1, { map: 'mezaparks', difficulty: 'easy' }));
+  check('difficulty easy accepted', r.status === 201, `${r.status}`);
+  r = await post('/api/scores', body('classic', R.diffNone, okScore('classic') + 2, { map: 'mezaparks' }));
+  check('score without difficulty (old client) still accepted', r.status === 201, `${r.status}`);
+  j = await scores('mode=classic&map=mezaparks&period=all');
+  check('GET scores returns the difficulty tag (null for old clients) in ONE board', j.scores.length === 4 && j.scores.map((x) => x.difficulty).sort().join() === 'easy,hard,,' && j.scores.every((x) => 'difficulty' in x), JSON.stringify(j.scores.map((x) => x.difficulty)));
+
   }
 
   // ---- rate limits (per hashed IP)

@@ -287,7 +287,8 @@ export class ThemeManager {
       box.appendChild(b); this.pickBtns[p] = b;
     }
     const cap = document.createElement('div'); cap.className = 'themecap'; cap.id = 'themecap';
-    host.append(box, cap);
+    const q = document.getElementById('adv-quality');   // theme row sits before the graphics row
+    if (q) q.before(box, cap); else host.append(box, cap);
     this.pickLabel = lab; this.pickCap = cap;
     onLang(() => this._updatePicker());
   }

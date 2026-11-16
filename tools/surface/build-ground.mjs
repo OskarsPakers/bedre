@@ -46,7 +46,7 @@ for (const a of data.areas || []) {
 }
 const bridgeSet = new Set();
 for (const r of data.roads) {
-  if (!r.p) continue;
+  if (!r.p || r.tn) continue; // tunnels / underpasses are not surface
   if (['motorway', 'primary', 'secondary', 'tertiary', 'residential', 'service'].includes(r.k) && !r.br) strokeLine(g, M.road, r.p, Math.max(1.2, (r.w || 6) / 2), 1);
   else if (r.k === 'pedestrian') strokeLine(g, M.ped, r.p, Math.max(1.2, (r.w || 5) / 2), 1);
   else if (r.k === 'rail') strokeLine(g, M.rail, r.p, 3, 1);

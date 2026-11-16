@@ -1,5 +1,5 @@
 // Ad-hoc UI shots against a running vite server (default :5187). Usage: node scripts/ui-shots.mjs <scenario> [...]
-// Scenarios: start-lv start-en start-m-lv start-m-en play-360 play-390 play-430 play-land results-d results-m scores lobby about progress pause
+// Scenarios: adv:<d|m360|m390|land>:<lv|en>[:chip]  (Advanced open; ':chip' = non-default choices) · start-lv start-en start-m-lv start-m-en play-360 play-390 play-430 play-land results-d results-m scores lobby about progress pause
 import { chromium } from 'playwright';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -18,11 +18,11 @@ async function open(vp, lang, query = '') {
   page.on('pageerror', (e) => console.log('PAGEERROR', e.message));
   await page.goto(`${base}/?${query}`);
   await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 120000 });
-  await sleep(500);
+  await sleep(1300);
   return page;
 }
 const shot = (page, n) => page.screenshot({ path: path.join(out, `ui-${n}.png`) });
-const MOCK = { scores: [{ name: 'Rūdolfs', score: 182340, radius: 128.2, eaten: 900 }, { name: 'Anna', score: 154210, radius: 121.5, eaten: 880 }, { name: 'Tu', score: 99020, radius: 96.1, eaten: 640 }, { name: 'Jānis-Kristaps', score: 75410, radius: 88, eaten: 500 }] };
+const MOCK = { scores: [{ name: 'Rūdolfs', score: 182340, radius: 128.2, eaten: 900, difficulty: 'hard' }, { name: 'Anna', score: 154210, radius: 121.5, eaten: 880, difficulty: 'normal' }, { name: 'Tu', score: 99020, radius: 96.1, eaten: 640, difficulty: 'easy' }, { name: 'Jānis-Kristaps', score: 75410, radius: 88, eaten: 500 }] };
 async function openMock(vp, lang, query = '') {
   const touch = vp !== 'd';
   const ctx = await browser.newContext({ viewport: VP[vp], locale: lang === 'lv' ? 'lv-LV' : 'en-US', hasTouch: touch, isMobile: touch, deviceScaleFactor: touch ? 2 : 1 });
@@ -36,6 +36,15 @@ async function openMock(vp, lang, query = '') {
 }
 const scen = process.argv.slice(2);
 for (const s of scen) {
+  if (s.startsWith('adv:')) {   // start screen: collapsed + expanded (+ with the summary chip), any viewport / language
+    const [, vp, lang, chip] = s.split(':');
+    const q = chip ? 'mode=quick&difficulty=hard&theme=evening&map=purvciems' : '';
+    const page = await open(vp, lang || 'lv', q);
+    await shot(page, `start-collapsed-${vp}-${lang}${chip ? '-chip' : ''}`);
+    await page.click('#opts-toggle'); await sleep(350);
+    await shot(page, `start-advanced-${vp}-${lang}${chip ? '-chip' : ''}`);
+    await page.close(); continue;
+  }
   if (s.startsWith('panel:')) {
     const [, name, vp, lang] = s.split(':');
     const page = await openMock(vp, lang || 'lv', name === 'pause' ? 'autostart=1&intro=0' : '');

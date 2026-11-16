@@ -19,8 +19,14 @@ const swStamp = () => {
     },
   };
 };
+// content ids of the per-map placement files (public/data/placements.json, written by tools/mp/build-objects.mjs): baked into the bundle as
+// __PLACEMENTS__ so the client always asks for (and verifies) exactly the file revision its own code was released with.
+const placements = () => {
+  try { return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'public/data/placements.json'), 'utf8')); } catch { return { maps: {} }; }
+};
 export default defineConfig({
   plugins: [swStamp()],
+  define: { __PLACEMENTS__: JSON.stringify(placements()) },
   server: {
     port: 5173, host: true,
     // `npm run dev:worker` serves the API on 8791

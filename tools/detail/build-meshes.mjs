@@ -17,6 +17,7 @@ import { cleanRing, centroid, signedArea, pointInPoly, minBox } from '../../src/
 import { planarMesh, Del, dp, dpClosed } from './planar.mjs';
 import { heroById } from './heroes.mjs';
 import { partsMesh } from './parts.mjs';
+import { CURATED } from './curated.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MAP = (process.argv.find((a) => a.startsWith('--map=')) || '--map=centrs').slice(6);
@@ -491,6 +492,7 @@ function meshBuilding(F, ring, o) {
   });
   // steep faces: connected steep components are facade-like (drums, parapets, steps, tower shafts) unless they taper to a point (spires)
   const mats = new Uint8Array(roofTris.length).fill(1);
+  const spireTri = new Set(); // complete tapering steep components (spires) = whole accent features
   {
     const eMap = new Map();
     roofTris.forEach(([a, b, c], ti) => { if (triN[ti][1] >= 0.17) return; for (const [u, v] of [[a, b], [b, c], [c, a]]) { const k = u < v ? u * 262144 + v : v * 262144 + u; const e = eMap.get(k); if (e) e.push(ti); else eMap.set(k, [ti]); } });
@@ -508,7 +510,7 @@ function meshBuilding(F, ring, o) {
       const ext = (pred) => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const v of vs) if (pred(py[v])) { x0 = Math.min(x0, px[v]); x1 = Math.max(x1, px[v]); z0 = Math.min(z0, pz[v]); z1 = Math.max(z1, pz[v]); } return Math.hypot(x1 - x0, z1 - z0); };
       const top = ext((y) => y > ymax - 0.25 * hg), bot = ext((y) => y < ymin + 0.25 * hg);
       const spire = hg >= 3 && top < 0.4 * bot && top < 3;
-      if (!spire) for (const ti of members) mats[ti] = 2;
+      if (!spire || members.length < 12) for (const ti of members) mats[ti] = 2; else for (const ti of members) spireTri.add(ti);
     }
   }
   // spires / domes / tower roofs: steep and high above the eaves (+ neighbours above the eaves), or OSM dome/cone/pyramid cells
@@ -516,8 +518,9 @@ function meshBuilding(F, ring, o) {
   roofTris.forEach(([a, b, c], ti) => {
     if (mats[ti] !== 1) return;
     const cy = (py[a] + py[b] + py[c]) / 3;
-    if (triN[ti][1] < 0.66 && cy > eave + 3.5) special[ti] = 1;
-    else {
+    if (spireTri.has(ti)) special[ti] = 1;
+    else { // class 3 only for OSM dome / cone / pyramid cells (whole features); steep or high facets stay ordinary roof (one roof colour per building)
+      void cy;
       const gx = (px[a] + px[b] + px[c]) / 3, gz = (pz[a] + pz[b] + pz[c]) / 3;
       const i = Math.floor((gx - F.x0) / cell), j = Math.floor((gz - F.z0) / cell);
       if (i >= 0 && j >= 0 && i < w && j < h && F.S[j * w + i] && cy > eave + 1.5) special[ti] = 1;
@@ -525,16 +528,7 @@ function meshBuilding(F, ring, o) {
   });
   const tEdge = new Map();
   roofTris.forEach(([a, b, c], ti) => { for (const [u, v] of [[a, b], [b, c], [c, a]]) { const k = u < v ? u * 262144 + v : v * 262144 + u; const e = tEdge.get(k); if (e) e.push(ti); else tEdge.set(k, [ti]); } });
-  const sp2 = Uint8Array.from(special);
-  for (let pass = 0; pass < 3; pass++) {
-    const cur = Uint8Array.from(sp2);
-    roofTris.forEach(([a, b, c], ti) => {
-      if (cur[ti] || mats[ti] !== 1) return;
-      const cy = (py[a] + py[b] + py[c]) / 3;
-      if (cy < eave + 2.5) return;
-      for (const [u, v] of [[a, b], [b, c], [c, a]]) for (const nj of tEdge.get(u < v ? u * 262144 + v : v * 262144 + u)) if (cur[nj]) sp2[ti] = 1;
-    });
-  }
+  const sp2 = special; // no flood into neighbouring faces: an accent covers a complete feature only
   roofTris.forEach((_, ti) => { if (sp2[ti]) mats[ti] = 3; });
 
   // ---- volume / extremes, compact vertex arrays
@@ -586,6 +580,12 @@ for (const key of ids) {
   if (ring0.length > 8) { const sr = dpClosed(ring0, (hero && hero.ringTol) || 0.4); if (sr.length >= 4 && Math.abs(signedArea(sr)) > 0.97 * area) ring0 = sr; } // eave line: 0.5 m jogs of the cadastre polygon become straight walls
   if (area < 5) continue;
   if (!d.grid) continue;
+  if (hero && hero.curated && +key !== hero.ids[0]) { // other cadastre pieces of a curated building: absorbed into the first id's record (the game skips them: flags bit 0)
+    V.push(new Int16Array(0)); T.push(new Uint16Array(0)); M.push(new Uint8Array(0)); L.push(new Int16Array(0));
+    outB.push([+key, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+    stats.absorbed = (stats.absorbed || 0) + 1;
+    continue;
+  }
   const notable = d.grid.cell < 0.75;
   const mesh = Field.fromGrid(d.grid);
   let F = mesh, src = 1, roofRGB = 0, partsRes = null;
@@ -612,6 +612,11 @@ for (const key of ids) {
     }
     partsRes = partsMesh(parts);
     if (partsRes) src = 2;
+  }
+  let flagsVal = 0;
+  if (hero && hero.curated) { // curated parametric building (curated.mjs); area = measured footprint, stored in flags (>> 4) for the game's fit radius
+    partsRes = CURATED[hero.curated]();
+    if (partsRes) { src = 2; flagsVal = Math.round(partsRes.area) << 4; }
   }
   if (!partsRes && d.osm && d.osm.length && mode !== 'mesh') {
     // OSM building parts: accepted when they agree with the measured mesh (or forced by the hero config); tessellated directly (exact prisms, planar roofs, lathe domes)
@@ -666,7 +671,7 @@ for (const key of ids) {
   const lq = [];
   for (const l of res.loops) { lq.push(l.idx.length, 0, l.mat); for (const i of l.idx) lq.push(i); }
   V.push(vq); T.push(tq); M.push(mq); L.push(Int16Array.from(lq));
-  outB.push([+key, nv, res.tris.length, lq.length, src === 2 ? 2 : notable ? 1 : 3, Math.round(res.vol), Math.round(res.hmax * 10), Math.round(res.eave * 10), (hero && hero.roof) || roofRGB, (hero && hero.wall) || 0, (hero && (hero.dome ?? hero.roof)) || 0, (hero && hero.accent) || 0, (hero && hero.style) || 0, 0]);
+  outB.push([+key, nv, res.tris.length, lq.length, src === 2 ? 2 : notable ? 1 : 3, Math.round(res.vol), Math.round(res.hmax * 10), Math.round(res.eave * 10), (hero && hero.roof) || roofRGB, (hero && hero.wall) || 0, (hero && (hero.dome ?? hero.roof)) || 0, (hero && hero.accent) || 0, (hero && hero.style) || 0, flagsVal]);
   stats.tris += res.tris.length; stats.verts += nv;
   if (++done % 200 === 0) console.log(`${done}/${ids.length} ${((Date.now() - t0) / 1000).toFixed(0)}s tris ${stats.tris}`);
 }

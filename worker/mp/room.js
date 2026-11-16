@@ -4,19 +4,20 @@
 import { mpConfig, parseClientMessage, RateLimiter, validToken, validRoom, PROTOCOL_VERSION } from './protocol.js';
 import { sanitizeName } from '../lib/moderation.js';
 import { insertScore } from '../lib/db.js';
-import { parseTable } from './table.js';
+import { parseTable, inflateIfGzip } from './table.js';
 import { RoomSim } from './sim.js';
 
 const MAX_SOCKETS = 40;
 const MAX_SCORE = 10_000_000;
 
 let tablePromise = null;   // isolate-level cache: the table is identical for every room
-async function loadTable(env) {
+/** The server's object table = the very file the clients build their world from (centre map placement file, one source of truth). */
+export async function loadTable(env) {
   if (!tablePromise) {
     tablePromise = (async () => {
-      const res = await env.ASSETS.fetch(new Request('https://assets.invalid/mp/objects.bin'));
-      if (!res.ok) throw new Error('objects.bin ' + res.status);
-      return parseTable(await res.arrayBuffer());
+      const res = await env.ASSETS.fetch(new Request('https://assets.invalid/data/riga-objects.bin.gz'));
+      if (!res.ok) throw new Error('riga-objects.bin.gz ' + res.status);
+      return parseTable(await inflateIfGzip(await res.arrayBuffer()));
     })().catch((e) => { tablePromise = null; throw e; });
   }
   return tablePromise;

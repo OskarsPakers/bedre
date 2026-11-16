@@ -385,8 +385,11 @@ export class Game {
   _respawn(h) {
     const D = CFG.duel;
     const others = this.holes.filter((o) => o !== h && o.alive);
-    const [x, z] = this.picker.spread(others, { samples: 90, minDist: D.minRespawnDist, radius: radiusFromScore(h.score * D.keepScore) });
-    h.respawn(x, z, D.keepScore, D.protect);
+    // the human's keepScore / protect come from the difficulty (easy: 65 % + 4.5 s); bots always play by the classic numbers
+    const keep = h.isPlayer ? D.keepScore : D.botKeepScore, protect = h.isPlayer ? D.protect : D.botProtect;
+    const [x, z] = this.picker.spread(others, { samples: 90, minDist: D.minRespawnDist, radius: radiusFromScore(h.score * keep) });
+    h.respawn(x, z, keep, protect);
+    h.respawnedAt = this.elapsed;
     bus.emit('respawn', h);
     h.control.mode = 'none';
     if (h.isPlayer) { this.killer = null; this.hud.showSwallowed(false); this.cam.snap(h); }

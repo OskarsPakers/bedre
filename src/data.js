@@ -2,6 +2,7 @@ import { CFG } from './config.js';
 import { generateSampleCity } from './sampleCity.js';
 import { loadShapes } from './shapes.js';
 import { loadGroundRaster } from './ground.js';
+import { loadPlacements, generateRequested } from './placements.js';
 
 /** Load the real map; fall back to the procedural sample city on any failure. */
 export async function loadCity(forceSample = false, onProgress = () => {}) {
@@ -9,10 +10,11 @@ export async function loadCity(forceSample = false, onProgress = () => {}) {
     try {
       const shapesP = loadShapes(); // in parallel with the map; resolves null when missing
       const groundP = loadGroundRaster(CFG.groundUrl); // optional class raster, resolves null when missing
+      const placeP = generateRequested() ? Promise.resolve(null) : loadPlacements(CFG.map ? CFG.map.slug : 'centrs'); // canonical object list (src/placements.js); never rejects
       const res = await fetch(CFG.dataUrl);
       if (res.ok) {
         const data = await readJson(res, onProgress); // dev servers may answer 200 + index.html -> throws
-        if (data && Array.isArray(data.buildings) && data.buildings.length) { data.shapes = await shapesP; data.groundRaster = await groundP; return normalize(data, false); }
+        if (data && Array.isArray(data.buildings) && data.buildings.length) { data.shapes = await shapesP; data.groundRaster = await groundP; data.placements = await placeP; return normalize(data, false); }
       }
     } catch (e) { /* fall through */ }
   }

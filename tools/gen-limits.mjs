@@ -1,6 +1,9 @@
 // Generates worker/lib/limits.js: the empirical ceilings of the anti-cheat plausibility model, PER MAP.
 //   node tools/gen-limits.mjs [--runs 8] [--maps centrs,agenskalns,mezaparks,purvciems] [--merge-max] [--no-build] [--port 5191]      (GPU=1 for the metal backend)
 //   --modes quick: only play those modes (use with --merge-max)
+//   --difficulties easy,normal,hard (default all): bot difficulty levels played in classic / quick WITH bots (the daily challenge is always normal; the
+//     no-bots upper bound is difficulty-independent). Weaker bots leave more food and fewer rivals to the player, so ALL levels must be covered.
+//   Typical release run (never tightens): GPU=1 node tools/gen-limits.mjs --runs 8 --merge-max
 //   --merge-max: keep the maxima already in limits.js (add rounds to a map without ever tightening its ceilings)
 // Method: play many full rounds with two autoplayers (the game's greedy bot and a stronger cluster-aware greedy), with
 // and without opponents (without bots there is nothing to compete for the food, so it is the upper bound), in every mode
@@ -32,6 +35,7 @@ for (let d = new Date('2026-11-01T00:00:00Z'), n = 0; n < 200 && Object.keys(day
 
 const BANDS_ = BANDS;
 const MODE_FILTER = (arg('--modes', 'classic,quick,daily') || '').split(','); // e.g. --modes quick --merge-max: widen one mode's calibration cheaply
+const DIFFS = (arg('--difficulties', 'easy,normal,hard') || '').split(',').filter((d) => ['easy', 'normal', 'hard'].includes(d));
 const wanted = (arg('--maps', MAP_SLUGS.join(',')) || '').split(',').filter((m) => MAP_SLUGS.includes(m));
 const sim = await openSim({ port: +arg('--port', 5191), noBuild: process.argv.includes('--no-build') });
 const maps = JSON.parse(JSON.stringify(OLD.maps || {}));
@@ -41,19 +45,20 @@ for (const slug of wanted) {
   const runs = [];
   let values = null;
   const plan = [];
-  for (const mode of ['classic', 'quick']) if (MODE_FILTER.includes(mode)) plan.push({ mode, day: null });
-  if (slug === 'centrs' && MODE_FILTER.includes('daily')) for (const tw of TWISTS) plan.push({ mode: 'daily', day: dayFor[tw.id] });
+  for (const mode of ['classic', 'quick']) if (MODE_FILTER.includes(mode)) for (const difficulty of DIFFS) plan.push({ mode, day: null, difficulty });
+  if (slug === 'centrs' && MODE_FILTER.includes('daily')) for (const tw of TWISTS) plan.push({ mode: 'daily', day: dayFor[tw.id], difficulty: 'normal' });
   for (const bots of ['', 'bots=0']) {
     await sim.open(`${bots}${bots ? '&' : ''}map=${slug}`);
-    for (const { mode, day } of plan) {
+    for (const { mode, day, difficulty } of plan) {
+      if (bots && mode !== 'daily' && difficulty !== DIFFS[0]) continue;   // without bots the difficulty is irrelevant: play it once
       for (const strategy of ['greedy', 'cluster']) {
         const n = mode === 'daily' ? Math.max(1, Math.round(RUNS / 4)) : RUNS;
         for (let i = 0; i < n; i++) {
-          const r = await simRound(sim.page, { mode, day, strategy, collectValues: !values });
+          const r = await simRound(sim.page, { mode, day, strategy, difficulty, collectValues: !values });
           if (r.values) { values = r.values; delete r.values; }
           r.variant = `${strategy}${bots ? '+nobots' : ''}`;
           runs.push(r);
-          process.stdout.write(`${slug} ${mode}${day ? '/' + r.twist : ''} ${r.variant} score ${r.final.score} r ${r.final.radius}\n`);
+          process.stdout.write(`${slug} ${mode}${day ? '/' + r.twist : ''} ${difficulty} ${r.variant} score ${r.final.score} r ${r.final.radius}\n`);
         }
       }
     }
@@ -64,8 +69,10 @@ for (const slug of wanted) {
   totalRuns += runs.length;
 }
 await sim.close();
-const keep = MAP_SLUGS.filter((m) => !wanted.includes(m)).reduce((n, m) => n + ((maps[m] && maps[m].runs) || 0), 0);
-writeLimits({ generated: new Date().toISOString().slice(0, 10), runs: totalRuns + keep, bands: BANDS, maps });
+// re-read limits.js right before writing, so several gen-limits processes (one per map, different --port, all but the first with --no-build) can run in parallel
+const fresh = (await import('../worker/lib/limits.js?t=' + Date.now())).LIMITS;
+for (const m of MAP_SLUGS) if (!wanted.includes(m) && fresh.maps && fresh.maps[m]) maps[m] = fresh.maps[m];
+writeLimits({ generated: new Date().toISOString().slice(0, 10), runs: MAP_SLUGS.reduce((n, m) => n + ((maps[m] && maps[m].runs) || 0), 0), bands: BANDS, maps });
 console.log('wrote worker/lib/limits.js for', wanted.join(', '));
 process.exit(0);
 

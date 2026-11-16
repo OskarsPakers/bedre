@@ -1,6 +1,7 @@
 // Multiplayer end-to-end test: the BUILT game served by a local `wrangler dev` (port 8793, own local D1, own build dir) with a short
 // test round configured through `--var` overrides (never in wrangler.jsonc). Real Chromium (GPU=1 for the real GPU), 2-3 browser contexts.
-//   GPU=1 node scripts/smoke-mp.mjs [--skip-table]    (--skip-table: reuse scripts/.dist-mp from the previous run)
+//   GPU=1 [MP_PORT=8798] node scripts/smoke-mp.mjs [--skip-table]    (--skip-table: reuse scripts/.dist-mp[-port] from the previous run)
+// (the cross-engine part - Chromium + WebKit + Firefox in one room - is scripts/smoke-engines.mjs; `npm run smoke:mp` runs both)
 // Screenshots: scripts/out/mp-*.png
 import { chromium } from 'playwright';
 import { spawn, spawnSync } from 'node:child_process';
@@ -11,12 +12,13 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'scripts', 'out');
 fs.mkdirSync(out, { recursive: true });
-const PORT = 8793;
+const PORT = +(process.env.MP_PORT || 8793);        // MP_PORT=8798: own wrangler port; dirs below are suffixed with it so parallel runs never share a build / state dir
+const SUFFIX = PORT === 8793 ? '' : `-${PORT}`;
 const BASE = `http://localhost:${PORT}`;
 const ROUND = 70, LOBBY = 4;
-const dist = path.join(root, 'scripts', '.dist-mp');
-const state = path.join(root, 'scripts', '.mp-state');
-const cfgPath = path.join(root, 'scripts', '.wrangler-mp.jsonc');
+const dist = path.join(root, 'scripts', `.dist-mp${SUFFIX}`);
+const state = path.join(root, 'scripts', `.mp-state${SUFFIX}`);
+const cfgPath = path.join(root, 'scripts', `.wrangler-mp${SUFFIX}.jsonc`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const run = (cmd, args, opts = {}) => { const r = spawnSync(cmd, args, { cwd: root, stdio: 'inherit', ...opts }); if (r.status) throw new Error(`${cmd} ${args.join(' ')} failed`); };
 
@@ -26,24 +28,24 @@ const check = (name, ok, info = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  $
 // ---- build ---------------------------------------------------------------------------------------------------
 // One build snapshot: the table is dumped from it AND it is the build that gets served (sources are edited concurrently by other
 // agents, so a separate vite build would drift away from the table).
-if (!process.argv.includes('--skip-table')) run('node', ['tools/mp/build-objects.mjs'], { env: { ...process.env, PORT: process.env.PORT || '5186', MP_KEEP_DIST: 'scripts/.dist-mp' } });
-// the table in public/mp must match the sources (fails loudly when it is stale; with --skip-table it guards the reused build)
-run('node', ['tools/mp/check-objects.mjs']);
+if (!process.argv.includes('--skip-table')) run('node', ['tools/mp/build-objects.mjs'], { env: { ...process.env, PORT: process.env.PORT || '5186', MP_TABLE_PORT: process.env.MP_TABLE_PORT || (PORT === 8793 ? process.env.PORT || '5186' : '5185'), MP_KEEP_DIST: `scripts/.dist-mp${SUFFIX}` } });
+// the placement files (= the server's table) must match the sources (fails loudly when it is stale; with --skip-table it guards the reused build)
+run('node', ['tools/mp/check-objects.mjs', '--dist', `scripts/.dist-mp${SUFFIX}`]);
 fs.rmSync(state, { recursive: true, force: true });
 // temp wrangler config: same bindings as wrangler.jsonc but its own asset dir (the build above) and a throw-away local D1
 const baseCfg = {
   name: 'bedre-mp-test', compatibility_date: '2026-11-01',
-  assets: { directory: './.dist-mp', binding: 'ASSETS', not_found_handling: 'single-page-application', run_worker_first: ['/api/*'] },
+  assets: { directory: `./.dist-mp${SUFFIX}`, binding: 'ASSETS', not_found_handling: 'single-page-application', run_worker_first: ['/api/*'] },
   d1_databases: [{ binding: 'DB', database_name: 'bedre-scores', database_id: '00000000-0000-0000-0000-000000000000', migrations_dir: '../migrations' }],
   durable_objects: { bindings: [{ name: 'MP_ROOM', class_name: 'MpRoom' }, { name: 'MP_MATCHMAKER', class_name: 'MpMatchmaker' }] },
   migrations: [{ tag: 'mp-v1', new_sqlite_classes: ['MpRoom', 'MpMatchmaker'] }],
 };
 // Bundle the Worker ONCE (snapshot): other agents edit worker/** while this test runs and `wrangler dev` would hot-reload (= restart every Durable Object).
-const bundleDir = path.join(root, 'scripts', '.mp-worker');
+const bundleDir = path.join(root, 'scripts', `.mp-worker${SUFFIX}`);
 fs.rmSync(bundleDir, { recursive: true, force: true });
 fs.writeFileSync(cfgPath, JSON.stringify({ ...baseCfg, main: '../worker/index.js' }));
 run('npx', ['wrangler', 'deploy', '--dry-run', '--config', cfgPath, '--outdir', bundleDir]);
-fs.writeFileSync(cfgPath, JSON.stringify({ ...baseCfg, main: './.mp-worker/index.js' }));
+fs.writeFileSync(cfgPath, JSON.stringify({ ...baseCfg, main: `./.mp-worker${SUFFIX}/index.js` }));
 run('npx', ['wrangler', 'd1', 'migrations', 'apply', 'bedre-scores', '--local', '--config', cfgPath, '--persist-to', state]);
 const wr = spawn('npx', ['wrangler', 'dev', '--config', cfgPath, '--port', String(PORT), '--persist-to', state,
   '--var', `MP_ROUND_SECONDS:${ROUND}`, '--var', `MP_LOBBY_SECONDS:${LOBBY}`, '--var', 'MP_RESULTS_SECONDS:25', '--var', 'MP_TEST_CLOSE_SPAWN:1'], { cwd: root, stdio: 'pipe' });
