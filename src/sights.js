@@ -59,9 +59,22 @@ export function expectedWall(t, x, z, slug, area) {
 }
 /** area-weighted mean expected wall colour of the ~6 nearest non-sight buildings. self = {x, z}; others = [{x, z, t, area}] (non-sights only) */
 export function neighbourRef(self, others, slug, k = 6) {
-  const d = others.map((o) => [Math.hypot(o.x - self.x, o.z - self.z), o]).sort((a, b) => a[0] - b[0]).slice(0, k);
+  // the k nearest by a partial insertion selection (was: hypot + full sort of every non-sight building per sight = 160 ms on the Centre, 670 ms on a phone); a later item at an
+  // equal distance stays behind an earlier one, exactly like the stable sort did, so the result is identical
+  const dd = new Float64Array(k), oo = new Array(k);
+  let n = 0, worst2 = Infinity;
+  for (let i = 0; i < others.length; i++) {
+    const o = others[i], ex = o.x - self.x, ez = o.z - self.z;
+    if (n === k && ex * ex + ez * ez > worst2) continue; // clearly farther than the current k-th (the margin keeps hypot's rounding out of it)
+    const d = Math.hypot(ex, ez);
+    if (n === k && d >= dd[k - 1]) continue;
+    let j = n < k ? n++ : k - 1;
+    while (j > 0 && dd[j - 1] > d) { dd[j] = dd[j - 1]; oo[j] = oo[j - 1]; j--; }
+    dd[j] = d; oo[j] = o;
+    if (n === k) worst2 = dd[k - 1] * dd[k - 1] * 1.000001 + 1e-9;
+  }
   let r = 0, g = 0, b = 0, w = 0;
-  for (const [, o] of d) { const c = expectedWall(o.t, o.x, o.z, slug, o.area), a = Math.max(20, o.area); r += ((c >> 16) & 255) * a; g += ((c >> 8) & 255) * a; b += (c & 255) * a; w += a; }
+  for (let q = 0; q < n; q++) { const o = oo[q]; const c = expectedWall(o.t, o.x, o.z, slug, o.area), a = Math.max(20, o.area); r += ((c >> 16) & 255) * a; g += ((c >> 8) & 255) * a; b += (c & 255) * a; w += a; }
   return w ? (Math.round(r / w) << 16) | (Math.round(g / w) << 8) | Math.round(b / w) : MEAN.res;
 }
 /** a sight's wall must differ perceptibly from its neighbours' mean wall (CIE76 dE); the gate and the tier B pick use this */

@@ -16,8 +16,16 @@ import { RoadNet, Traffic, planMovers, moverParks, moverFromRecord, moverRecord,
 import { generateRequested } from './placements.js';
 import { MOVER_STRIDE } from '../worker/mp/table.js';
 import { rigaProps } from './riga.js';
+import { span } from './perfMark.js';
 
 const CELL = 24;
+// Far-view LOD (World.setViewDistance): [camera distance (m) where thinning starts, where only `floor` of them remain, floor]
+const THIN = {
+  person0: [450, 1100, 0], person1: [450, 1100, 0], person2: [450, 1100, 0], person3: [450, 1100, 0], person4: [450, 1100, 0], person5: [450, 1100, 0],
+  bin: [450, 1000, 0], bench: [450, 1000, 0], cafeset: [450, 1000, 0], bike: [450, 1000, 0], scooter: [450, 1000, 0], parasol: [600, 1400, 0], flag: [600, 1400, 0],
+  lamp: [700, 2200, 0], lantern: [700, 2200, 0], car: [1000, 2600, 0.4], van: [1000, 2600, 0.4], // parked cars keep 40 % in the whole-city view
+};
+const TREE_LOD_FAR = 850, TREE_LOD_NEAR = 750; // camera distance (m) beyond which trees use the phone-tier crown (hysteresis)
 const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(),
   _q2 = new THREE.Quaternion(), _s = new THREE.Vector3(), _ax = new THREE.Vector3(), _zero = new THREE.Matrix4().makeScale(0, 0, 0);
 const _up = new THREE.Vector3(0, 1, 0);
@@ -41,12 +49,19 @@ export class World {
     this._qx = 0; this._qz = 0;  // centre of the last query (wobble lean direction)
     this.fx = new Effects(scene);
     this.traffic = new Traffic(this);
+    const tn0 = performance.now();
     this.net = new RoadNet(data);
+    span('traffic-roadnet', tn0);
 
+    const tg0 = performance.now();
     this.ground = createGround(data, groundTier());
     scene.add(this.ground);
+    span('ground-total', tg0);
 
+    const tbb0 = performance.now();
     const b = buildBuildings(data);
+    span('buildings-total', tbb0);
+    const tpc0 = performance.now();
     // placement file (worker/mp/table.js): the canonical object list. Valid -> props + movers are built FROM it and every building takes its
     // canonical fit / value from it (float geometry math differs between JS engines); otherwise the procedural scatter runs (generator / fallback).
     this.generate = generateRequested();
@@ -56,8 +71,10 @@ export class World {
     if (pt) { why = this._checkPlacements(pt, b.items, data); if (why) pt = null; }
     this.placements = { source: pt ? 'file' : 'procedural', hash: pt ? pt.hash : null, reason: this.generate ? 'generate' : (why || (pr ? null : 'none')), table: pt };
     if (pt) for (let i = 0; i < b.items.length; i++) { b.items[i].fit = pt.fit[i]; b.items[i].value = pt.value[i]; }
+    span('placements-check', tpc0);
     this.buildingMesh = b.mesh;
     scene.add(b.mesh);
+    const tgr0 = performance.now();
     this.buildingItems = b.items;
     this.shapeStats = b.stats;
     this.detail = 2;
@@ -68,10 +85,15 @@ export class World {
         name: it.name, landmark: it.landmark, bt: it.t, yaw: 0, s: 1, batchId: it.batchId, isBuilding: true,
       });
     }
+    span('grid-buildings', tgr0);
+    const tbl0 = performance.now();
     this.blockers = new Blockers(b.items.map((it) => it.ring), data.water);
+    span('blockers', tbl0);
     if (pt && pt.meta.spawn) this.spawn = pt.meta.spawn;
     else { const bb = this.bounds, dist = data.meta.slug && data.meta.slug !== 'centrs'; this.spawn = this.findSpawn(dist ? (bb.minX + bb.maxX) / 2 : 0, dist ? (bb.minZ + bb.maxZ) / 2 : 0); } // district maps: map middle; centre: origin as before
+    const tpr0 = performance.now();
     this._buildProps(data, pt);
+    span('props-total', tpr0);
     if (pt) { // ids must be exactly the file's indices (the server's table): any drift disables online instead of desyncing it
       let bad = this.objects.length !== pt.n;
       for (let i = pt.nB; !bad && i < pt.n; i++) if (this.objects[i].kind !== pt.kinds[pt.kind[i]] || this.objects[i].x !== pt.x[i] && !(pt.flags[i] & 1)) bad = true;
@@ -137,12 +159,15 @@ export class World {
 
   _buildProps(data, pt) {
     let placements;
-    if (pt) placements = this._placementsFromFile(pt, data);
+    const tpf0 = performance.now();
+    if (pt) { placements = this._placementsFromFile(pt, data); span('props-from-file', tpf0); }
     else {
       placements = this._planProcedural(data);
       if (this.generate) for (const p of placements) if (p.m) p.rec = moverRecord(p);
     }
+    const ti0 = performance.now();
     this._instantiate(placements);
+    span('props-instancing(+grid)', ti0);
   }
 
   /** The procedural scatter (generator + fallback). Engine-dependent: never the source of truth for online play. */
@@ -190,6 +215,9 @@ export class World {
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true });
     this.propMeshes = [];
     this.treeMeshes = [];
+    this.lodThin = [];   // static meshes of tiny kinds that thin out with camera distance (setViewDistance)
+    this.lodTrees = [];  // tree meshes that switch to the phone-tier crown far away
+    this._vd = 0;
     const geoOfKind = new Map();
     const lowTier = groundTier() === 0; // phones / low-memory tier: simpler tree crowns
     const col = new THREE.Color();
@@ -197,26 +225,38 @@ export class World {
     for (const [, list] of groups) {
       const kind = list[0].kind;
       const def = PROP_DEFS[kind];
-      let geo = geoOfKind.get(kind); if (!geo) geoOfKind.set(kind, (geo = def.make(kind === 'tree' || kind === 'tree2' ? lowTier : undefined))); // one geometry per kind, shared by every chunk
+      const isTree = kind === 'tree' || kind === 'tree2';
+      let geo = geoOfKind.get(kind); if (!geo) geoOfKind.set(kind, (geo = def.make(isTree ? lowTier : undefined))); // one geometry per kind, shared by every chunk
       const mesh = new THREE.InstancedMesh(geo, mat, list.length);
       const chunked = !list[0].m;
       mesh.frustumCulled = false;
       mesh.castShadow = !['bike', 'scooter', 'pigeon', 'swan', 'bench', 'bin', 'cafeset'].includes(kind);
-      if (kind === 'tree' || kind === 'tree2') this.treeMeshes.push(mesh);
-      mesh.receiveShadow = kind === 'tree' || kind === 'tree2' || def.cls === 'car' ? false : true;
+      if (isTree) this.treeMeshes.push(mesh);
+      mesh.receiveShadow = isTree || def.cls === 'car' ? false : true;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      // far-view LOD (setViewDistance): tiny static props thin out by cutting `mesh.count`; for that to thin evenly instead of street by street the instance slots are spread with a
+      // coprime stride (slot = i * stride mod n). Slots are only a render detail: ids / placement order are untouched.
+      const thin = chunked && THIN[kind] ? THIN[kind] : null, n = list.length;
+      let stride = 1;
+      if (thin && n > 2) { stride = Math.max(1, Math.round(n * 0.6180339887)); const gcd = (a, b) => (b ? gcd(b, a % b) : a); while (gcd(stride, n) !== 1) stride++; }
+      if (thin) this.lodThin.push({ mesh, n, lo: thin[0], hi: thin[1], floor: thin[2] });
+      if (isTree && chunked && !lowTier) {
+        if (!geoOfKind.has(kind + ':lo')) geoOfKind.set(kind + ':lo', def.make(true));
+        this.lodTrees.push({ mesh, hi: geo, lo: geoOfKind.get(kind + ':lo'), far: false });
+      }
       list.forEach((p, i) => {
+        const slot = thin ? (i * stride) % n : i;
         if (def.tint) {
           const tints = tintsFor[kind];
           if (tints) col.set(tints[Math.floor((p.tint ?? rng()) * tints.length) % tints.length]);
           else col.set(0xffffff);
-          if (kind === 'tree' || kind === 'tree2') col.multiplyScalar(0.85 + rng() * 0.3);
-          mesh.setColorAt(i, col);
+          if (isTree) col.multiplyScalar(0.85 + rng() * 0.3);
+          mesh.setColorAt(slot, col);
         }
         const val = def.value * (kind === 'tree2' ? Math.max(2, Math.round(p.s * 2.4)) : kind === 'tree' ? Math.max(1, Math.round(p.s * 1.5)) : kind === 'monument' ? p.s : 1);
         const o = this._add({
           kind, cls: def.cls, x: p.x, z: p.z, fit: p.fit ?? def.fit * p.s, value: p.value ?? Math.max(1, Math.round(val)), h: def.h * p.s,
-          name: p.name || null, landmark: !!p.landmark, yaw: p.yaw, s: p.s, mesh, idx: i, isBuilding: false, moverM: p.m || null, p: this.generate ? p : null,
+          name: p.name || null, landmark: !!p.landmark, yaw: p.yaw, s: p.s, mesh, idx: slot, isBuilding: false, moverM: p.m || null, p: this.generate ? p : null,
         });
         if (p.m) { o.mover = true; this.traffic.register(o); }
         this._write(o, o.x, 0, o.z, null, o.s);
@@ -226,6 +266,25 @@ export class World {
       if (chunked) { mesh.computeBoundingSphere(); const bs = mesh.boundingSphere; if (bs) bs.radius += 4; mesh.frustumCulled = true; } // +4 m: objects tilt / slide while falling
       this.scene.add(mesh);
       this.propMeshes.push(mesh);
+    }
+  }
+
+  /**
+   * Distance LOD, driven by the camera distance (m) every frame (Game._syncVisuals; net/online.js): beyond ~450 m a person is a 3-4 px speck, so the tiny static props thin out
+   * (people, bins, benches, ... fade from full to none between THIN[kind][0] and [1] m, lamps keep a floor) and the trees switch to the cheaper phone-tier crowns. Nothing changes
+   * while playing at normal zoom (camera distance < ~420 m, hole radius <= ~25); the objects themselves (ids, fit, value, swallowing) are untouched.
+   */
+  setViewDistance(d) {
+    if (this._vd && Math.abs(d - this._vd) < this._vd * 0.01) return;
+    this._vd = d;
+    for (const L of this.lodThin) {
+      const f = Math.min(1, Math.max(L.floor, 1 - (d - L.lo) / (L.hi - L.lo)));
+      const k = f >= 1 ? L.n : Math.ceil(L.n * f);
+      if (L.mesh.count !== k) { L.mesh.count = k; L.mesh.visible = k > 0; }
+    }
+    for (const T of this.lodTrees) {
+      const far = T.far ? d > TREE_LOD_NEAR : d > TREE_LOD_FAR;
+      if (far !== T.far) { T.far = far; T.mesh.geometry = far ? T.lo : T.hi; }
     }
   }
 

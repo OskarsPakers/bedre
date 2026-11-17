@@ -4,7 +4,6 @@
 const BUILD = '__BUILD_ID__';
 const SHELL = 'bedre-shell-' + BUILD;
 const DATA = 'bedre-data-v1';
-const DATA_FILES = ['/data/riga.json', '/data/riga-shapes.bin.gz', '/data/sights.json', '/data/riga-areas.json', '/data/riga-ground.png'];
 
 async function precacheShell() {
   const cache = await caches.open(SHELL);
@@ -28,13 +27,27 @@ async function precacheShell() {
   }
   for (const u of todo) if (!u.startsWith('/assets/')) { try { const r = await fetch(u); if (r.ok) await cache.put(u, r); } catch { /* optional */ } }
 }
-async function precacheData() {
+// Map data is cached for the map the player is actually on: the page posts the URLs it just loaded ({ type: 'cache-data', urls }) once the worker is
+// active. (It used to precache the Centre's five files at install, i.e. ~2.6 MB of background download for every first-time visitor, also those
+// playing a district.) Same-origin /data/ paths only; files already cached are skipped; the page's own fetch normally left them in the HTTP cache.
+async function cacheDataUrls(urls) {
   const cache = await caches.open(DATA);
-  for (const u of DATA_FILES) { try { const r = await fetch(u); if (r.ok) await cache.put(u, r); } catch { /* optional */ } }
+  for (const u of urls) {
+    try {
+      if (typeof u !== 'string' || !u.startsWith('/data/')) continue;
+      if (await cache.match(u, { ignoreVary: true })) continue;
+      const r = await fetch(u);
+      if (r.ok) await cache.put(u, r);
+    } catch { /* optional */ }
+  }
 }
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(Promise.all([precacheShell(), precacheData()]).then(() => self.skipWaiting()));
+  e.waitUntil(precacheShell().then(() => self.skipWaiting()));
+});
+self.addEventListener('message', (e) => {
+  const d = e.data;
+  if (d && d.type === 'cache-data' && Array.isArray(d.urls)) e.waitUntil(cacheDataUrls(d.urls.slice(0, 12)));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {

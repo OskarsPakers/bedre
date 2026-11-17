@@ -6,6 +6,7 @@ import { CFG } from './config.js';
 import { mapPaths } from '../tools/maps.mjs';
 import { parseTable, inflateIfGzip, encodeTable, F_MOVER, F_BUILDING, F_LANDMARK, MOVER_STRIDE } from '../worker/mp/table.js';
 import { netSignature } from './traffic.js';
+import { span } from './perfMark.js';
 
 /* global __PLACEMENTS__ */
 /** Build-time manifest { maps: { slug: { hash, objects, bytes } } } baked into the bundle by vite.config.js (the client code and the data it expects can never drift apart). */
@@ -24,8 +25,13 @@ export async function loadPlacements(slug) {
   try {
     const res = await fetch(placementsUrl(slug));
     if (!res.ok) { out.reason = 'missing'; return out; }
-    const bytes = await inflateIfGzip(await res.arrayBuffer());
+    const ab = await res.arrayBuffer();
+    const ti = performance.now();
+    const bytes = await inflateIfGzip(ab);
+    span('placements-inflate', ti);
+    const td = performance.now();
     const t = parseTable(bytes);
+    span('placements-decode', td);
     const want = expectedHash(slug);
     if (want && t.hash !== want) { out.reason = 'stale'; out.hash = t.hash; return out; } // a cached older file under the same URL: never use it
     out.table = t;

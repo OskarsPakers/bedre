@@ -479,6 +479,7 @@ export class Game {
       if (!dt) this.cam.snap(ch);
     }
     this.world.ground.userData.detail.update(this.cam.focus.x, this.cam.focus.z, this.cam.dist);
+    this.world.setViewDistance(this.cam.dist);
     this.light.update(this.cam.focus, this.cam.dist);
     this.holeViews.update(this.holes);
     holeUniforms.uDetail.value = THREE.MathUtils.clamp(1.4 - this.cam.dist / 120, 0, 1);

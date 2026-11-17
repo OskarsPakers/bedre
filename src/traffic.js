@@ -78,9 +78,17 @@ class Net {
 
   /** attach stop positions to nearest segment: road.stops[seg] = [offset along segment from its first vertex] */
   attachStops(pts, maxD = 14) {
+    for (const r of this.roads) {
+      if (r._box) continue;
+      let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity;
+      for (const [x, z] of r.p) { if (x < a) a = x; if (x > b) b = x; if (z < c) c = z; if (z > d) d = z; }
+      r._box = [a, b, c, d];
+    }
     for (const [sx, sz] of pts) {
       let best = null, bd = maxD;
       for (const r of this.roads) {
+        const bb = r._box; // a road whose bounding box is farther than the best distance so far cannot hold a nearer segment (same result, ~6000 roads x 170 stops are no longer all scanned)
+        if (sx < bb[0] - bd || sx > bb[1] + bd || sz < bb[2] - bd || sz > bb[3] + bd) continue;
         for (let i = 0; i < r.p.length - 1; i++) {
           const [x0, z0] = r.p[i], [x1, z1] = r.p[i + 1];
           const dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz || 1;

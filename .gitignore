@@ -22,3 +22,5 @@ tools/out/*.partial.json
 scripts/.state-eng*
 scripts/.worker-eng*
 scripts/tmp-*/
+scripts/.src-base/
+scripts/.bt/

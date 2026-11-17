@@ -1,0 +1,32 @@
+[
+ {
+  "map": "centrs",
+  "view": "small",
+  "theme": "day",
+  "any": 0,
+  "over8": 0,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-noise-centrs-small.png"
+ },
+ {
+  "map": "centrs",
+  "view": "far",
+  "theme": "day",
+  "any": 4.01,
+  "over8": 0.064,
+  "over24": 0.051,
+  "meanDiff": 0.075,
+  "file": "scripts/out/perf-noise-centrs-far.png"
+ },
+ {
+  "map": "centrs",
+  "view": "intro",
+  "theme": "day",
+  "any": 0.001,
+  "over8": 0,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-noise-centrs-intro.png"
+ }
+]

@@ -7,6 +7,7 @@ import { CFG } from './config.js';
 import { patchGroundMaterial, holeUniforms } from './holeView.js';
 import { cleanRing, bbox, pointInPoly, minBox } from './geo.js';
 import { zoneOf } from './buildings.js';
+import { span } from './perfMark.js';
 
 const ROAD_ORDER = ['service', 'residential', 'tertiary', 'secondary', 'primary', 'motorway'];
 const VEHICLE = new Set(ROAD_ORDER);
@@ -33,6 +34,7 @@ export async function loadGroundRaster(url) {
     const res = await fetch(url);
     if (!res.ok) return null;
     const blob = await res.blob();
+    const tr = performance.now();
     if (!/image\/png/.test(blob.type || 'image/png')) return null;
     const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
     const c = document.createElement('canvas');
@@ -43,6 +45,7 @@ export async function loadGroundRaster(url) {
     const cls = new Uint8Array(c.width * c.height);
     for (let i = 0; i < cls.length; i++) cls[i] = Math.min(15, Math.round(px[i * 4] / 16));
     bmp.close && bmp.close();
+    span('ground-raster-decode', tr);
     return { W: c.width, H: c.height, cls };
   } catch (e) { console.info('[ground] raster unavailable:', e.message); return null; }
 }
@@ -268,10 +271,17 @@ function prep(data) {
     const cg = col.getContext('2d'), sg = sett.getContext('2d');
     const ci = cg.createImageData(R.W, R.H), si = sg.createImageData(R.W, R.H);
     let nSett = 0;
-    for (let i = 0; i < R.cls.length; i++) {
-      const c = CLASS_RGB[R.cls[i]] || CLASS_RGB[0];
-      ci.data[i * 4] = c[0]; ci.data[i * 4 + 1] = c[1]; ci.data[i * 4 + 2] = c[2]; ci.data[i * 4 + 3] = 255;
-      if (R.cls[i] === GROUND_CLASS.SETT) { si.data[i * 4 + 3] = 255; nSett++; }
+    if (new Uint8Array(new Uint32Array([1]).buffer)[0] === 1) { // little-endian: one 32-bit store per pixel from a 16-entry colour table (was 8 byte stores + a table lookup per pixel, ~9 M pixels)
+      const lut = new Uint32Array(16);
+      for (let k = 0; k < 16; k++) { const c = CLASS_RGB[k] || CLASS_RGB[0]; lut[k] = (255 << 24) | (c[2] << 16) | (c[1] << 8) | c[0]; }
+      const c32 = new Uint32Array(ci.data.buffer), s32 = new Uint32Array(si.data.buffer), cls = R.cls, S = GROUND_CLASS.SETT;
+      for (let i = 0; i < cls.length; i++) { const v = cls[i]; c32[i] = lut[v]; if (v === S) { s32[i] = 0xff000000; nSett++; } }
+    } else {
+      for (let i = 0; i < R.cls.length; i++) {
+        const c = CLASS_RGB[R.cls[i]] || CLASS_RGB[0];
+        ci.data[i * 4] = c[0]; ci.data[i * 4 + 1] = c[1]; ci.data[i * 4 + 2] = c[2]; ci.data[i * 4 + 3] = 255;
+        if (R.cls[i] === GROUND_CLASS.SETT) { si.data[i * 4 + 3] = 255; nSett++; }
+      }
     }
     cg.putImageData(ci, 0, 0); sg.putImageData(si, 0, 0);
     gp.rasterCanvas = col; gp.settCanvas = nSett ? sett : null;
@@ -291,7 +301,7 @@ function smoothRasterWindow(data, gp, view) {
     const colour = mk(), sett = mk();
     d = gp._win = { w: w4, h: h4, colour, sett, ci: colour.getContext('2d').createImageData(w4, h4), si: sett.getContext('2d').createImageData(w4, h4) };
   }
-  const cd = d.ci.data, sd = d.si.data, wgt = new Float32Array(16);
+  const cd = d.ci.data, sd = d.si.data, wgt = new Float32Array(16), touched = new Uint8Array(9);
   let nSett = 0;
   for (let v = 0; v < h4; v++) {
     const fy = (view.z0 + (v + 0.5) / K - b.minZ) / resZ - 0.5;
@@ -299,20 +309,21 @@ function smoothRasterWindow(data, gp, view) {
     for (let u = 0; u < w4; u++) {
       const fx = (view.x0 + (u + 0.5) / K - b.minX) / resX - 0.5;
       const ic = Math.round(fx);
-      wgt.fill(0);
-      let best = 0, bw = -1;
+      let best = 0, bw = -1, nt = 0;
       for (let dj = -1; dj <= 1; dj++) {
         const j = jc + dj; if (j < 0 || j >= R.H) continue;
+        const ddy = (j - fy) * (j - fy);
         for (let di = -1; di <= 1; di++) {
           const i = ic + di; if (i < 0 || i >= R.W) continue;
-          const dist = Math.hypot(i - fx, j - fy) / 1.9;
-          if (dist >= 1) continue;
-          const wt = 1 - dist * dist; // quadratic kernel (radius 1.9 cells, 3x3 reads): rounds the 1 m stair-steps a little more than the old triangular one
+          const r2 = (i - fx) * (i - fx) + ddy; // squared distance: the kernel only needs dist^2 (was a Math.hypot per tap, ~1.7 M per repaint)
+          if (r2 >= 3.61) continue; // dist = r / 1.9 >= 1
+          const wt = 1 - r2 / 3.61; // quadratic kernel (radius 1.9 cells, 3x3 reads): rounds the 1 m stair-steps a little more than the old triangular one
           const c = R.cls[j * R.W + i];
-          wgt[c] += wt;
+          wgt[c] += wt; touched[nt++] = c;
           if (wgt[c] > bw) { bw = wgt[c]; best = c; }
         }
       }
+      for (let q = 0; q < nt; q++) wgt[touched[q]] = 0;
       const col = CLASS_RGB[best] || CLASS_RGB[0], o = (v * w4 + u) * 4;
       cd[o] = col[0]; cd[o + 1] = col[1]; cd[o + 2] = col[2]; cd[o + 3] = 255;
       sd[o + 3] = best === GROUND_CLASS.SETT ? 255 : 0;
@@ -335,10 +346,14 @@ function paintTile(ctx, data, view, detail = false, scratch = null) {
   const x1 = x0 + w, z1 = z0 + h;
   ctx.setTransform(sc, 0, 0, sc, -x0 * sc, -z0 * sc);
   const pad = 20;
-  const inTile = (p) => { // cheap bbox reject
-    let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
-    for (const q of p) { if (q[0] < a) a = q[0]; if (q[0] > c) c = q[0]; if (q[1] < b) b = q[1]; if (q[1] > d) d = q[1]; }
-    return !(c < x0 - pad || a > x1 + pad || d < z0 - pad || b > z1 + pad);
+  const inTile = (p) => { // cheap bbox reject (the box is computed once per ring and kept on it: every tile and every close-up repaint used to rescan every vertex)
+    let bb = p._tb;
+    if (!bb) {
+      let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+      for (const q of p) { if (q[0] < a) a = q[0]; if (q[0] > c) c = q[0]; if (q[1] < b) b = q[1]; if (q[1] > d) d = q[1]; }
+      bb = p._tb = [a, b, c, d];
+    }
+    return !(bb[2] < x0 - pad || bb[0] > x1 + pad || bb[3] < z0 - pad || bb[1] > z1 + pad);
   };
   const roadIn = (r) => !(r._bb.x1 < x0 - pad || r._bb.x0 > x1 + pad || r._bb.z1 < z0 - pad || r._bb.z0 > z1 + pad);
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -699,7 +714,9 @@ function buildSkirt(data, L, tier) {
 export function createGround(data, tier = 2) {
   const { bounds } = data.meta;
   const L = groundLayout(bounds, tier);
+  const tp0 = performance.now();
   const gp = prep(data);
+  span('ground-prep', tp0);
   const group = new THREE.Group();
   const maxAniso = tier === 0 ? 4 : 8;
   const planeGeo = new THREE.PlaneGeometry(L.tw, L.th).rotateX(-Math.PI / 2);
@@ -736,6 +753,7 @@ export function createGround(data, tier = 2) {
       group.add(mesh);
     }
   }
+  span('ground-tiles', t0);
   scratch.width = scratch.height = 1;
   if (data._gp) { data._gp.rasterCanvas = null; data._gp.settCanvas = null; } // the close-up layer works from the class array
   // outer frame (no texture), same hole-patched shader family
@@ -751,10 +769,13 @@ export function createGround(data, tier = 2) {
   frame.position.set(cx, 0, cz);
   frame.receiveShadow = true;
   group.add(frame);
-  { const sk = buildSkirt(data, L, tier); if (sk) { group.add(sk); group.userData.skirt = sk.userData.stats; } }
+  const ts0 = performance.now();
+  { const sk = buildSkirt(data, L, tier); span('ground-skirt', ts0); if (sk) { group.add(sk); group.userData.skirt = sk.userData.stats; } }
   group.userData.extent = { minX: L.minX, minZ: L.minZ, size: Math.max(L.W, L.H), W: L.W, H: L.H };
   const detPx = CFG.ground.detailPx[tier];
+  const td0 = performance.now();
   group.userData.detail = new DetailLayer(data, detPx);
+  span('ground-detail-init', td0);
   const detMB = detPx * detPx * 4 * 1.34 / 1048576;
   group.userData.stats = { tier, tiles: L.cols * L.rows, flatWaterTiles: flat, tilePx: [L.pw, L.ph], pxPerM: L.D, texMB: Math.round(texBytes / 1048576), detailMB: Math.round(detMB), buildMs: Math.round(performance.now() - t0), raster: !!data.groundRaster };
   return group;
@@ -790,7 +811,9 @@ export class DetailLayer {
     if (this.cx === this.cx && Math.hypot(x - this.cx, z - this.cz) <= 22) return; // NaN = never painted
     this.cx = x; this.cz = z;
     const x0 = x - this.size / 2, z0 = z - this.size / 2;
+    const tp = performance.now();
     paintTile(this.ctx, this.data, { x0, z0, w: this.size, h: this.size, sc: this.px / this.size }, true, this.scratch);
+    span('detail-paint', tp);
     this.tex.needsUpdate = true;
     holeUniforms.uDetRect.value.set(x0, z0, this.size, fade);
   }

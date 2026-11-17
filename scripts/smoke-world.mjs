@@ -377,6 +377,30 @@ async function main() {
   console.log('quality levels:', JSON.stringify(q));
   check('quality levels change mover count', q[0].movers < q[2].movers && q[0].shadow === false && q[2].shadow === true, JSON.stringify(q));
 
+  // ---- distance LOD (World.setViewDistance) is render-only: thinned-out objects stay in the grid, can be queried, swallowed and scored; they come back when the camera comes closer
+  if (!sample) {
+    const lod = await G(() => {
+      const g = window.__game, w = window.__life.world, out = {};
+      g.start(); g.skipIntro(); g.setRadius(60); g.zoomBy(100); g.step(3); // far: camera ~2 km
+      const L = w.lodThin.find((l) => l.n > 40 && l.mesh.count < l.n);
+      out.thinned = !!L; if (!L) return out;
+      out.countFar = L.mesh.count; out.n = L.n;
+      const o = w.objects.find((q) => !q.isBuilding && !q.mover && q.mesh === L.mesh && q.idx >= L.mesh.count && q.state === 0);
+      out.hiddenObj = !!o; if (!o) return out;
+      let found = false; w.query(o.x, o.z, 2, (q) => { if (q === o) found = true; }); out.inQuery = found;
+      const before = w.counts.remainingProps, P = window.__life.game.player, score0 = P.score;
+      g.teleport(o.x, o.z); g.setHoleRadius(0, 60); g.step(3);
+      out.eaten = o.state === 2; out.remaining = before - w.counts.remainingProps; out.scored = P.score > score0;
+      g.zoomBy(0.001); g.setRadius(3); g.step(4); // close again
+      out.countNear = L.mesh.count; out.visible = L.mesh.visible;
+      return out;
+    });
+    check('far-view LOD thins tiny props (mesh.count < instances)', lod.thinned, JSON.stringify(lod));
+    check('thinned-out object is still in the spatial grid (world.query finds it)', lod.hiddenObj && lod.inQuery, JSON.stringify(lod));
+    check('thinned-out object can be swallowed at wide zoom (landed, counted, scored)', lod.eaten && lod.remaining >= 1 && lod.scored, JSON.stringify(lod));
+    check('thinning is undone when the camera comes close again', lod.countNear === lod.n && lod.visible, JSON.stringify(lod));
+  }
+
   // ---- detail files blocked (404): the game must still boot with riga.json heights / flat boxes only
   if (!sample) {
     const ctx2 = await browser.newContext({ viewport: { width: 800, height: 500 } });

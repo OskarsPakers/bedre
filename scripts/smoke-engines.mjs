@@ -303,8 +303,21 @@ function makeBuildB() {
     const nn = n.replace(/-[^-.]+\.js$/, `-${newHash.slice(0, 8)}.js`);
     fs.renameSync(p, path.join(assets, nn)); renames.push([n, nn]);
   }
-  const textFiles = [path.join(distB, 'index.html'), ...fs.readdirSync(assets).filter((n) => /\.(js|css)$/.test(n)).map((n) => path.join(assets, n))];
-  for (const p of textFiles) { let s = fs.readFileSync(p, 'utf8'); const o = s; for (const [a, b] of renames) s = s.replaceAll(a, b); if (s !== o) fs.writeFileSync(p, s); }
+  // references to a renamed chunk are rewritten everywhere; a file whose text changed that way is itself a new revision, so (like a real vite build, where the importer's content hash changes
+  // with its imports) it is renamed too, until nothing changes: otherwise an unchanged-name entry chunk would be served from the immutable browser cache and keep importing build A's chunk
+  const listText = () => [path.join(distB, 'index.html'), ...fs.readdirSync(assets).filter((n) => /\.(js|css)$/.test(n)).map((n) => path.join(assets, n))];
+  for (let round = 0; round < 6; round++) {
+    const changed = [];
+    for (const p of listText()) { let s = fs.readFileSync(p, 'utf8'); const o = s; for (const [a, b] of renames) s = s.replaceAll(a, b); if (s !== o) { fs.writeFileSync(p, s); changed.push(p); } }
+    let more = false;
+    for (const p of changed) {
+      const n = path.basename(p);
+      if (!n.endsWith('.js') || renames.some((r) => r[1] === n)) continue;
+      const nn = n.replace(/-[^-.]+\.js$/, `-${newHash.slice(0, 7)}${renames.length}.js`);
+      fs.renameSync(p, path.join(assets, nn)); renames.push([n, nn]); more = true;
+    }
+    if (!more) break;
+  }
   const sw = path.join(distB, 'sw.js');
   fs.writeFileSync(sw, fs.readFileSync(sw, 'utf8').replace(/const BUILD = '[^']*'/, `const BUILD = 'b${newHash.slice(0, 9)}'`));
   return { oldHash, newHash, renames };
@@ -354,7 +367,7 @@ async function staleStage() {
         await nav;
         await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 240000 });
         const hNew = await page.evaluate(() => window.__mpHash());
-        check(`${eng}: after the offered reload the page runs build B (hash ${hNew})`, hNew === B.newHash);
+        check(`${eng}: after the offered reload the page runs build B (hash ${hNew})`, hNew === B.newHash, hNew === B.newHash ? '' : await page.evaluate(() => JSON.stringify({ reason: window.__life.world.placements.reason, errs: window.__errs || null })));
         // a stored online session from before the deploy (its room died with the old server): the rejoin offer resolves into a plain message, never a stuck screen
         await page.evaluate(() => { const rec = { v: 1, room: 'zzzzzzzzzz', token: 'tok_' + Math.random().toString(36).slice(2, 14), name: 'Stale', hash: window.__mpHash(), id: 2, endAt: Date.now() + 30000, ended: false, exp: Date.now() + 120000, tab: 'old', hb: 0, last: { score: 321, rank: 3, total: 8 } }; const j = JSON.stringify(rec); sessionStorage.setItem('bedre.mp.session', j); localStorage.setItem('bedre.mp.session', j); });
         await page.reload(); await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 240000 });

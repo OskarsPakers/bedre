@@ -1,0 +1,634 @@
+[
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "low",
+  "label": "cur",
+  "heapAfterLoadMB": 48.3,
+  "heapAfter3RoundsMB": 50.4,
+  "gpu": {
+   "texturesCount": 10,
+   "geometriesCount": 35,
+   "texMB": 63.1,
+   "geoMB": 40.8,
+   "parts": {
+    "geo:other": 2.1,
+    "tex:ground": 51,
+    "tex:other": 0,
+    "geo:buildings(src)": 36.5,
+    "tex:batched": 0.1,
+    "geo:instances": 2.2,
+    "tex:detail": 12.1
+   },
+   "groundStats": {
+    "tier": 0,
+    "tiles": 99,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     326,
+     329
+    ],
+    "pxPerM": 1.05,
+    "texMB": 54,
+    "detailMB": 12,
+    "buildMs": 114,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 0.4,
+    "skirtTris": 0,
+    "px": [
+     304,
+     267
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 59.8,
+   "geoMB": 40.8,
+   "geometries": 39,
+   "textures": 16
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "medium",
+  "label": "cur",
+  "heapAfterLoadMB": 62.9,
+  "heapAfter3RoundsMB": 64.9,
+  "gpu": {
+   "texturesCount": 12,
+   "geometriesCount": 36,
+   "texMB": 129.6,
+   "geoMB": 45.7,
+   "parts": {
+    "geo:other": 7,
+    "tex:ground": 104.1,
+    "tex:other": 0,
+    "geo:buildings(src)": 36.5,
+    "tex:batched": 0.1,
+    "geo:instances": 2.2,
+    "rt:shadow": 4,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 1,
+    "tiles": 99,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     466,
+     470
+    ],
+    "pxPerM": 1.5,
+    "texMB": 111,
+    "detailMB": 21,
+    "buildMs": 140,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 2.9,
+    "skirtTris": 47310,
+    "px": [
+     810,
+     710
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 122.9,
+   "geoMB": 45.7,
+   "geometries": 40,
+   "textures": 18
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "high",
+  "label": "cur",
+  "heapAfterLoadMB": 62.9,
+  "heapAfter3RoundsMB": 65,
+  "gpu": {
+   "texturesCount": 12,
+   "geometriesCount": 36,
+   "texMB": 326.7,
+   "geoMB": 45.7,
+   "parts": {
+    "geo:other": 7,
+    "tex:ground": 289.2,
+    "tex:other": 0,
+    "geo:buildings(src)": 36.5,
+    "tex:batched": 0.1,
+    "geo:instances": 2.2,
+    "rt:shadow": 16,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 2,
+    "tiles": 99,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     777,
+     783
+    ],
+    "pxPerM": 2.5,
+    "texMB": 308,
+    "detailMB": 21,
+    "buildMs": 162,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 6.6,
+    "skirtTris": 47310,
+    "px": [
+     1215,
+     1065
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 308.1,
+   "geoMB": 45.7,
+   "geometries": 40,
+   "textures": 18
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "low",
+  "label": "cur",
+  "heapAfterLoadMB": 46.8,
+  "heapAfter3RoundsMB": 49.1,
+  "gpu": {
+   "texturesCount": 13,
+   "geometriesCount": 34,
+   "texMB": 49.2,
+   "geoMB": 24.2,
+   "parts": {
+    "geo:other": 1.8,
+    "tex:ground": 37,
+    "tex:other": 0,
+    "geo:buildings(src)": 19.9,
+    "tex:batched": 0.1,
+    "geo:instances": 2.4,
+    "tex:detail": 12.1
+   },
+   "groundStats": {
+    "tier": 0,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     317,
+     317
+    ],
+    "pxPerM": 1.05,
+    "texMB": 42,
+    "detailMB": 12,
+    "buildMs": 55,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 0.3,
+    "skirtTris": 0,
+    "px": [
+     260,
+     260
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 43,
+   "geoMB": 24.2,
+   "geometries": 35,
+   "textures": 25
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "medium",
+  "label": "cur",
+  "heapAfterLoadMB": 56.7,
+  "heapAfter3RoundsMB": 59.1,
+  "gpu": {
+   "texturesCount": 15,
+   "geometriesCount": 36,
+   "texMB": 101.1,
+   "geoMB": 28.6,
+   "parts": {
+    "geo:other": 6.3,
+    "tex:ground": 75.5,
+    "tex:other": 0,
+    "geo:buildings(src)": 19.9,
+    "tex:batched": 0.1,
+    "geo:instances": 2.4,
+    "rt:shadow": 4,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 1,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     453,
+     453
+    ],
+    "pxPerM": 1.5,
+    "texMB": 85,
+    "detailMB": 21,
+    "buildMs": 85,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 2.4,
+    "skirtTris": 42830,
+    "px": [
+     694,
+     694
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 83.2,
+   "geoMB": 28.6,
+   "geometries": 37,
+   "textures": 32
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "high",
+  "label": "cur",
+  "heapAfterLoadMB": 56.7,
+  "heapAfter3RoundsMB": 59,
+  "gpu": {
+   "texturesCount": 15,
+   "geometriesCount": 36,
+   "texMB": 247.9,
+   "geoMB": 28.6,
+   "parts": {
+    "geo:other": 6.3,
+    "tex:ground": 210.3,
+    "tex:other": 0,
+    "geo:buildings(src)": 19.9,
+    "tex:batched": 0.1,
+    "geo:instances": 2.4,
+    "rt:shadow": 16,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 2,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     756,
+     756
+    ],
+    "pxPerM": 2.5,
+    "texMB": 237,
+    "detailMB": 21,
+    "buildMs": 96,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 5.5,
+    "skirtTris": 42830,
+    "px": [
+     1040,
+     1040
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 215.8,
+   "geoMB": 28.6,
+   "geometries": 37,
+   "textures": 26
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "low",
+  "label": "cur",
+  "heapAfterLoadMB": 29.7,
+  "heapAfter3RoundsMB": 31.4,
+  "gpu": {
+   "texturesCount": 11,
+   "geometriesCount": 36,
+   "texMB": 49.6,
+   "geoMB": 12.5,
+   "parts": {
+    "geo:other": 1.9,
+    "tex:ground": 37.5,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.5,
+    "tex:batched": 0,
+    "geo:instances": 3.1,
+    "tex:detail": 12.1
+   },
+   "groundStats": {
+    "tier": 0,
+    "tiles": 81,
+    "flatWaterTiles": 1,
+    "tilePx": [
+     317,
+     317
+    ],
+    "pxPerM": 1.05,
+    "texMB": 41,
+    "detailMB": 12,
+    "buildMs": 31,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 0.3,
+    "skirtTris": 0,
+    "px": [
+     260,
+     260
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 47,
+   "geoMB": 12.5,
+   "geometries": 37,
+   "textures": 16
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "medium",
+  "label": "cur",
+  "heapAfterLoadMB": 32.5,
+  "heapAfter3RoundsMB": 34.6,
+  "gpu": {
+   "texturesCount": 10,
+   "geometriesCount": 37,
+   "texMB": 105.2,
+   "geoMB": 13.5,
+   "parts": {
+    "geo:other": 2.9,
+    "tex:ground": 79.7,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.5,
+    "tex:batched": 0,
+    "geo:instances": 3.1,
+    "rt:shadow": 4,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 1,
+    "tiles": 81,
+    "flatWaterTiles": 1,
+    "tilePx": [
+     453,
+     453
+    ],
+    "pxPerM": 1.5,
+    "texMB": 84,
+    "detailMB": 21,
+    "buildMs": 45,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 2.4,
+    "skirtTris": 9450,
+    "px": [
+     694,
+     694
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 96.8,
+   "geoMB": 13.5,
+   "geometries": 38,
+   "textures": 18
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "high",
+  "label": "cur",
+  "heapAfterLoadMB": 32.6,
+  "heapAfter3RoundsMB": 34.5,
+  "gpu": {
+   "texturesCount": 10,
+   "geometriesCount": 37,
+   "texMB": 259.5,
+   "geoMB": 13.5,
+   "parts": {
+    "geo:other": 2.9,
+    "tex:ground": 222,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.5,
+    "tex:batched": 0,
+    "geo:instances": 3.1,
+    "rt:shadow": 16,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 2,
+    "tiles": 81,
+    "flatWaterTiles": 1,
+    "tilePx": [
+     756,
+     756
+    ],
+    "pxPerM": 2.5,
+    "texMB": 234,
+    "detailMB": 21,
+    "buildMs": 57,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 5.5,
+    "skirtTris": 9450,
+    "px": [
+     1040,
+     1040
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 236.1,
+   "geoMB": 13.5,
+   "geometries": 38,
+   "textures": 18
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "low",
+  "label": "cur",
+  "heapAfterLoadMB": 38.8,
+  "heapAfter3RoundsMB": 40.9,
+  "gpu": {
+   "texturesCount": 8,
+   "geometriesCount": 29,
+   "texMB": 51.7,
+   "geoMB": 12,
+   "parts": {
+    "geo:other": 1.9,
+    "tex:ground": 39.6,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.7,
+    "tex:batched": 0.1,
+    "geo:instances": 2.3,
+    "tex:detail": 12.1
+   },
+   "groundStats": {
+    "tier": 0,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     317,
+     317
+    ],
+    "pxPerM": 1.05,
+    "texMB": 42,
+    "detailMB": 12,
+    "buildMs": 50,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 0.3,
+    "skirtTris": 0,
+    "px": [
+     260,
+     260
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 44.5,
+   "geoMB": 12,
+   "geometries": 30,
+   "textures": 22
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "medium",
+  "label": "cur",
+  "heapAfterLoadMB": 45.4,
+  "heapAfter3RoundsMB": 47.5,
+  "gpu": {
+   "texturesCount": 10,
+   "geometriesCount": 30,
+   "texMB": 106.3,
+   "geoMB": 14.6,
+   "parts": {
+    "geo:other": 4.6,
+    "tex:ground": 80.8,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.7,
+    "tex:batched": 0.1,
+    "geo:instances": 2.3,
+    "rt:shadow": 4,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 1,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     453,
+     453
+    ],
+    "pxPerM": 1.5,
+    "texMB": 85,
+    "detailMB": 21,
+    "buildMs": 80,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 2.4,
+    "skirtTris": 25920,
+    "px": [
+     694,
+     694
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 91.6,
+   "geoMB": 14.6,
+   "geometries": 31,
+   "textures": 24
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "high",
+  "label": "cur",
+  "heapAfterLoadMB": 45.6,
+  "heapAfter3RoundsMB": 47.6,
+  "gpu": {
+   "texturesCount": 12,
+   "geometriesCount": 30,
+   "texMB": 256.6,
+   "geoMB": 14.6,
+   "parts": {
+    "geo:other": 4.6,
+    "tex:ground": 219.1,
+    "tex:other": 0,
+    "geo:buildings(src)": 7.7,
+    "tex:batched": 0.1,
+    "geo:instances": 2.3,
+    "rt:shadow": 16,
+    "tex:detail": 21.4
+   },
+   "groundStats": {
+    "tier": 2,
+    "tiles": 81,
+    "flatWaterTiles": 0,
+    "tilePx": [
+     756,
+     756
+    ],
+    "pxPerM": 2.5,
+    "texMB": 237,
+    "detailMB": 21,
+    "buildMs": 92,
+    "raster": true
+   },
+   "skirt": {
+    "skirtTexMB": 5.5,
+    "skirtTris": 25920,
+    "px": [
+     1040,
+     1040
+    ]
+   }
+  },
+  "gpuAfter3Rounds": {
+   "texMB": 206.9,
+   "geoMB": 14.6,
+   "geometries": 31,
+   "textures": 29
+  },
+  "errs": []
+ }
+]

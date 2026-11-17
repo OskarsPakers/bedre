@@ -639,6 +639,7 @@ export class OnlineMode {
     const g = this.game;
     this.world.update(dt, g.elapsed);
     g.world.ground.userData.detail.update(g.cam.focus.x, g.cam.focus.z, g.cam.dist);
+    g.world.setViewDistance(g.cam.dist);
     g.light.update(g.cam.focus, g.cam.dist);
     g.holeViews.update([]);
   }

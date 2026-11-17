@@ -1,0 +1,2042 @@
+[
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.32,
+    "simMs": 0.35,
+    "renderMs": 5.98,
+    "calls": 2047,
+    "tris": 1943650,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.32,
+     6.35,
+     6.3
+    ]
+   },
+   "r3": {
+    "cpuMs": 2.79,
+    "simMs": 0.77,
+    "renderMs": 2.02,
+    "calls": 122,
+    "tris": 299463,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     2.79,
+     2.9,
+     1.55
+    ]
+   },
+   "r30": {
+    "cpuMs": 2.04,
+    "simMs": 0.44,
+    "renderMs": 1.6,
+    "calls": 309,
+    "tris": 529388,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     2.04,
+     2.34,
+     1.98
+    ]
+   },
+   "r90": {
+    "cpuMs": 4.89,
+    "simMs": 0.45,
+    "renderMs": 4.44,
+    "calls": 1356,
+    "tris": 1420988,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.73,
+     5.23,
+     4.89
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 4.52,
+    "simMs": 0.45,
+    "renderMs": 4.07,
+    "calls": 1162,
+    "tris": 1279972,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.52,
+     4.84,
+     4.42
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.88,
+    "simMs": 0.48,
+    "renderMs": 6.4,
+    "calls": 2048,
+    "tris": 2891305,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     7.14,
+     6.78,
+     6.88
+    ]
+   },
+   "r3": {
+    "cpuMs": 3,
+    "simMs": 0.83,
+    "renderMs": 2.17,
+    "calls": 167,
+    "tris": 617059,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     2.05,
+     3.76,
+     3
+    ]
+   },
+   "r30": {
+    "cpuMs": 3,
+    "simMs": 0.73,
+    "renderMs": 2.27,
+    "calls": 310,
+    "tris": 748525,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     2.77,
+     3.24,
+     3
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.85,
+    "simMs": 0.6,
+    "renderMs": 5.25,
+    "calls": 1358,
+    "tris": 2094539,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.87,
+     5.57,
+     5.85
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.56,
+    "simMs": 0.65,
+    "renderMs": 4.9,
+    "calls": 1163,
+    "tris": 1909032,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.56,
+     4.61,
+     5.56
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "centrs",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.85,
+    "simMs": 0.53,
+    "renderMs": 6.33,
+    "calls": 2048,
+    "tris": 2891305,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.85,
+     6.83,
+     6.96
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.16,
+    "simMs": 1,
+    "renderMs": 2.16,
+    "calls": 173,
+    "tris": 605482,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.78,
+     3.16,
+     2.27
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.1,
+    "simMs": 0.73,
+    "renderMs": 2.37,
+    "calls": 531,
+    "tris": 1310536,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.69,
+     3.1,
+     3
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.74,
+    "simMs": 0.69,
+    "renderMs": 5.05,
+    "calls": 1358,
+    "tris": 2094543,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.83,
+     5.74,
+     5.47
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.14,
+    "simMs": 0.71,
+    "renderMs": 4.42,
+    "calls": 1163,
+    "tris": 1909006,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.42,
+     5.14,
+     4.96
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.06,
+    "simMs": 0.39,
+    "renderMs": 5.67,
+    "calls": 1859,
+    "tris": 2004307,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.38,
+     5.99,
+     6.06
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.57,
+    "simMs": 1.1,
+    "renderMs": 2.48,
+    "calls": 110,
+    "tris": 295180,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.54,
+     3.67,
+     3.57
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.48,
+    "simMs": 0.73,
+    "renderMs": 2.73,
+    "calls": 317,
+    "tris": 519660,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.48,
+     3.56,
+     3.43
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.35,
+    "simMs": 0.55,
+    "renderMs": 4.79,
+    "calls": 1428,
+    "tris": 1700592,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.59,
+     5.32,
+     5.35
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.17,
+    "simMs": 0.56,
+    "renderMs": 4.6,
+    "calls": 1256,
+    "tris": 1590090,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 152,
+    "cpuAll": [
+     5.17,
+     4.75,
+     5.19
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.63,
+    "simMs": 0.5,
+    "renderMs": 6.13,
+    "calls": 1860,
+    "tris": 2934151,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     6.6,
+     6.72,
+     6.63
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.39,
+    "simMs": 0.94,
+    "renderMs": 2.46,
+    "calls": 170,
+    "tris": 684081,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.47,
+     3.37,
+     3.39
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.66,
+    "simMs": 0.9,
+    "renderMs": 2.77,
+    "calls": 318,
+    "tris": 727673,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.66,
+     3.79,
+     3.61
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.91,
+    "simMs": 0.62,
+    "renderMs": 5.31,
+    "calls": 1430,
+    "tris": 2516958,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.91,
+     5.95,
+     5.71
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.56,
+    "simMs": 0.62,
+    "renderMs": 4.94,
+    "calls": 1257,
+    "tris": 2380262,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.56,
+     5.72,
+     5.21
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "agenskalns",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.68,
+    "simMs": 0.66,
+    "renderMs": 5.99,
+    "calls": 1860,
+    "tris": 2934151,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.81,
+     6.68,
+     6.18
+    ]
+   },
+   "r3": {
+    "cpuMs": 2.4,
+    "simMs": 0.83,
+    "renderMs": 1.57,
+    "calls": 172,
+    "tris": 684593,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     2.57,
+     2.4,
+     2.29
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.37,
+    "simMs": 0.86,
+    "renderMs": 2.5,
+    "calls": 574,
+    "tris": 1428377,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.2,
+     3.5,
+     3.37
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.48,
+    "simMs": 0.84,
+    "renderMs": 4.68,
+    "calls": 1430,
+    "tris": 2516978,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.59,
+     5.43,
+     5.48
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.07,
+    "simMs": 0.73,
+    "renderMs": 4.28,
+    "calls": 1257,
+    "tris": 2380216,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.07,
+     5.11,
+     4.75
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.88,
+    "simMs": 0.45,
+    "renderMs": 4.44,
+    "calls": 1569,
+    "tris": 2118261,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.88,
+     4.39,
+     5.56
+    ]
+   },
+   "r3": {
+    "cpuMs": 1.26,
+    "simMs": 0.53,
+    "renderMs": 0.73,
+    "calls": 113,
+    "tris": 348738,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     1.51,
+     1.14,
+     1.26
+    ]
+   },
+   "r30": {
+    "cpuMs": 1.76,
+    "simMs": 0.54,
+    "renderMs": 1.22,
+    "calls": 290,
+    "tris": 610516,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     1.89,
+     1.46,
+     1.76
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.31,
+    "simMs": 0.57,
+    "renderMs": 2.73,
+    "calls": 955,
+    "tris": 1428420,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.26,
+     3.31,
+     4.13
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.63,
+    "simMs": 0.64,
+    "renderMs": 2.98,
+    "calls": 842,
+    "tris": 1270484,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 152,
+    "cpuAll": [
+     2.61,
+     3.63,
+     3.95
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 5.68,
+    "simMs": 0.67,
+    "renderMs": 5.02,
+    "calls": 1570,
+    "tris": 2580517,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.68,
+     5.57,
+     5.69
+    ]
+   },
+   "r3": {
+    "cpuMs": 4,
+    "simMs": 1.65,
+    "renderMs": 2.36,
+    "calls": 178,
+    "tris": 737930,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.07,
+     3.22,
+     4
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.42,
+    "simMs": 1.31,
+    "renderMs": 2.11,
+    "calls": 288,
+    "tris": 743373,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.42,
+     3.15,
+     3.83
+    ]
+   },
+   "r90": {
+    "cpuMs": 4.74,
+    "simMs": 0.94,
+    "renderMs": 3.81,
+    "calls": 1011,
+    "tris": 1836699,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.74,
+     4.71,
+     4.75
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 4.51,
+    "simMs": 0.88,
+    "renderMs": 3.59,
+    "calls": 902,
+    "tris": 1716017,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     4.36,
+     4.51,
+     4.53
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "mezaparks",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 5.74,
+    "simMs": 0.82,
+    "renderMs": 4.92,
+    "calls": 1570,
+    "tris": 2580517,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.74,
+     5.75,
+     5.71
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.43,
+    "simMs": 1.7,
+    "renderMs": 1.73,
+    "calls": 177,
+    "tris": 735860,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.62,
+     3.43,
+     3.21
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.62,
+    "simMs": 1.34,
+    "renderMs": 2.29,
+    "calls": 539,
+    "tris": 1493581,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.74,
+     3.57,
+     3.62
+    ]
+   },
+   "r90": {
+    "cpuMs": 4.85,
+    "simMs": 1.12,
+    "renderMs": 3.74,
+    "calls": 1011,
+    "tris": 1836699,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.91,
+     4.83,
+     4.85
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 4.66,
+    "simMs": 1.1,
+    "renderMs": 3.57,
+    "calls": 902,
+    "tris": 1716017,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     4.66,
+     4.64,
+     4.67
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 5.87,
+    "simMs": 0.57,
+    "renderMs": 5.3,
+    "calls": 1815,
+    "tris": 2680293,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 152,
+    "cpuAll": [
+     5.87,
+     5.86,
+     5.9
+    ]
+   },
+   "r3": {
+    "cpuMs": 4.1,
+    "simMs": 1.95,
+    "renderMs": 2.15,
+    "calls": 107,
+    "tris": 429939,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.97,
+     4.42,
+     4.1
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.71,
+    "simMs": 1.24,
+    "renderMs": 2.46,
+    "calls": 299,
+    "tris": 764816,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.71,
+     3.93,
+     3.62
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.33,
+    "simMs": 0.83,
+    "renderMs": 4.49,
+    "calls": 1312,
+    "tris": 2242612,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.35,
+     5.23,
+     5.33
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.04,
+    "simMs": 0.8,
+    "renderMs": 4.23,
+    "calls": 1140,
+    "tris": 2058259,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.05,
+     5.01,
+     5.04
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.49,
+    "simMs": 0.82,
+    "renderMs": 5.67,
+    "calls": 1816,
+    "tris": 3175033,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.48,
+     6.49,
+     6.59
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.86,
+    "simMs": 1.83,
+    "renderMs": 2.04,
+    "calls": 150,
+    "tris": 819415,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     3.86,
+     3.94,
+     3.8
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.71,
+    "simMs": 1.49,
+    "renderMs": 2.17,
+    "calls": 300,
+    "tris": 877002,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.71,
+     3.62,
+     3.77
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.74,
+    "simMs": 1.04,
+    "renderMs": 4.69,
+    "calls": 1313,
+    "tris": 2695520,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.73,
+     5.74,
+     5.79
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.62,
+    "simMs": 1.13,
+    "renderMs": 4.5,
+    "calls": 1141,
+    "tris": 2491167,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     5.62,
+     5.59,
+     5.72
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 6.67,
+    "simMs": 1.05,
+    "renderMs": 5.61,
+    "calls": 1816,
+    "tris": 3175033,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     6.67,
+     6.67,
+     6.65
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.84,
+    "simMs": 2.06,
+    "renderMs": 1.77,
+    "calls": 165,
+    "tris": 858731,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.95,
+     3.77,
+     3.84
+    ]
+   },
+   "r30": {
+    "cpuMs": 4.12,
+    "simMs": 1.75,
+    "renderMs": 2.39,
+    "calls": 546,
+    "tris": 1680302,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.24,
+     4.12,
+     4.07
+    ]
+   },
+   "r90": {
+    "cpuMs": 5.77,
+    "simMs": 1.32,
+    "renderMs": 4.44,
+    "calls": 1231,
+    "tris": 2546445,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 151,
+    "cpuAll": [
+     5.78,
+     5.7,
+     5.77
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 5.57,
+    "simMs": 1.41,
+    "renderMs": 4.16,
+    "calls": 1143,
+    "tris": 2418634,
+    "frameP50": 16.7,
+    "frameP95": 16.8,
+    "frames": 152,
+    "cpuAll": [
+     5.74,
+     5.57,
+     5.56
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "centrs",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.34,
+    "simMs": 0.32,
+    "renderMs": 4.01,
+    "calls": 2047,
+    "tris": 1943650,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.34,
+     4.19,
+     4.38
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.87,
+    "simMs": 0.81,
+    "renderMs": 3.07,
+    "calls": 107,
+    "tris": 275589,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.91,
+     3.33,
+     3.87
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.28,
+    "simMs": 0.68,
+    "renderMs": 2.6,
+    "calls": 238,
+    "tris": 445339,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.19,
+     3.34,
+     3.28
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.05,
+    "simMs": 0.48,
+    "renderMs": 2.57,
+    "calls": 704,
+    "tris": 854570,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.05,
+     3.01,
+     3.19
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 2.96,
+    "simMs": 0.43,
+    "renderMs": 2.53,
+    "calls": 620,
+    "tris": 803270,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     2.96,
+     3.12,
+     2.96
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "centrs",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.63,
+    "simMs": 0.35,
+    "renderMs": 4.3,
+    "calls": 2048,
+    "tris": 2891305,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.7,
+     4.63,
+     4.63
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.9,
+    "simMs": 1.09,
+    "renderMs": 2.83,
+    "calls": 159,
+    "tris": 577247,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.13,
+     3.68,
+     3.9
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.17,
+    "simMs": 0.91,
+    "renderMs": 2.25,
+    "calls": 239,
+    "tris": 643778,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.17,
+     3.02,
+     3.43
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.54,
+    "simMs": 0.79,
+    "renderMs": 2.77,
+    "calls": 705,
+    "tris": 1241780,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.53,
+     3.54,
+     3.81
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.24,
+    "simMs": 0.6,
+    "renderMs": 2.66,
+    "calls": 621,
+    "tris": 1168783,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.32,
+     3.24,
+     3.21
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "centrs",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.66,
+    "simMs": 0.41,
+    "renderMs": 4.15,
+    "calls": 2048,
+    "tris": 2891305,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.72,
+     4.66,
+     4.51
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.82,
+    "simMs": 1.3,
+    "renderMs": 2.52,
+    "calls": 158,
+    "tris": 559537,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.7,
+     3.85,
+     3.82
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.91,
+    "simMs": 1.19,
+    "renderMs": 2.76,
+    "calls": 539,
+    "tris": 1390972,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.91,
+     3.91,
+     4.01
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.6,
+    "simMs": 0.85,
+    "renderMs": 2.64,
+    "calls": 705,
+    "tris": 1241788,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.68,
+     3.34,
+     3.6
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.3,
+    "simMs": 0.71,
+    "renderMs": 2.6,
+    "calls": 621,
+    "tris": 1168852,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.3,
+     3.35,
+     3.23
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "agenskalns",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 3.83,
+    "simMs": 0.34,
+    "renderMs": 3.5,
+    "calls": 1833,
+    "tris": 1992997,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.83,
+     3.7,
+     4.01
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.75,
+    "simMs": 0.9,
+    "renderMs": 2.87,
+    "calls": 111,
+    "tris": 283267,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.75,
+     3.72,
+     3.81
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.36,
+    "simMs": 0.79,
+    "renderMs": 2.59,
+    "calls": 203,
+    "tris": 416430,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.18,
+     3.36,
+     3.5
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.17,
+    "simMs": 0.6,
+    "renderMs": 2.57,
+    "calls": 791,
+    "tris": 1061692,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.28,
+     3.07,
+     3.17
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.03,
+    "simMs": 0.56,
+    "renderMs": 2.47,
+    "calls": 728,
+    "tris": 999336,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.18,
+     2.87,
+     3.03
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "agenskalns",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.21,
+    "simMs": 0.33,
+    "renderMs": 3.87,
+    "calls": 1834,
+    "tris": 2922841,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.21,
+     4.36,
+     4.12
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.87,
+    "simMs": 1.26,
+    "renderMs": 2.66,
+    "calls": 165,
+    "tris": 653739,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.87,
+     4.17,
+     3.83
+    ]
+   },
+   "r30": {
+    "cpuMs": 2.98,
+    "simMs": 0.86,
+    "renderMs": 2.14,
+    "calls": 214,
+    "tris": 648367,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     2.85,
+     2.98,
+     3.08
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.57,
+    "simMs": 0.66,
+    "renderMs": 2.95,
+    "calls": 792,
+    "tris": 1525715,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.57,
+     3.52,
+     3.62
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.44,
+    "simMs": 0.62,
+    "renderMs": 2.83,
+    "calls": 729,
+    "tris": 1439264,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.41,
+     3.44,
+     3.51
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "agenskalns",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.3,
+    "simMs": 0.58,
+    "renderMs": 3.72,
+    "calls": 1834,
+    "tris": 2922841,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.3,
+     4.3,
+     4.1
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.89,
+    "simMs": 1.52,
+    "renderMs": 2.37,
+    "calls": 165,
+    "tris": 653739,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.87,
+     3.89,
+     3.97
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.72,
+    "simMs": 1.23,
+    "renderMs": 2.56,
+    "calls": 576,
+    "tris": 1541854,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.92,
+     3.62,
+     3.72
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.7,
+    "simMs": 0.89,
+    "renderMs": 2.78,
+    "calls": 792,
+    "tris": 1525889,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.76,
+     3.52,
+     3.7
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.26,
+    "simMs": 0.63,
+    "renderMs": 2.66,
+    "calls": 729,
+    "tris": 1439008,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.45,
+     3.26,
+     3.26
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "mezaparks",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 3.75,
+    "simMs": 0.42,
+    "renderMs": 3.31,
+    "calls": 1569,
+    "tris": 2118261,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.69,
+     3.75,
+     3.86
+    ]
+   },
+   "r3": {
+    "cpuMs": 4.03,
+    "simMs": 1.53,
+    "renderMs": 2.48,
+    "calls": 87,
+    "tris": 313728,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     4.1,
+     4.03,
+     3.93
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.43,
+    "simMs": 1.15,
+    "renderMs": 2.28,
+    "calls": 213,
+    "tris": 511257,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.25,
+     3.43,
+     3.62
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.03,
+    "simMs": 0.82,
+    "renderMs": 2.2,
+    "calls": 546,
+    "tris": 919878,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.03,
+     3.07,
+     2.87
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.1,
+    "simMs": 0.72,
+    "renderMs": 2.42,
+    "calls": 490,
+    "tris": 854075,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.31,
+     2.99,
+     3.1
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "mezaparks",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.25,
+    "simMs": 0.68,
+    "renderMs": 3.57,
+    "calls": 1570,
+    "tris": 2580517,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.28,
+     4.12,
+     4.25
+    ]
+   },
+   "r3": {
+    "cpuMs": 4.35,
+    "simMs": 1.55,
+    "renderMs": 2.8,
+    "calls": 148,
+    "tris": 667144,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     4.36,
+     4.35,
+     4.33
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.38,
+    "simMs": 1.37,
+    "renderMs": 2,
+    "calls": 220,
+    "tris": 616467,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.38,
+     3.31,
+     3.48
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.28,
+    "simMs": 0.93,
+    "renderMs": 2.26,
+    "calls": 564,
+    "tris": 1159524,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.32,
+     3.17,
+     3.28
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.02,
+    "simMs": 0.81,
+    "renderMs": 2.19,
+    "calls": 516,
+    "tris": 1046637,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.31,
+     2.88,
+     3.02
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "mezaparks",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.34,
+    "simMs": 0.65,
+    "renderMs": 3.74,
+    "calls": 1570,
+    "tris": 2580517,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.34,
+     4.42,
+     4.28
+    ]
+   },
+   "r3": {
+    "cpuMs": 4.11,
+    "simMs": 2.11,
+    "renderMs": 2,
+    "calls": 148,
+    "tris": 667144,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.35,
+     4.11,
+     3.97
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.87,
+    "simMs": 1.82,
+    "renderMs": 2.05,
+    "calls": 542,
+    "tris": 1489152,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.87,
+     3.87,
+     3.66
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.38,
+    "simMs": 1.1,
+    "renderMs": 2.28,
+    "calls": 564,
+    "tris": 1159539,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.58,
+     3.38,
+     3.26
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.21,
+    "simMs": 0.96,
+    "renderMs": 2.25,
+    "calls": 516,
+    "tris": 1046584,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.28,
+     3.11,
+     3.21
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "purvciems",
+  "tier": "low",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.12,
+    "simMs": 0.61,
+    "renderMs": 3.51,
+    "calls": 1815,
+    "tris": 2680293,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.17,
+     4.12,
+     3.99
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.29,
+    "simMs": 1.48,
+    "renderMs": 1.81,
+    "calls": 89,
+    "tris": 398673,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.29,
+     3.26,
+     3.3
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.74,
+    "simMs": 1.46,
+    "renderMs": 2.17,
+    "calls": 205,
+    "tris": 581450,
+    "frameP50": 17,
+    "frameP95": 19,
+    "frames": 151,
+    "cpuAll": [
+     3.74,
+     3.48,
+     3.83
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.21,
+    "simMs": 0.87,
+    "renderMs": 2.34,
+    "calls": 701,
+    "tris": 1377338,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.3,
+     3.01,
+     3.21
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 2.93,
+    "simMs": 0.71,
+    "renderMs": 2.23,
+    "calls": 623,
+    "tris": 1270934,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     2.91,
+     2.99,
+     2.93
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "purvciems",
+  "tier": "medium",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.42,
+    "simMs": 0.69,
+    "renderMs": 3.74,
+    "calls": 1816,
+    "tris": 3175033,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.36,
+     4.42,
+     4.45
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.75,
+    "simMs": 1.96,
+    "renderMs": 1.79,
+    "calls": 134,
+    "tris": 782653,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.68,
+     3.75,
+     3.91
+    ]
+   },
+   "r30": {
+    "cpuMs": 3.36,
+    "simMs": 1.8,
+    "renderMs": 1.6,
+    "calls": 206,
+    "tris": 649884,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.36,
+     3.36,
+     3.4
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.59,
+    "simMs": 1.07,
+    "renderMs": 2.52,
+    "calls": 702,
+    "tris": 1637830,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.59,
+     3.61,
+     3.52
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.42,
+    "simMs": 0.91,
+    "renderMs": 2.42,
+    "calls": 624,
+    "tris": 1527572,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.31,
+     3.42,
+     3.42
+    ]
+   }
+  },
+  "errs": []
+ },
+ {
+  "profile": "iphone13",
+  "map": "purvciems",
+  "tier": "high",
+  "label": "base",
+  "runs": 3,
+  "view": {
+   "intro": {
+    "cpuMs": 4.64,
+    "simMs": 0.86,
+    "renderMs": 3.78,
+    "calls": 1816,
+    "tris": 3175033,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.62,
+     4.65,
+     4.64
+    ]
+   },
+   "r3": {
+    "cpuMs": 4.1,
+    "simMs": 2.46,
+    "renderMs": 1.64,
+    "calls": 149,
+    "tris": 821143,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.1,
+     3.99,
+     4.28
+    ]
+   },
+   "r30": {
+    "cpuMs": 4.19,
+    "simMs": 1.97,
+    "renderMs": 2.29,
+    "calls": 561,
+    "tris": 1727854,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     4.03,
+     4.19,
+     4.3
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.56,
+    "simMs": 1.15,
+    "renderMs": 2.39,
+    "calls": 631,
+    "tris": 1537052,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.52,
+     3.56,
+     3.62
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.6,
+    "simMs": 1.26,
+    "renderMs": 2.34,
+    "calls": 569,
+    "tris": 1389285,
+    "frameP50": 17,
+    "frameP95": 18,
+    "frames": 151,
+    "cpuAll": [
+     3.49,
+     3.6,
+     3.64
+    ]
+   }
+  },
+  "errs": []
+ }
+]

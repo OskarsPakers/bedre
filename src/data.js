@@ -3,6 +3,7 @@ import { generateSampleCity } from './sampleCity.js';
 import { loadShapes } from './shapes.js';
 import { loadGroundRaster } from './ground.js';
 import { loadPlacements, generateRequested } from './placements.js';
+import { span } from './perfMark.js';
 
 /** Load the real map; fall back to the procedural sample city on any failure. */
 export async function loadCity(forceSample = false, onProgress = () => {}) {
@@ -53,7 +54,10 @@ async function readJson(res, onProgress) {
   let o = 0;
   for (const c of chunks) { buf.set(c, o); o += c.length; }
   onProgress(1);
-  return JSON.parse(new TextDecoder().decode(buf));
+  const tp = performance.now();
+  const j = JSON.parse(new TextDecoder().decode(buf));
+  span('json-parse', tp);
+  return j;
 }
 
 function normalize(d, sample) {

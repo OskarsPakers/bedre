@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { CFG, LIFE } from './config.js';
 import { cleanRing, centroid, bbox, minBox, pointInPoly } from './geo.js';
 import { mulberry32 } from './rng.js';
+import { span } from './perfMark.js';
 import { renderClass } from './shapes.js';
 import { landmarkRule, pickCatHouse, addDeco, addCat } from './landmarks.js';
 import { treatmentFor, neighbourRef, TIER_A } from './sights.js';
@@ -323,9 +324,19 @@ function cornerHeights(it) {
   const P = pos.array, st = pos.itemSize, n = idx ? idx.count : pos.count;
   const out = new Float32Array(ring.length).fill(-1);
   const at = (i) => (idx ? idx.array[i] : i) * st;
+  // plan-view bounding box of every triangle (padded by far more than the 1e-4 barycentric tolerance below can reach), so a sample point only runs the full test on the few triangles near it
+  // (was every triangle for every corner: the biggest part of the building batch time, 75 ms on the Centre, ~330 ms on a phone). The accepted triangles and the result are the same.
+  const nt = n / 3, tbb = new Float32Array(nt * 4);
+  for (let t = 0, q = 0; t < n; t += 3, q += 4) {
+    const a = at(t), b = at(t + 1), c = at(t + 2);
+    const x0 = Math.min(P[a], P[b], P[c]), x1 = Math.max(P[a], P[b], P[c]), z0 = Math.min(P[a + 2], P[b + 2], P[c + 2]), z1 = Math.max(P[a + 2], P[b + 2], P[c + 2]);
+    const pad = 5e-4 * (x1 - x0 + z1 - z0) + 1e-3;
+    tbb[q] = x0 - pad; tbb[q + 1] = x1 + pad; tbb[q + 2] = z0 - pad; tbb[q + 3] = z1 + pad;
+  }
   const sample = (lx, lz) => {
     let best = -1;
-    for (let t = 0; t < n; t += 3) {
+    for (let t = 0, q = 0; t < n; t += 3, q += 4) {
+      if (lx < tbb[q] || lx > tbb[q + 1] || lz < tbb[q + 2] || lz > tbb[q + 3]) continue;
       const a = at(t), b = at(t + 1), c = at(t + 2);
       const ax = P[a], az = P[a + 2], bx = P[b], bz = P[b + 2], cx = P[c], cz = P[c + 2];
       const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz);
@@ -471,6 +482,7 @@ function buildShapeGeometry(S, rec, colFn, winParams, wallCol, decoFn) {
  * Returns { mesh, items, stats } where items = [{ batchId, x, z, area, h, fit, value, name, t, landmark, gidShape, gidBox }]
  */
 export function buildBuildings(data) {
+  const tb1 = performance.now();
   const rng = mulberry32(CFG.seed + 11);
   const C = new THREE.Color();
   const pickCol = (arr) => C.set(arr[Math.floor(rng() * arr.length)]).clone();
@@ -510,6 +522,8 @@ export function buildBuildings(data) {
     items.push({ id: b.id, x: cx, z: cz, area, h, hBox, fit, value, name: b.n || null, t: b.t || 'oth', landmark: false, ring: ring0, rel: ring, lmH: 0, rec, sight: SIGHTS ? SIGHTS[b.id] || null : null });
   }
 
+  span('bld-pass1', tb1);
+  const tb2 = performance.now();
   // Match each landmark to exactly one building: the one containing it, else the nearest close one.
   // Monuments / clocks stay standalone props (see world.js), they must not hijack a neighbouring building.
   for (const lm of landmarks) {
@@ -552,6 +566,9 @@ export function buildBuildings(data) {
 
   const OTHERS = SIGHTS ? items.filter((it) => !it.sight) : []; // ordinary buildings: the neighbours a tier B sight must differ from (src/sights.js neighbourRef)
 
+  span('bld-landmarks-sights', tb2);
+  const tb3 = performance.now();
+  let tSight = 0;
   // pass 2: geometry
   const P = LIFE.palettes;
   for (const it of items) {
@@ -591,7 +608,9 @@ export function buildBuildings(data) {
       roofCol.setHex([0x77797c, 0x6e7073, 0x808285][Math.abs((it.x * 3 + it.z * 5) | 0) % 3]);
     }
     // sights (src/sights.js): category facade style + wall / roof palette outside the housing palette + one signature feature (tier A overrides per building)
+    const tt0 = it.sight ? performance.now() : 0;
     const T = it.sight ? treatmentFor(it.sight, rec, it.x, it.z, it.sight[1] <= 1 ? neighbourRef(it, OTHERS, slug) : 0) : null;
+    if (tt0) tSight += performance.now() - tt0;
     if (T) {
       if (T.wall != null) { wallCol.setHex(T.wall); it.wallCol = T.wall; }
       if (T.roof != null) roofCol.setHex(T.roof);
@@ -707,6 +726,9 @@ export function buildBuildings(data) {
   stats.buildings = kept.length;
 
   const mat = makeBuildingMaterial();
+  span('bld-geometry', tb3);
+  try { performance.measure('bd:bld-sights-treatment(in geometry)', { start: tb3, end: tb3 + tSight }); } catch { /* ignore */ }
+  const tb4 = performance.now();
   const mesh = new THREE.BatchedMesh(kept.length, totalV, totalI, mat);
   mesh.sortObjects = false;
   mesh.castShadow = true;
@@ -726,5 +748,6 @@ export function buildBuildings(data) {
     if (it.boxGeo) { it.boxGeo.dispose(); it.boxGeo = null; }
     it.rec = null;
   }
+  span('bld-batch', tb4);
   return { mesh, items: kept, stats };
 }

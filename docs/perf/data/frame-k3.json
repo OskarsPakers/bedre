@@ -1,0 +1,82 @@
+[
+ {
+  "profile": "desktop",
+  "map": "purvciems",
+  "tier": "low",
+  "label": "k3",
+  "runs": 2,
+  "view": {
+   "intro": {
+    "cpuMs": 3.15,
+    "simMs": 0.78,
+    "renderMs": 2.31,
+    "calls": 577,
+    "tris": 2680293,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.16,
+     3.15
+    ]
+   },
+   "r3": {
+    "cpuMs": 3.94,
+    "simMs": 2.15,
+    "renderMs": 1.8,
+    "calls": 108,
+    "tris": 875849,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.94,
+     4.49
+    ]
+   },
+   "r30": {
+    "cpuMs": 4.01,
+    "simMs": 1.81,
+    "renderMs": 2.13,
+    "calls": 177,
+    "tris": 1246560,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     4.01,
+     4.03
+    ]
+   },
+   "r90": {
+    "cpuMs": 3.23,
+    "simMs": 1,
+    "renderMs": 2.23,
+    "calls": 479,
+    "tris": 2472682,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.23,
+     3.41
+    ]
+   },
+   "zoomout": {
+    "cpuMs": 3.36,
+    "simMs": 1.14,
+    "renderMs": 2.22,
+    "calls": 440,
+    "tris": 2390109,
+    "frameP50": 16.7,
+    "frameP95": 16.7,
+    "frames": 151,
+    "cpuAll": [
+     3.56,
+     3.36
+    ]
+   }
+  },
+  "errs": []
+ }
+]

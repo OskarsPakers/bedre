@@ -79,8 +79,11 @@ async function boot() {
   setLoad(null, 'loadingBuild');
   await nextFrame(); // let the loading screen repaint before the long synchronous build
   const tb0 = performance.now();
+  performance.mark('bd:data-arrived');
   const world = new World(scene, data);
+  performance.mark('bd:world-built');
   window.__timing = { loadMs: Math.round(tb0 - tl0), buildMs: Math.round(performance.now() - tb0) };
+  performance.mark('bd:game-start');
   const game = new Game({ renderer, scene, world, canvas, botCount: params.has('bots') ? Math.max(0, Math.min(15, parseInt(params.get('bots'), 10) || 0)) : BOT_CAPACITY });
   if (params.get('introhold')) CFG.intro.hold = +params.get('introhold'); // test hook: linger on the overview
   if (params.get('intro') === '0') game.introEnabled = false;
@@ -97,7 +100,7 @@ async function boot() {
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
   window.__game = game.api();
   initLife({ renderer, scene, world, game, canvas });
-  window.__perf = { frames: 0, ms: 0 };
+  window.__perf = { frames: 0, ms: 0, simMs: 0, renderMs: 0 };
   initScoresUi();
   initOnline({ game, world });
   applyMapRules(game); // non-centre maps: unranked + no Online until the worker stores per-map boards
@@ -141,13 +144,16 @@ async function boot() {
     last = now;
     const t0 = performance.now();
     game.update(dt);
+    const t1 = performance.now();
     game.render();
-    window.__perf.frames++; window.__perf.ms += performance.now() - t0;
+    const t2 = performance.now();
+    const P = window.__perf; if (!P.first) { P.first = Math.round((t2 - t0) * 10) / 10; performance.mark('bd:first-frame'); } P.frames++; P.ms += t2 - t0; P.simMs += t1 - t0; P.renderMs += t2 - t1;
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
   hideLoading();
   if (params.get('autostart') === '1') game.start();
+  performance.mark('bd:ready');
   document.body.dataset.ready = '1';
 }
 

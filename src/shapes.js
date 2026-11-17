@@ -1,6 +1,7 @@
 // Loader for public/data/riga-shapes.bin.gz (built by tools/detail/build-meshes.mjs): measured heights for every building plus
 // simplified roof meshes + outline loops for notable / relief buildings. Optional: resolves null on any failure.
 import { CFG } from './config.js';
+import { span } from './perfMark.js';
 
 
 /** file triangle material -> render class (0/1 roof, 2 wall with windows, 3 spire / dome accent, 5 gilded accent, 6 plain wall-coloured tread); shared by buildings.js and tools/detail/roof-report.mjs */
@@ -29,7 +30,10 @@ export async function loadShapes() {
   try {
     const res = await fetch(CFG.shapesUrl);
     if (!res.ok) return null;
+    const ti = performance.now();
     const buf = await inflate(await res.arrayBuffer());
+    span('shapes-inflate', ti);
+    const td = performance.now();
     const dv = new DataView(buf);
     if (dv.getUint32(0, true) !== 0x31485342) return null; // 'BSH1'
     const hl = dv.getUint32(4, true);
@@ -53,6 +57,7 @@ export async function loadShapes() {
       recs.set(r[0], { id: r[0], nv: r[1], nt: r[2], nl: r[3], src: r[4], vol: r[5], hmax: r[6] / 10, eave: r[7] / 10, roofRGB: r[8], wallRGB: r[9] || 0, domeRGB: r[10] || 0, accentRGB: r[11] || 0, style: r[12] || 0, flags: r[13] || 0, ov, ot, ol });
       ov += r[1]; ot += r[2]; ol += r[3];
     }
+    span('shapes-decode', td);
     return { q: head.q, V, T, M, L, hs, recs, meta: head.meta };
   } catch (e) {
     console.info('[shapes] unavailable:', e.message);

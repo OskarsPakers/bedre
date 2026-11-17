@@ -1,0 +1,242 @@
+[
+ {
+  "map": "centrs",
+  "view": "small",
+  "theme": "day",
+  "any": 0,
+  "over8": 0,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-lod-centrs-small.png"
+ },
+ {
+  "map": "centrs",
+  "view": "medium",
+  "theme": "day",
+  "any": 0.015,
+  "over8": 0.015,
+  "over24": 0.015,
+  "meanDiff": 0.014,
+  "file": "scripts/out/perf-lod-centrs-medium.png"
+ },
+ {
+  "map": "centrs",
+  "view": "large",
+  "theme": "day",
+  "any": 2.133,
+  "over8": 0.09,
+  "over24": 0.065,
+  "meanDiff": 0.059,
+  "file": "scripts/out/perf-lod-centrs-large.png"
+ },
+ {
+  "map": "centrs",
+  "view": "intro",
+  "theme": "day",
+  "any": 24.705,
+  "over8": 2.508,
+  "over24": 0.543,
+  "meanDiff": 0.816,
+  "file": "scripts/out/perf-lod-centrs-intro.png"
+ },
+ {
+  "map": "centrs",
+  "view": "far",
+  "theme": "day",
+  "any": 14.737,
+  "over8": 4.538,
+  "over24": 1.161,
+  "meanDiff": 1.186,
+  "file": "scripts/out/perf-lod-centrs-far.png"
+ },
+ {
+  "map": "centrs",
+  "view": "forest",
+  "theme": "day",
+  "any": 0.015,
+  "over8": 0.012,
+  "over24": 0.01,
+  "meanDiff": 0.007,
+  "file": "scripts/out/perf-lod-centrs-forest.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "small",
+  "theme": "day",
+  "any": 0,
+  "over8": 0,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-lod-agenskalns-small.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "medium",
+  "theme": "day",
+  "any": 0.001,
+  "over8": 0.001,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-lod-agenskalns-medium.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "large",
+  "theme": "day",
+  "any": 0.116,
+  "over8": 0.059,
+  "over24": 0.042,
+  "meanDiff": 0.025,
+  "file": "scripts/out/perf-lod-agenskalns-large.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "intro",
+  "theme": "day",
+  "any": 15.529,
+  "over8": 3.366,
+  "over24": 0.754,
+  "meanDiff": 0.936,
+  "file": "scripts/out/perf-lod-agenskalns-intro.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "far",
+  "theme": "day",
+  "any": 21,
+  "over8": 5.111,
+  "over24": 1.239,
+  "meanDiff": 1.355,
+  "file": "scripts/out/perf-lod-agenskalns-far.png"
+ },
+ {
+  "map": "agenskalns",
+  "view": "forest",
+  "theme": "day",
+  "any": 0.017,
+  "over8": 0.014,
+  "over24": 0.01,
+  "meanDiff": 0.006,
+  "file": "scripts/out/perf-lod-agenskalns-forest.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "small",
+  "theme": "day",
+  "any": 0.258,
+  "over8": 0.258,
+  "over24": 0.256,
+  "meanDiff": 0.307,
+  "file": "scripts/out/perf-lod-mezaparks-small.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "medium",
+  "theme": "day",
+  "any": 0.12,
+  "over8": 0.114,
+  "over24": 0.107,
+  "meanDiff": 0.096,
+  "file": "scripts/out/perf-lod-mezaparks-medium.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "large",
+  "theme": "day",
+  "any": 28.686,
+  "over8": 1.383,
+  "over24": 0.415,
+  "meanDiff": 0.713,
+  "file": "scripts/out/perf-lod-mezaparks-large.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "intro",
+  "theme": "day",
+  "any": 19.687,
+  "over8": 2.245,
+  "over24": 0.731,
+  "meanDiff": 0.901,
+  "file": "scripts/out/perf-lod-mezaparks-intro.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "far",
+  "theme": "day",
+  "any": 30.079,
+  "over8": 4.447,
+  "over24": 1.079,
+  "meanDiff": 1.663,
+  "file": "scripts/out/perf-lod-mezaparks-far.png"
+ },
+ {
+  "map": "mezaparks",
+  "view": "forest",
+  "theme": "day",
+  "any": 0.021,
+  "over8": 0.016,
+  "over24": 0.01,
+  "meanDiff": 0.007,
+  "file": "scripts/out/perf-lod-mezaparks-forest.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "small",
+  "theme": "day",
+  "any": 0,
+  "over8": 0,
+  "over24": 0,
+  "meanDiff": 0,
+  "file": "scripts/out/perf-lod-purvciems-small.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "medium",
+  "theme": "day",
+  "any": 0.132,
+  "over8": 0.124,
+  "over24": 0.115,
+  "meanDiff": 0.114,
+  "file": "scripts/out/perf-lod-purvciems-medium.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "large",
+  "theme": "day",
+  "any": 1.652,
+  "over8": 0.2,
+  "over24": 0.149,
+  "meanDiff": 0.107,
+  "file": "scripts/out/perf-lod-purvciems-large.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "intro",
+  "theme": "day",
+  "any": 8.675,
+  "over8": 1.678,
+  "over24": 0.632,
+  "meanDiff": 0.544,
+  "file": "scripts/out/perf-lod-purvciems-intro.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "far",
+  "theme": "day",
+  "any": 39.514,
+  "over8": 4.124,
+  "over24": 1.408,
+  "meanDiff": 1.525,
+  "file": "scripts/out/perf-lod-purvciems-far.png"
+ },
+ {
+  "map": "purvciems",
+  "view": "forest",
+  "theme": "day",
+  "any": 0.004,
+  "over8": 0.003,
+  "over24": 0.003,
+  "meanDiff": 0.002,
+  "file": "scripts/out/perf-lod-purvciems-forest.png"
+ }
+]
