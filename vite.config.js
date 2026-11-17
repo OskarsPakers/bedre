@@ -42,7 +42,8 @@ const dataPreload = () => {
   };
   return {
     name: 'bedre-data-preload',
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
+      if (ctx && /^\/tramvajs\//.test(ctx.path || '')) return html; // tram prototype: own map (mezaparks) chosen by its code, not by ?map= / the main game's remembered district
       const js = `(function(){try{var T=${JSON.stringify(table())},u=new URLSearchParams(location.search);if(u.get('sample')==='1'||u.get('placements')==='generate')return;var s=u.get('map');if(!s){try{s=localStorage.getItem('bedre.map')}catch(e){}}if(!T[s])s='centrs';var f=T[s];window.__DATA={slug:s,files:f};var ua=navigator.userAgent,wk=/AppleWebKit/.test(ua)&&!/Chrome\\/|Chromium\\/|Edg\\/|OPR\\//.test(ua);if(!wk)f.forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='fetch';l.crossOrigin='anonymous';l.href=x[0];document.head.appendChild(l)})}catch(e){}})();`;
       return html.replace('</head>', `<script>${js}</script>\n</head>`);
     },
@@ -60,6 +61,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500,
     // three.js in its own long-cacheable chunk (game code changes far more often than the library)
     rolldownOptions: {
+      // multi-page build: the main game + the prototypes (each at its own subpath: /kur/, ...). Add new prototype entries to this list.
+      input: { main: 'index.html', kur: 'kur/index.html', tramvajs: 'tramvajs/index.html' },
       output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }] } },
     },
   },

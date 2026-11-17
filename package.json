@@ -9,6 +9,8 @@
     "check:mp": "node tools/mp/check-objects.mjs",
     "preview": "vite preview",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:kur": "node scripts/smoke-kur.mjs",
+    "smoke:tram": "node scripts/smoke-tram.mjs",
     "smoke:world": "node scripts/smoke-world.mjs",
     "smoke:matrix": "node scripts/smoke-matrix.mjs",
     "smoke:mobile": "node scripts/smoke-mobile.mjs",

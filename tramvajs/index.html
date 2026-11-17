@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="lv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#25323f" />
+  <title>Tramvaja vadītājs</title>
+  <meta name="description" content="Tramvaja vadītājs: a small 3D tram-driving prototype on the real tracks of Riga (Mežaparks end of line 11). Prototype of BEDRE — Rīga." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>html, body { margin: 0; height: 100%; background: #25323f; }</style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <div class="lg">Tramvaja vadītājs</div>
+    <div class="lbar"><div id="load-fill" class="indet"></div></div>
+    <div id="load-msg">…</div>
+  </div>
+  <canvas id="c" tabindex="-1"></canvas>
+  <noscript><p style="position:fixed;inset:0;margin:0;display:flex;align-items:center;justify-content:center;color:#fff;font:18px system-ui;z-index:200;background:#25323f">Tramvaja vadītājs needs JavaScript.</p></noscript>
+
+  <div id="hud" class="hidden">
+    <div id="strip"><div class="in">
+      <div class="l1"><span class="nm"><span class="k" data-i18n="next">Nākamā pietura</span><b id="st-name">—</b></span><span id="st-extra" class="k"></span></div>
+      <div class="l2"><span id="st-dist">— m</span><span id="st-due" class="due">—</span></div>
+      <div id="prog"></div>
+    </div></div>
+    <div id="align" class="hidden"></div>
+    <div id="msg"></div>
+    <div id="stoptoast" class="card hide"></div>
+    <div id="cab"></div>
+    <div id="state"></div>
+    <div id="speedo"><div class="limit" id="lim">50</div><div class="limit next hidden" id="lim2">25</div><div class="v" id="spd">0</div><div class="u"><span data-i18n="kmh">km/h</span></div></div>
+    <button class="tbtn" id="btn-doors" type="button"><span class="ic">⇄</span><span data-i18n="doors">Durvis</span></button>
+    <button class="tbtn" id="btn-bell" type="button"><span class="ic">🔔</span><span data-i18n="bell">Zvans</span></button>
+    <button class="tbtn" id="btn-cam" type="button"><span class="ic">👁</span><span data-i18n="cab">Kabīne</span></button>
+    <button class="tbtn" id="btn-eb" type="button"><span class="ic">!</span><span data-i18n="eb">Avārija</span></button>
+    <button class="tbtn" id="btn-pause" type="button" data-i18n-aria="pause" aria-label="Pauze">II</button>
+    <div id="lever" role="slider" aria-label="Svira" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0">
+      <div class="zp"></div><div class="zb"></div><div class="mid"></div>
+      <div class="lb t" data-i18n="power">Vilkme</div><div class="lb b" data-i18n="brake">Bremze</div>
+      <div class="knob" id="knob"></div>
+    </div>
+  </div>
+
+  <div id="start" class="overlay hidden"><div class="card panel">
+    <div class="board" id="board">11 Mežaparks</div>
+    <h1 data-i18n="title">Tramvaja vadītājs</h1>
+    <p id="how"></p>
+    <div class="seg" id="runsel" role="group">
+      <button type="button" data-run="short" aria-pressed="true"></button>
+      <button type="button" data-run="full" aria-pressed="false"></button>
+    </div>
+    <p class="muted" id="route-info"></p>
+    <button class="btn primary" id="play" type="button" disabled data-i18n="play">Braukt</button>
+    <div class="row"><a class="back" href="/" id="back"></a><div class="langs"><button type="button" data-lang="lv" aria-pressed="false">LV</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
+    <footer id="foot"></footer>
+  </div></div>
+
+  <div id="pause" class="overlay hidden"><div class="card panel"><h1 data-i18n="paused">Pauze</h1><button class="btn primary" id="resume" type="button" data-i18n="resume">Turpināt</button></div></div>
+
+  <div id="result" class="overlay hidden"><div class="card panel">
+    <div class="board" id="res-board"></div>
+    <h1 data-i18n="resTitle">Brauciens pabeigts</h1>
+    <div class="stars" id="res-stars"></div>
+    <div class="total"><span><span class="k" data-i18n="points">Punkti</span></span><span class="n" id="res-pts">0</span></div>
+    <table class="res" id="res-table"></table>
+    <p class="muted" id="res-extra"></p>
+    <button class="btn primary" id="again" type="button" data-i18n="again">Braukt vēlreiz</button>
+    <div class="row"><a class="back" href="/" id="back2"></a></div>
+    <footer id="foot2"></footer>
+  </div></div>
+
+  <script type="module" src="/src/proto/tram/main.js"></script>
+</body>
+</html>
