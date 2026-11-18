@@ -16,7 +16,7 @@ import { mulberry32 } from './rng.js';
 export const BOT_NAMES = [
   'Jānis', 'Līga', 'Kaķis', 'Rūķis', 'Laima', 'Bebrs', 'Ūdris', 'Zaķis', 'Lācis', 'Vilks', 'Pūce', 'Dzintars', 'Zane', 'Ieva',
   'Māris', 'Baiba', 'Uldis', 'Kārlis', 'Ilze', 'Gundega', 'Kurmis', 'Ezis', 'Vāvere', 'Sprīdītis', 'Čiekurs', 'Mārtiņš',
-  'Dzeguze', 'Lāsma', 'Saulīte', 'Mežavīrs', 'Pelmeņš', 'Rasa',
+  'Dzeguze', 'Lāsma', 'Saulīte', 'Mežavīrs', 'Pelmenis', 'Rasa',
 ];
 
 const TAU = Math.PI * 2;
