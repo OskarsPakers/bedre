@@ -14,7 +14,8 @@ export function loadTableFile(distDir) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export class Bot {
-  constructor({ base, name, table, token }) {
+  constructor({ base, name, table, token, sk, priv }) {
+    this.sk = sk; this.priv = !!priv;   // priv: join() takes a private room code
     this.base = base; this.name = name; this.table = table;
     this.token = token || 'bot' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
     this.me = -1; this.x = 0; this.z = 0; this.r = 2.2; this.score = 0;
@@ -25,12 +26,12 @@ export class Bot {
   async join(room) {
     if (!room) { const j = await (await fetch(this.base + '/api/mp/join', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).json(); room = j.room; }
     this.room = room;
-    const ws = new WebSocket(`${this.base.replace('http', 'ws')}/api/mp/ws?room=${room}`);
+    const ws = new WebSocket(`${this.base.replace('http', 'ws')}/api/mp/ws?${this.priv ? 'priv' : 'room'}=${room}`);
     this.ws = ws;
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error('ws error')); });
     ws.onmessage = (ev) => this.onMsg(JSON.parse(ev.data));
     ws.onclose = () => { this.closed = true; clearInterval(this.timer); };
-    this.send({ t: 'hello', v: PROTOCOL_VERSION, name: this.name, token: this.token, hash: this.table.hash });
+    this.send({ t: 'hello', v: PROTOCOL_VERSION, name: this.name, token: this.token, hash: this.table.hash, ...(this.sk ? { sk: this.sk } : null) });
     this.pingT = setInterval(() => this.send({ t: 'ping', c: performance.now(), r: 0 }), 2500);
     return room;
   }
@@ -38,7 +39,7 @@ export class Bot {
   onMsg(m) {
     this.msgs.push(m); if (this.msgs.length > 400) this.msgs.shift();
     switch (m.t) {
-      case 'lobby': this.state = 'lobby'; this.me = m.you; this.players = m.players; break;
+      case 'lobby': this.state = 'lobby'; this.me = m.you; this.players = m.players; this.lobbyMsg = m; break;
       case 'start': case 'resume':
         this.state = 'playing'; this.me = m.you;
         for (const h of m.holes) { this.holes.set(h.id, { ...h, r: 2.2, score: 0 }); if (h.id === m.you) { this.x = h.x; this.z = h.z; } }
@@ -63,7 +64,7 @@ export class Bot {
       case 'rb': this.x = m.x; this.z = m.z; break;
       case 'end': this.state = 'ended'; this.final = m.rank; break;
       case 'err': this.errCode = m.code; break;
-      case 'saved': this.saved = m.ok; break;
+      case 'saved': this.saved = m.ok; this.savedMsg = m; break;
       default: break;
     }
   }

@@ -13,6 +13,8 @@ import { drawRecapMap, drawSpark, areaRows } from './recap.js';
 import { renderCard, shareCard, copyLink, SITE } from './share.js';
 import { getMode } from '../modes.js';
 import { initRetention } from './retention.js';
+import { noteMeta, awardRound } from './wardrobe.js';
+import { initWardrobeUi } from './wardrobeUi.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
@@ -132,7 +134,7 @@ export async function initMeta({ game, world }) {
     banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
   }
 
-  const unlockToast = (d) => { R.newAch.push(d.id); toast('★', mt('achUnlocked', { name: achName(d) }), { ms: 4600 }); };
+  const unlockToast = (d) => { R.newAch.push(d.id); noteMeta({ ach: [d.id] }); toast('★', mt('achUnlocked', { name: achName(d) }), { ms: 4600 }); };
   const evalAch = () => { if (!debugRound()) evaluate(defs, unlockToast); };
 
   // ---- events --------------------------------------------------------------------------------------------------------
@@ -162,6 +164,7 @@ export async function initMeta({ game, world }) {
       if (e.type === 'church' && churchIds.has(e.id)) R.churches.add(e.id);
       if (collect(album, e, load().ctr.rounds + 1)) {
         R.newAlbum.push(e.id);
+        noteMeta({ album: collectedCount(album) });
         toast('📖', mt('newAlbum', { name: lname(e), n: collectedCount(album), total: album.entries.length }));
         evalAch();
       }
@@ -320,8 +323,25 @@ export async function initMeta({ game, world }) {
     }
     drawPct(); evalAch(); save();
     if (ret) ret.onRoundEnd(res);   // streak + weekly goals commit (eligible rounds only), before the recap lists them
+    giveXp(res);
     buildRecap();
+    { const nw = wd.extras($('rt-ach')); const bd = $('rt-badge'); if (nw && bd) { bd.textContent = String((+bd.textContent || 0) + nw); bd.hidden = false; } }   // unlocked skins count as new progress
   });
+  // XP: every eligible finished round (the streak's rule: not free roam, no debug hook, min(60 s, half the round) played)
+  let roundRewards = [], xpFor = null;
+  bus.on('rewardUnlocked', (id) => roundRewards.push(id));
+  function giveXp(res) {
+    if (!res || xpFor === res) return;
+    xpFor = res;
+    const free = document.body.classList.contains('mode-free') || game.unranked === 'free';
+    const lastS = ret && ret.lastStreak();
+    const a = awardRound({ eligible: eligibleNow(), mode: free ? 'free' : game.online || res.online ? 'online' : getMode(), rank: res.rank, total: res.total, score: res.score, rewards: roundRewards, streak: lastS ? lastS.cur : 0 });
+    roundRewards = [];
+    if (!free) wd.showAward(a);
+    wd.refreshAll();
+    window.__lastXp = a;
+  }
+  bus.on('introStart', () => { roundRewards = []; xpFor = null; wd.clearAward(); });
   bus.on('introStart', () => { clearToasts(); for (const id of ['rt-map', 'rt-ach', 'r-share']) { const e = $(id); if (e) e.replaceChildren(); } const bd = $('rt-badge'); if (bd) bd.hidden = true; recapInfo = null; });
 
   // ---- "My progress" panel + entry buttons ---------------------------------------------------------------------------
@@ -331,17 +351,19 @@ export async function initMeta({ game, world }) {
   const tbA = el('button', '', ''); tbA.type = 'button'; tbA.dataset.tab = 'album'; tbA.setAttribute('role', 'tab');
   const tbB = el('button', '', ''); tbB.type = 'button'; tbB.dataset.tab = 'ach'; tbB.setAttribute('role', 'tab');
   const tbC = el('button', '', ''); tbC.type = 'button'; tbC.dataset.tab = 'week'; tbC.setAttribute('role', 'tab');
-  tabs.append(tbA, tbB, tbC);
+  const tbD = el('button', '', ''); tbD.type = 'button'; tbD.dataset.tab = 'wardrobe'; tbD.setAttribute('role', 'tab');
+  tabs.append(tbA, tbB, tbC, tbD);
   const body = el('div', 'mp-body'); body.id = 'mp-body';
   const close = el('button', 'btn small', ''); close.type = 'button'; close.id = 'mp-close';
   inner.append(h2, tabs, body, close); panel.append(inner); document.body.appendChild(panel);
   let tab = 'album';
   function renderTab() {
     h2.textContent = mt('progTitle'); close.textContent = mt('close');
-    tbA.textContent = mt('tabAlbum'); tbB.textContent = mt('tabAch'); tbC.textContent = mt('tabWeek');
+    tbA.textContent = mt('tabAlbum'); tbB.textContent = mt('tabAch'); tbC.textContent = mt('tabWeek'); tbD.textContent = mt('tabWardrobe');
+    tbD.setAttribute('aria-selected', String(tab === 'wardrobe'));
     tbA.setAttribute('aria-selected', String(tab === 'album')); tbB.setAttribute('aria-selected', String(tab === 'ach')); tbC.setAttribute('aria-selected', String(tab === 'week'));
     const top = body.scrollTop;
-    if (tab === 'album') renderAlbum(body, album); else if (tab === 'week' && ret) ret.renderWeek(body); else renderAchievements(body, defs);
+    if (tab === 'album') renderAlbum(body, album); else if (tab === 'week' && ret) ret.renderWeek(body); else if (tab === 'wardrobe') wd.renderTab(body); else renderAchievements(body, defs);
     body.scrollTop = top;
   }
   const open = (which) => { if (which) tab = which; renderTab(); panel.classList.remove('hidden'); close.focus(); };
@@ -349,6 +371,7 @@ export async function initMeta({ game, world }) {
   tbA.addEventListener('click', () => { tab = 'album'; renderTab(); });
   tbB.addEventListener('click', () => { tab = 'ach'; renderTab(); });
   tbC.addEventListener('click', () => { tab = 'week'; renderTab(); });
+  tbD.addEventListener('click', () => { tab = 'wardrobe'; renderTab(); });
   close.addEventListener('click', shut);
   panel.addEventListener('pointerdown', (e) => { if (e.target === panel) shut(); });
   window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.classList.contains('hidden')) { shut(); e.stopPropagation(); } }, true);
@@ -361,13 +384,15 @@ export async function initMeta({ game, world }) {
     const b = mkBtn(id); btns.push(b);
     row.prepend(b); // start screen: CSS turns it into a corner pill on desktop (always visible, adds no height); mobile keeps it in the link row
   }
-  const lab = () => { for (const b of btns) b.textContent = '★ ' + mt('myProgress'); };
+  const wd = initWardrobeUi({ game, openPanel: (w) => open(w) });
+  const lab = () => { for (const b of btns) wd.decorate(b); };
+  noteMeta({ ach: Object.keys(load().ach || {}), album: Object.keys(load().album || {}).length });
   lab(); onLang(lab);
   const eligibleNow = () => realRound() && !debugRound();
   ret = initRetention({ game, world, album, areaAt, toast, openPanel: open, eligibleNow, eligibleEnd: eligibleNow });
 
   const api = {
-    ret, album, defs, R, areas, total, areaTotal, open, close: shut, store: load, toast, buildRecap, makeCard, evalAch,
+    wd, ret, album, defs, R, areas, total, areaTotal, open, close: shut, store: load, toast, buildRecap, makeCard, evalAch,
     get pct() { return { all: R.pctAll, me: R.pctMe }; },
     collectedCount: () => collectedCount(album),
     areaOfPlayer: () => (areaAt(game.player.x, game.player.z) || {}).id || null,

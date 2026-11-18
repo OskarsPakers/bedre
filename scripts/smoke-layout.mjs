@@ -74,6 +74,28 @@ for (const vp of VPS) {
       await A(state);
       await page.keyboard.press('Escape'); await sleep(200);
     }
+    // friend rooms + wardrobe panels (fake data: no server needed): create / join panel, "room is gone" dialog, the private lobby of a host with 12 players, a guest, a late arrival
+    await page.evaluate(() => document.getElementById('play-friends').click()); await sleep(250);
+    await A('friends');
+    await page.evaluate(() => window.__online.ui.friends.showFriends(false));
+    await page.evaluate(() => window.__online.ui.friends.showNoRoom(true, { onNew() {}, onClose() {} })); await sleep(200);
+    await A('noroom');
+    await page.evaluate(() => window.__online.ui.friends.showNoRoom(false));
+    const priv = (extra) => page.evaluate((x) => {
+      const names = ['Anna', 'Jānis', 'Kristaps-Rūdolfs', 'Līga', 'Ģirts', 'Zane', 'Mārtiņš', 'Baiba', 'Uldis', 'Ilze', 'Roberts', 'Dace'];
+      const players = names.slice(0, x.n).map((name, i) => ({ id: i, name, color: [0xe8572f, 0x2f8fe8, 0xe8b82f, 0x7c4fd0, 0x2fb58c, 0xd0408a][i % 6], sk: [i % 5, 0, 0] }));
+      window.__online.ui.friends.privUpdate({ code: 'K7M2QX', me: x.me, host: 0, max: 12, cfg: { len: 300, bots: true }, ranked: x.n > 1, botsTo: 8, wait: !!x.wait, players, running: x.wait ? { timeLeft: 83, top: [{ n: 'Anna', s: 4120, b: false }, { n: 'Kaķis', s: 3011, b: true }, { n: 'Līga', s: 2800, b: true }, { n: 'Jānis', s: 1500, b: false }, { n: 'Bebrs', s: 900, b: true }], phase: 'playing' } : null });
+      window.__online.ui.friends.showPriv(true);
+    }, extra);
+    await priv({ n: 12, me: 0 }); await sleep(300); await A('priv-host-12');
+    await priv({ n: 3, me: 2 }); await sleep(300); await A('priv-guest');
+    await priv({ n: 2, me: 1, wait: true }); await sleep(300); await A('priv-wait');
+    await page.evaluate(() => window.__online.ui.friends.showPriv(false));
+    for (const tabName of ['wardrobe']) {
+      await page.evaluate((w) => window.__meta.open(w), tabName); await sleep(700);
+      await A('progress-' + tabName);
+      await page.evaluate(() => window.__meta.close());
+    }
     // solo play
     await page.evaluate(() => { window.__game.start(); window.__game.skipIntro(); });
     await sleep(800);
@@ -97,6 +119,12 @@ for (const vp of VPS) {
     await page.evaluate(() => window.__life.game.end());
     await sleep(700);
     await A('results');
+    await page.evaluate(() => window.__meta.wd.showAward({ total: 182, base: 80, place: 40, score: 62, goals: 0, streak: 0, levelUp: true, items: [[0, 1], [2, 1]], before: { level: 7 }, after: { level: 8, frac: 0.4 } }));
+    await sleep(900);
+    await A('results-levelup');
+    await page.evaluate(() => { window.__meta.wd.extras(document.getElementById('rt-ach')); window.__ui.showTab('ach'); });
+    await sleep(300);
+    await A('results-levelup-progress');
     if (errs.length) { fails++; console.log(`FAIL  ${vp.name}/${lang} page errors: ${errs.slice(0, 2).join(' | ')}`); }
     await ctx.close();
   }

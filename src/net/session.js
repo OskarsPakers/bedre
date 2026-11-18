@@ -17,7 +17,7 @@ export function tabId() {
 }
 
 function valid(r, now) {
-  return !!r && typeof r === 'object' && typeof r.room === 'string' && /^[a-z0-9]{6,24}$/.test(r.room) && typeof r.token === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(r.token)
+  return !!r && typeof r === 'object' && typeof r.room === 'string' && /^[A-Za-z0-9]{6,24}$/.test(r.room) && typeof r.token === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(r.token)
     && typeof r.exp === 'number' && r.exp > now;
 }
 

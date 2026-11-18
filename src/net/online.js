@@ -16,7 +16,9 @@ import { MpClient, fetchStatus } from './client.js';
 import { expectedHash } from '../placements.js';
 import { OnlineUi } from './ui.js';
 import { loadSession, saveSession, clearSession, ownedElsewhere, RESULTS_MARGIN_MS } from './session.js';
-import { MP } from '../../worker/mp/protocol.js';
+import { MP, validCode, normCode, PROTOCOL_VERSION as MP_VERSION } from '../../worker/mp/protocol.js';
+import { equippedSkin } from '../meta/wardrobe.js';
+import { SKINS } from '../skins.js';
 
 export const MP_COLORS = [...CFG.holeColors, 0x2fa0b5, 0xff8a5c, 0x6c7be0, 0xb0a02f];
 const INTERP_MS = 130;       // remote holes are drawn this far in the past (smooth between 10 Hz snapshots)
@@ -56,12 +58,112 @@ export class OnlineMode {
     this._hash = world.placements ? world.placements.hash : null; // content id of the placement file the world was built from (null = fallback world)
     this.client.onMessage = (m) => this._onMessage(m);
     this.client.onClose = (info) => this._onClose(info);
-    this.ui.mountButton(() => this.begin());
+    this.ui.mountButton(() => this.begin(), () => this.openFriends());
     this.ui.onLeave(() => this.leave());
     this._menuBtn = null;
+    this.priv = null;                 // {code} while in a private (friend) room
+    this.mySk = null;                 // the skin ids sent in the hello (cosmetic, client-trusted)
+    this.privEnd = null;
+    this.ui.friends.onFriends({ create: () => this._guard(() => this.createPrivate()), join: (c) => this._guard(() => this.joinPrivate(c)) });
+    this.ui.friends.onPriv({
+      leave: () => this.leave(), start: () => this.client.send({ t: 'go' }),
+      cfg: (p) => { const c = (this.lobby && this.lobby.cfg) || { len: 300, bots: true }; this.client.send({ t: 'cfg', len: p.len ?? c.len, bots: p.bots ?? c.bots }); },
+      rematch: () => this.rematch(),
+    });
     if (!this._hash && !(CFG.map && CFG.map.slug !== 'centrs')) this.ui.setStatus(t('mpNoData')); // fallback world (placement file missing / stale): solo only, no blame
     this._hbT = null; this._rejoinRec = null;
-    setTimeout(() => this.checkSession(), 0);
+    setTimeout(() => { if (!this._linkRoom()) this.checkSession(); }, 0);
+  }
+
+  // ---- friend rooms: entry points ---------------------------------------------------------------------------------------------
+  _mySkin() { this.mySk = equippedSkin(); this.game.player.skin = this.mySk; return this.mySk; }
+  _connect(room, name) { return this.client.connect(room, { name, hash: this._hash, sk: this.mySk || this._mySkin(), priv: this.priv ? true : undefined }); }
+
+  /** A live session record of ANOTHER room (a running round) is never silently dropped: offer to go back to it or to leave it for the new action. */
+  _guard(next, code = null) {
+    const rec = loadSession();
+    if (!rec || (code && rec.room === code)) { if (rec && code) return this.rejoin(rec); return next(); }
+    if (this.state !== 'idle' && this.state !== 'error') return;
+    this.ui.friends.showFriends(false);
+    const left = rec.endAt ? Math.max(0, Math.round((rec.endAt - Date.now()) / 1000)) : 0;
+    const ended = !!rec.ended || (rec.endAt && left <= 0);
+    this.ui.showRejoin({
+      text: ended ? t('mpRejoinEnded') : t('mpRejoinBusy', { t: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` }),
+      label: ended ? t('mpRejoinResults') : t('mpRejoinYes'), no: t('mpRejoinLeaveGo'), auto: 0, alive: () => true,
+      onYes: () => this.rejoin(rec), onNo: () => { clearSession(); next(); },
+    });
+  }
+
+  openFriends() {
+    if (this.state !== 'idle' && this.state !== 'error') return;
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; }
+    this.ui.friends.showFriends(true);
+  }
+
+  /** `?room=CODE` in the address: join that private room's lobby directly (the code stays in the URL, so a reload of the lobby comes back to it). */
+  _linkRoom() {
+    let code = null;
+    try { const q = new URLSearchParams(location.search).get('room'); if (q) code = normCode(q); } catch { /* */ }
+    if (!code) return false;
+    if (!validCode(code)) { this.ui.friends.showNoRoom(true, { onNew: () => this._guard(() => this.createPrivate()), onClose: () => this._dropLinkParam() }); return true; }
+    if (CFG.map && CFG.map.slug !== 'centrs') { const u = new URL(location.href); u.searchParams.set('map', 'centrs'); location.replace(u.toString()); return true; }   // online is centre-only
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return true; }
+    this._guard(() => this.joinPrivate(code), code);
+    return true;
+  }
+  _dropLinkParam() { try { const u = new URL(location.href); if (u.searchParams.has('room')) { u.searchParams.delete('room'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } } catch { /* */ } }
+
+  async createPrivate() {
+    if (this.state !== 'idle' && this.state !== 'error') return;
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; }
+    const f = this.ui.friends;
+    f.friendsBusy(true);
+    let j = null;
+    try { j = await this.client.createRoom(); }
+    catch (e) { f.friendsBusy(false); f.showFriends(true, t(e && e.status === 429 ? 'mpTooMany' : 'mpUnavailable')); return; }
+    f.friendsBusy(false); f.showFriends(false);
+    if (!j || !validCode(j.code)) { this.ui.setStatus(t('mpUnavailable')); return; }
+    await this._enterPrivate(j.code);
+  }
+
+  async joinPrivate(codeRaw) {
+    if (this.state !== 'idle' && this.state !== 'error') return;
+    const code = normCode(codeRaw), f = this.ui.friends;
+    if (!validCode(code)) { f.showFriends(true, t('mpBadCode')); return; }
+    if (!this._hash) { this.ui.setStatus(t('mpNoData')); return; }
+    f.friendsBusy(true);
+    try { await this.client.roomInfo(code); }
+    catch (e) {
+      f.friendsBusy(false);
+      if (e && e.status === 404) { f.showFriends(false); this._dropLinkParam(); f.showNoRoom(true, { onNew: () => this._guard(() => this.createPrivate()) }); }
+      else if (e && e.status === 429) f.showFriends(true, t('mpTooMany'));
+      else f.showFriends(true, t('mpUnavailable'));
+      return;
+    }
+    f.friendsBusy(false); f.showFriends(false);
+    await this._enterPrivate(code);
+  }
+
+  async _enterPrivate(code) {
+    const g = this.game;
+    this._enterOnline();
+    this.priv = { code };
+    this.room = code;
+    this.state = 'connecting';
+    this.ui.setStatus(t('mpConnecting'), true);
+    try { const u = new URL(location.href); u.searchParams.set('room', code); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch { /* */ }
+    try { await this._connect(code, g.hud.getName(CFG.playerName)); }
+    catch { if (this.state === 'connecting') this._fail('mpUnavailable'); }
+  }
+
+  /** At the results of a private round: everybody still connected goes back to the same lobby (one tap). */
+  async rematch() {
+    if (!this.priv) return;
+    if (this.client.open) { this.client.send({ t: 'rematch' }); return; }
+    const code = this.priv.code;
+    this._removeMenuBtn(); this.game.hud.showResults(false);
+    this.state = 'idle'; this.client.close(true);
+    await this.joinPrivate(code);
   }
 
   // ---- session record (reload / evicted tab -> back into the running round) ---------------------------------------------
@@ -70,7 +172,7 @@ export class OnlineMode {
     const g = this.game, rows = g.rows || [], me = rows.find((r) => r.isPlayer);
     const endAt = this.round ? this.round.endAt : (this._rejoinRec ? this._rejoinRec.endAt : 0);
     saveSession({
-      room: this.room, token: this.client.token, name: g.player.name, hash: this._hash, id: this.me, endAt, ended: this.state === 'ended',
+      room: this.room, priv: !!this.priv, token: this.client.token, name: g.player.name, hash: this._hash, id: this.me, endAt, ended: this.state === 'ended',
       exp: endAt - this.client.offset + RESULTS_MARGIN_MS,   // round end (local clock) + the room's results time + slack
       last: { score: Math.round(g.player.score), rank: me ? me.rank : 0, total: rows.length },
     });
@@ -115,7 +217,7 @@ export class OnlineMode {
       if (!j || !j.room) throw new Error('matchmake');
       this.room = j.room;
       this.state = 'connecting';
-      await this.client.connect(this.room, { name: g.hud.getName(CFG.playerName), hash: this._hash });
+      await this._connect(this.room, g.hud.getName(CFG.playerName));
       // the server answers with {t:'lobby'} (or {t:'err'})
     } catch (e) {
       if (this.state === 'matching' || this.state === 'connecting') this._fail('mpUnavailable');
@@ -141,12 +243,13 @@ export class OnlineMode {
     this.ui.hideRejoin();
     this._enterOnline();
     this._rejoinRec = rec;
+    this.priv = rec.priv ? { code: rec.room } : null;
     this.client.setToken(rec.token);
     this.room = rec.room;
     this.state = 'rejoining';
     this.ui.setStatus(t('mpConnecting'), true);
     for (let i = 0; i < 3 && this.state === 'rejoining'; i++) {
-      try { await this.client.connect(rec.room, { name: rec.name || this.game.hud.getName(CFG.playerName), hash: this._hash }); return; } // answered by {t:'resume'} / {t:'left'} / {t:'err'}
+      try { await this._connect(rec.room, rec.name || this.game.hud.getName(CFG.playerName)); return; } // answered by {t:'resume'} / {t:'left'} / {t:'err'}
       catch { if (this.state === 'rejoining') await sleep(1200); }
     }
     if (this.state !== 'rejoining') return;
@@ -174,10 +277,14 @@ export class OnlineMode {
     this.rec = null;
     this.state = 'idle';
     this.ui.showLobby(false);
+    this.ui.friends.showPriv(false);
     this.ui.setButtonBusy(false);
     this.ui.setStatus('');
     document.body.classList.remove('mp-online');
     this._removeMenuBtn();
+    this._againLabel(false);
+    if (this.priv) this._dropLinkParam();
+    this.priv = null; this.privEnd = null; this.lobby = null;
     if (this._enter) {
       this._enter = false;
       const s = this._solo;
@@ -200,7 +307,14 @@ export class OnlineMode {
 
   /** Game.start() hook: Play again / Enter / Space while in online mode. */
   onStart() {
-    if (this.state === 'ended') this.playAgain();
+    if (this.state === 'ended') { if (this.priv) this.rematch(); else this.playAgain(); }
+  }
+
+  /** The results button of a private round says "Rematch with friends" (everybody goes back to the same lobby). */
+  _againLabel(on) {
+    const again = document.getElementById('again'); if (!again) return;
+    if (on) { if (!again.dataset.label) again.dataset.label = again.textContent; again.textContent = t('mpRematch'); }
+    else if (again.dataset.label) { again.textContent = again.dataset.label; delete again.dataset.label; }
   }
 
   async playAgain() {
@@ -247,6 +361,7 @@ export class OnlineMode {
         if (p.alive && !p.dying) { p.x = m.x; p.z = m.z; p.vx = p.vz = 0; this.game.cam.snap(p); }
         return;
       }
+      case 'wait': { if (this.lobby) { this.lobby.running = { timeLeft: m.timeLeft, top: m.top, phase: m.phase }; this._lobbyTick(); } return; }
       case 'end': return this._onEnd(m);
       case 'saved': this.saved = m.ok; this._note(m); this._showSaved(); return;
       case 'err': this._note(m); return this._onErr(m);
@@ -257,7 +372,13 @@ export class OnlineMode {
   _note(m) { this.log.push({ ...m, at: Date.now() }); if (this.log.length > 60) this.log.shift(); }
 
   _onErr(m) {
-    if (m.code === 'version') return this._versionRefused();
+    if (m.code === 'version') return this._versionRefused(m);
+    if (this.priv && this.state !== 'rejoining') {   // private rooms never retry through public matchmaking
+      if (m.code === 'full') return this._fail('mpFull');
+      if (m.code === 'ratelimit' || m.code === 'name') return this._fail('mpUnavailable');
+      if (m.code === 'left') return this._fail('mpLeft');
+      this.leave(); this.ui.friends.showNoRoom(true, { onNew: () => this._guard(() => this.createPrivate()) }); return;   // closed / gone / unknown: the friendly dialog
+    }
     if (this.state === 'rejoining') return this._rejoinOver(m.code === 'left' || m.code === 'started' ? 'left' : 'room');
     const inRound = this.state === 'intro' || this.state === 'playing';
     const map = { left: 'mpLeft', started: inRound ? 'mpLeft' : 'mpStarted', full: 'mpFull', room: 'mpGone', gone: 'mpGone', name: 'mpUnavailable', ratelimit: 'mpUnavailable' };
@@ -270,7 +391,7 @@ export class OnlineMode {
   }
 
   /** The server expects another placement file than ours. Only a genuinely stale tab gets a reload offer: re-fetch the (never cached) manifest and compare with what this code was released with. */
-  async _versionRefused() {
+  async _versionRefused(m) {
     this._retries = 0;
     this._fail('mpUnavailable');          // back to the menu with the plain, blame-free message first
     let fresh = false;
@@ -281,6 +402,7 @@ export class OnlineMode {
       const h = man && man.maps && man.maps[slug] && man.maps[slug].hash;
       fresh = !!h && h !== expectedHash(slug);
     } catch { /* offline / blocked: keep the plain message */ }
+    if (m && m.sv && m.sv !== MP_VERSION) fresh = true;    // the server speaks another protocol version than this (stale) tab: a reload is the fix
     if (fresh && this.state === 'idle') this.ui.setStatus(t('mpNewVersion'), false, { label: t('mpReload'), run: () => hardReload() });
   }
 
@@ -288,6 +410,7 @@ export class OnlineMode {
     if (info && info.code === 4001 && this.state !== 'idle') return this._fail('mpOtherTab', true);   // the same session joined from another tab: the newer one wins
     if (this.state === 'rejoining') return;
     if (this.state === 'intro' || this.state === 'playing') return this._startReconnect();
+    if (this.state === 'lobby' && this.priv) return this._privReconnect();   // a friend lobby survives a dropped socket (the server keeps the host role for a few seconds)
     if (this.state === 'lobby' || this.state === 'connecting') return this._fail('mpUnavailable');
     // ended / idle: nothing to do (the server closes the room after the results)
   }
@@ -297,21 +420,32 @@ export class OnlineMode {
     this._retries = 0;
     const g = this.game;
     this.me = m.you; this.room = m.room || this.room;
+    const prev = this.lobby;
     this.lobby = m;
+    if (m.priv && !this.priv) this.priv = { code: m.code };
     if (this.state !== 'lobby') {
+      const fromRound = this.state === 'ended' || this.state === 'playing' || this.state === 'intro';
       this.state = 'lobby';
       this.ui.setStatus('');
+      if (fromRound) {   // rematch: back to a clean city, the results are gone
+        clearSession(); clearInterval(this._hbT); this._hbT = null;
+        g.world.reset(); restoreMoved(g.world); g.puView.clear(); g.holeViews.clearTrails(); this._removeMenuBtn(); this._againLabel(false); this.saved = null; this.privEnd = null; g.hud.clearTransient(); this.rec = null;
+      }
       g.hud.showStart(false); g.hud.showResults(false); g.hud.showHud(false); g.hud.showTags(false);
       this._clearHoles();
       g.holes = [g.player];
       g.phase = 'menu';
       this._overviewCam();
-      this.ui.showLobby(true);
       clearInterval(this.lobbyTimer); clearInterval(this.statusT);
       this.lobbyTimer = setInterval(() => this._lobbyTick(), 500);
-      this._pollStatus();
-      this.statusT = setInterval(() => this._pollStatus(), 2500);
+      if (m.priv) { this.ui.showLobby(false); this.ui.friends.showPriv(true); }
+      else {
+        this.ui.showLobby(true);
+        this._pollStatus();
+        this.statusT = setInterval(() => this._pollStatus(), 2500);
+      }
     }
+    if (m.priv && prev && prev.host !== m.you && m.host === m.you && prev.you === m.you && window.__metaToast) window.__metaToast('★', t('mpHostMigrated'), { ms: 3200 });
     this._lobbyTick();
   }
 
@@ -323,6 +457,13 @@ export class OnlineMode {
   _lobbyTick() {
     const m = this.lobby;
     if (!m || this.state !== 'lobby') return;
+    if (m.priv) {
+      this.ui.friends.privUpdate({
+        code: m.code, me: this.me, host: m.host, max: m.max, cfg: m.cfg, ranked: m.ranked, botsTo: MP.totalHoles, wait: !!m.wait, running: m.running || null,
+        players: m.players.map((p) => ({ id: p.id, name: p.name, color: MP_COLORS[p.slot % MP_COLORS.length], sk: p.sk })),
+      });
+      return;
+    }
     const startsIn = m.startsAt == null ? null : Math.ceil((m.startsAt - this.client.serverNow()) / 1000);
     const run = this.status && this.status.running && this.status.running[0];
     this.ui.lobbyUpdate({
@@ -356,10 +497,10 @@ export class OnlineMode {
       let hole;
       if (h.id === m.you) {
         hole = g.player; hole.id = h.id; hole.name = h.name; hole.color = new THREE.Color(MP_COLORS[h.slot % MP_COLORS.length]); hole.isBot = false;
-        hole.reset(h.x, h.z);
+        hole.skin = h.sk || this.mySk; hole.reset(h.x, h.z);
       } else {
         hole = new Hole({ id: h.id, name: h.name, color: MP_COLORS[h.slot % MP_COLORS.length], x: h.x, z: h.z });
-        hole.isBot = !!h.bot; hole.remote = true; hole.buf = [{ T: m.startAt, x: h.x, z: h.z, r: CFG.hole.startRadius }];
+        hole.isBot = !!h.bot; hole.remote = true; hole.skin = h.sk || null; hole.buf = [{ T: m.startAt, x: h.x, z: h.z, r: CFG.hole.startRadius }];
         hole.srvState = 0;
         holes.push(hole); this.remotes.push(hole);
       }
@@ -373,7 +514,7 @@ export class OnlineMode {
     this.me = m.you; this.room = m.room || this.room;
     this.round = m;
     clearInterval(this.lobbyTimer); clearInterval(this.statusT);
-    this.ui.showLobby(false);
+    this.ui.showLobby(false); this.ui.friends.showPriv(false);
     g.world.reset(); restoreMoved(g.world);
     this.drive = null;
     this.serverEaten.clear(); this.mine.clear();
@@ -438,7 +579,7 @@ export class OnlineMode {
     for (const h of m.holes) {
       if (h.id !== m.you && !this.byId.has(h.id)) {
         const hole = new Hole({ id: h.id, name: h.name, color: MP_COLORS[h.slot % MP_COLORS.length], x: h.x, z: h.z });
-        hole.isBot = !!h.bot; hole.remote = true; hole.buf = []; hole.srvState = 0;
+        hole.isBot = !!h.bot; hole.remote = true; hole.skin = h.sk || null; hole.buf = []; hole.srvState = 0;
         g.holes.push(hole); this.remotes.push(hole); this.byId.set(h.id, hole);
       }
     }
@@ -447,8 +588,22 @@ export class OnlineMode {
     this._note({ t: 'resume', eaten: m.eaten.length, score: m.me.score });
   }
 
+  /** Private lobby: the socket dropped (phone sleep, network): reconnect with the same session token a few times, then give up quietly. */
+  async _privReconnect() {
+    if (this._prc || !this.priv) return;
+    this._prc = true;
+    const code = this.priv.code;
+    for (let i = 0; i < 8 && this.state === 'lobby' && this.priv; i++) {
+      try { await this._connect(code, this.game.player.name || this.game.hud.getName(CFG.playerName)); this._prc = false; return; }   // answered by a lobby frame (or an error)
+      catch { await sleep(1000); }
+    }
+    this._prc = false;
+    if (this.state === 'lobby' && this.priv) this._fail('mpUnavailable');
+  }
+
   /** Back in the foreground (phone: app switch, call, screen lock): if the socket died meanwhile, say "reconnecting" at once and rejoin. */
   onForeground() {
+    if (this.state === 'lobby' && this.priv && (!this.client.open || !this.client.checkAlive(3500))) { this._privReconnect(); return; }
     if (this.state !== 'intro' && this.state !== 'playing') return;
     if (this.rec) return;
     if (!this.client.open || !this.client.checkAlive(3500)) this._startReconnect();   // (a socket that looks open but has been silent for seconds is dead)
@@ -462,7 +617,7 @@ export class OnlineMode {
       if (!this.rec) return;
       if (Date.now() - this.rec.t0 > RECONNECT_GIVE_UP_MS) { this.rec = null; this._fail('mpLost', true); return; }
       this.rec.tries++;
-      try { await this.client.connect(this.room, { name: this.game.player.name, hash: this._hash }); }
+      try { await this._connect(this.room, this.game.player.name); }
       catch { setTimeout(attempt, 900); return; }
       // a successful hello is answered by {t:'resume'} (-> this.rec = null) or {t:'err'}
       setTimeout(() => { if (this.rec && !this.client.open) attempt(); }, 2500);
@@ -767,6 +922,7 @@ export class OnlineMode {
     this.state = 'ended';
     this._note({ t: 'end', n: m.rank.length });
     this.finalRank = m.rank;
+    this.privEnd = m.priv || null;
     this.rec = null;
     g.phase = 'ended'; g.timeLeft = 0; g.input.enabled = false; g.player.control = { mode: 'none', x: 0, z: 0 };
     g.hud.showSwallowed(false); g.hud.showTags(false);
@@ -782,9 +938,10 @@ export class OnlineMode {
       biggest: p.biggest, rank: mine.rank, total: rows.length, table: rows, online: true };
     g._showResults();
     this._markResults(rows);
-    g.hud.setGlobal(t(this.saved === true ? 'mpSaved' : this.saved === false ? 'mpNotSaved' : 'mpSaving'), true);
+    this._showSaved(true);
     g._hudSync();
     this._addMenuBtn();
+    if (this.priv) this._againLabel(true);
     this._persist(); this._startBeat();
     this.ui.net('ok', t('mpPing', { n: Math.round(this.client.rtt) }));
   }
@@ -794,9 +951,15 @@ export class OnlineMode {
     trs.forEach((tr, i) => { const r = rows[i]; if (!r) return; tr.classList.toggle('bot', !!r.isBot); tr.classList.toggle('human', !r.isBot); });
   }
 
-  _showSaved() {
+  _showSaved(initial = false) {
     if (this.state !== 'ended') return;
-    this.game.hud.setGlobal(t(this.saved ? 'mpSaved' : 'mpNotSaved'), true);
+    const g = this.game;
+    if (this.priv) {   // private round: say whether it counts for the online board (>= 2 humans + the standard length)
+      const ranked = !!(this.privEnd && this.privEnd.ranked);
+      g.hud.setGlobal(t(!ranked ? 'mpPrivUnranked' : this.saved === true ? 'mpPrivRankedSaved' : this.saved === false ? 'mpNotSaved' : 'mpSaving'), true);
+      return;
+    }
+    g.hud.setGlobal(t(initial ? (this.saved === true ? 'mpSaved' : this.saved === false ? 'mpNotSaved' : 'mpSaving') : this.saved ? 'mpSaved' : 'mpNotSaved'), true);
   }
 
   _addMenuBtn() {
@@ -843,11 +1006,20 @@ export class OnlineMode {
       get session() { return loadSession(); },
       get alive() { return o.client.checkAlive(1e9); },
       get lastRxAge() { return performance.now() - o.client.lastRx; },
-      remotes: () => o.remotes.map((h) => ({ id: h.id, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, fx: { ...h.fx }, isBot: !!h.isBot, alive: h.alive, dying: !!h.dying })),
+      remotes: () => o.remotes.map((h) => ({ id: h.id, skin: h.skin, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, fx: { ...h.fx }, isBot: !!h.isBot, alive: h.alive, dying: !!h.dying })),
       send: (m) => o.client.send(m),
       drop: () => o.client.dropForTest(),
       serverNow: () => o.client.serverNow(),
       eatenIds: () => [...o.serverEaten],
+      get ui() { return o.ui; },   // tests: the layout suite drives the panels with fake data
+      get priv() { return o.priv; },
+      get privEnd() { return o.privEnd; },
+      get mySkin() { return o.mySk; },
+      rimInfo: (id) => o.game.holeViews.rimInfo(id),
+      holeIds: () => o.game.holes.map((h) => ({ id: h.id, bot: !!h.isBot, skin: h.skin, name: h.name })),
+      createPrivate: () => o.createPrivate(),
+      joinPrivate: (c) => o.joinPrivate(c),
+      rematch: () => o.rematch(),
       begin: () => o.begin(),
       leave: () => o.leave(),
       playAgain: () => o.playAgain(),

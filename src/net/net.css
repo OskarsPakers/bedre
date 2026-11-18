@@ -35,3 +35,69 @@ body.mp-online #pause-btn { display: none; }
 #mp-rejoin p { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--ink); }
 #mp-rejoin .row { display: flex; gap: 8px; flex-wrap: wrap; }
 #mp-rejoin .btn { min-height: 44px; flex: 1 1 auto; }
+
+/* ---- friend rooms (src/net/friends.js) ---- */
+.mp-row { display: flex; gap: 8px; margin: 10px 0 0; align-items: stretch; }
+.mp-row #play-online { flex: 1 1 auto; width: auto; margin: 0; min-width: 0; padding-left: 12px; padding-right: 12px; }
+#play-friends { flex: 0 0 auto; font-size: 15px; padding: 8px 14px; background: transparent; color: var(--slate); box-shadow: inset 0 0 0 2px var(--slate); min-height: 44px; }
+#play-friends:hover:not(:disabled) { background: rgba(43,58,74,.08); transform: none; box-shadow: inset 0 0 0 2px var(--slate); }
+#play-friends:active:not(:disabled) { transform: translateY(1px); box-shadow: inset 0 0 0 2px var(--slate); }
+#play-friends:disabled { background: transparent; color: #8a95a1; box-shadow: inset 0 0 0 2px #b9c1c9; }
+body[data-map]:not([data-map="centrs"]) .mp-row #play-friends { display: none !important; }
+@media (max-width: 340px) { #play-friends { padding: 8px 10px; font-size: 14px; } .mp-row #play-online .mp-beta { display: none; } }
+.mpf-join { display: flex; gap: 8px; margin: 12px 0 4px; }
+#mpf-code { flex: 1 1 auto; min-width: 0; font: inherit; font-size: 20px; font-weight: 900; letter-spacing: .28em; text-align: center; text-transform: uppercase; padding: 8px 6px; border-radius: 12px; border: 2px solid var(--cream2); background: #fff; color: var(--ink); min-height: 44px; }
+#mpf-code:focus { outline: none; border-color: var(--terra); }
+#mpf-code::placeholder { letter-spacing: .12em; font-weight: 700; color: #b7ad9a; }
+#mpf-err, #mpn-text { min-height: 1.2em; margin: 4px 0 6px; font-size: 13px; font-weight: 700; color: var(--terra2); }
+#mp-friends .btn.small, #mp-noroom .btn.small, #mp-priv .btn.small { width: 100%; }
+#mpf-close, #mpn-close, #mpp-leave { display: block; margin: 4px auto 0; }
+.mpp-code { font-size: 38px; font-weight: 900; letter-spacing: .24em; padding-left: .24em; color: var(--ink); line-height: 1.1; margin: 2px 0 2px; font-variant-numeric: tabular-nums; user-select: all; -webkit-user-select: all; }
+.mpp-url { font-size: 12px; font-weight: 700; color: var(--ink2); margin-bottom: 8px; overflow-wrap: anywhere; }
+.mpp-acts { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.mpp-acts .btn.alt { min-height: 44px; flex: 1 1 120px; }
+.mpp-count { font-weight: 800; font-size: 14px; margin-bottom: 6px; }
+#mpp-players { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 5px; max-height: 26vh; overflow-y: auto; text-align: left; }
+#mpp-players li { display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-radius: 10px; background: #fff; font-weight: 800; font-size: 15px; }
+#mpp-players li.me { box-shadow: inset 0 0 0 2px var(--terra); }
+#mpp-players li i { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(0,0,0,.12); margin-left: 2px; }
+#mpp-players li span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#mpp-players li em { font-style: normal; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--terra2); }
+#mpp-players li em.host { color: #8a6a00; }
+.mpp-settings { text-align: left; margin: 0 0 8px; }
+.mpp-len { display: flex; gap: 6px; margin: 4px 0 8px; }
+.mpp-len button { flex: 1; font: inherit; font-weight: 800; font-size: 15px; min-height: 44px; border-radius: 10px; border: 2px solid var(--cream2); background: transparent; color: var(--ink2); cursor: pointer; }
+.mpp-len button[aria-checked="true"] { background: var(--slate); border-color: var(--slate); color: var(--cream); }
+.mpp-len button:disabled { cursor: default; opacity: .85; }
+.mpp-botsrow { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; min-height: 36px; cursor: pointer; }
+.mpp-botsrow input { width: 22px; height: 22px; accent-color: var(--terra); flex: none; }
+#mpp-rank { font-size: 12.5px; font-weight: 700; color: var(--ink2); margin: 0 0 8px; }
+#mpp-rank.ok { color: var(--verd); }
+#mpp-wait { font-size: 13px; font-weight: 700; color: var(--ink2); margin: 0 0 8px; }
+.mpp-running { margin: 0 0 10px; padding: 9px 12px; border-radius: 12px; background: var(--cream2); text-align: left; font-size: 13px; }
+.mpp-running b { display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.mpp-running ol { margin: 0; padding-left: 20px; font-weight: 700; }
+.mpp-running li { display: flex; justify-content: space-between; gap: 8px; }
+.mpp-running li.bot { opacity: .6; }
+#mp-priv .btn.small.hidden, #mp-priv .hidden { display: none; }
+#mp-priv .btn.alt.done { background: var(--verd); box-shadow: 0 4px 0 #46705f; }
+@media (max-height: 560px) { .mpp-code { font-size: 28px; } #mpp-players { max-height: 18vh; } }
+/* the three friend-room panels behave like the lobby panel (same layers, same phone safe areas) */
+#mp-priv, #mp-friends, #mp-noroom { z-index: 31; background: radial-gradient(ellipse at center, rgba(43,58,74,.55), rgba(30,38,48,.85)); }
+#mp-priv .panel-inner, #mp-friends .panel-inner { max-width: 440px; }
+#mp-priv .sub, #mp-friends .sub, #mp-noroom .sub { margin-bottom: 4px; }
+body:has(#mp-priv:not(.hidden), #mp-friends:not(.hidden), #mp-noroom:not(.hidden)) #hud-btns { visibility: hidden; }
+body:has(#mp-priv:not(.hidden)) #mp-net, body:has(#mp-friends:not(.hidden)) #mp-net { display: none !important; }
+body.tui #mp-priv, body.tui #mp-friends, body.tui #mp-noroom { padding-bottom: max(12px, calc(var(--sab) + 8px)); }
+body.tui #mp-priv .panel-inner, body.tui #mp-friends .panel-inner, body.tui #mp-noroom .panel-inner { max-height: calc(100dvh - var(--sat) - var(--sab) - 24px); }
+@media (max-width: 560px) { #mp-priv, #mp-friends, #mp-noroom { padding-bottom: 12px; } #mp-priv .panel-inner, #mp-friends .panel-inner { max-height: calc(100dvh - 24px); } }
+/* bots on/off: a real switch with a 44 px tap area */
+.mpp-switch { position: relative; flex: none; width: 56px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.mpp-switch i { position: absolute; left: 6px; right: 6px; top: 11px; height: 22px; border-radius: 12px; background: #c9bda6; transition: background .15s; }
+.mpp-switch i::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s; }
+.mpp-switch[aria-checked="true"] i { background: var(--terra); }
+.mpp-switch[aria-checked="true"] i::after { transform: translateX(22px); }
+.mpp-switch:disabled { opacity: .6; cursor: default; }
+.mpp-switch:focus-visible { outline: 2px solid var(--slate); outline-offset: -2px; border-radius: 10px; }
+.mpp-botsrow { min-height: 44px; }
+.mpp-botslbl { font-size: 14px; font-weight: 700; cursor: pointer; }

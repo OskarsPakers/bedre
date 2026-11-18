@@ -309,6 +309,7 @@ export class Hud {
         this.tagEls.set(it.id, t);
       }
       if (t.name !== it.name) { t.name = it.name; t.w = 0; t.n.textContent = it.name; t.dot.style.background = it.color; }
+      if (t.tg !== (it.tg || 0)) { t.tg = it.tg || 0; if (t.tg) t.el.dataset.sk = String(t.tg); else delete t.el.dataset.sk; }   // cosmetic tag look (src/meta/wardrobe.css)
       if (t.leader !== it.leader) { t.leader = it.leader; t.el.classList.toggle('leader', it.leader); }
       if (t.me !== it.me) { t.me = it.me; t.el.classList.toggle('me', it.me); }
       if (t.vis !== it.visible) { t.vis = it.visible; t.el.style.display = it.visible ? '' : 'none'; }

@@ -1,6 +1,7 @@
 // Meta features smoke test (album, achievements, % meter, area banner, recap, share card, PWA, radio, daily streak, weekly goals, rewards). PORT=5188 GPU=1 node scripts/smoke-meta.mjs
 import { chromium, webkit, devices } from 'playwright';
 import { runRetention, retentionShots } from './lib/retention-checks.mjs';
+import { runWardrobe } from './lib/f45-meta-checks.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -231,6 +232,7 @@ async function main() {
   const renv = { chromium, webkit, devices, base, out, check, errors };
   await runRetention(renv);
   await retentionShots(renv);
+  await runWardrobe(renv);   // feature 5: wardrobe, unlock mapping, XP / level (scripts/lib/f45-meta-checks.mjs)
 
   check('no console errors', errors.length === 0, errors.slice(0, 5).join(' | '));
   await browser.close();

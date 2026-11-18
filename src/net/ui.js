@@ -1,6 +1,7 @@
 // DOM for the online mode: start-screen button + status line, lobby panel, connection indicator. All text via i18n; names via textContent.
 import './net.css';
 import { t, extendStrings, onLang } from '../i18n.js';
+import { FriendsUi } from './friends.js';
 
 extendStrings({
   mpOnline: 'Tiešsaiste', mpBeta: 'BETA', mpConnecting: 'Savienojas…', mpUnavailable: 'Tiešsaiste šobrīd nav pieejama. Viena spēlētāja režīms darbojas.',
@@ -13,6 +14,7 @@ extendStrings({
   mpLeft: 'Tu biji atvienots pārāk ilgi — kārta turpinās bez tevis.', mpOver: 'Kārta jau beigusies, istaba ir aizvērta.', mpOverLast: 'Kārta beigusies. Pēdējais zināmais rezultāts: {score} punkti, {rank}. vieta no {total}.', mpLost: 'Savienojums zaudēts.', mpSaved: 'Rezultāts saglabāts tiešsaistes tabulā.', mpSaving: 'Saglabā rezultātu…',
   mpNotSaved: 'Rezultāts netika saglabāts.', mpMenu: 'Uz izvēlni', mpGone: 'Istaba ir aizvērta. Mēģini vēlreiz.', mpStarted: 'Kārta jau notiek. Mēģini vēlreiz.', mpFull: 'Istaba ir pilna. Mēģini vēlreiz.',
   mpPing: '{n} ms', mpAi: 'AI',
+  mpRejoinBusy: 'Tev ir tiešsaistes kārta, kas vēl notiek · atlikušas {t}', mpRejoinLeaveGo: 'Pamest to un turpināt',
 }, {
   mpOnline: 'Online', mpBeta: 'BETA', mpConnecting: 'Connecting…', mpUnavailable: 'Online play is not available right now. Single-player still works.',
   mpNewVersion: 'A new game version is available.', mpReload: 'New version — reload', mpNoData: 'Online play is unavailable until the city data has loaded. Single-player still works.', mpLobbyTitle: 'Online room', mpWaiting: 'Waiting for players…',
@@ -24,6 +26,7 @@ extendStrings({
   mpLeft: 'You were disconnected for too long — the round goes on without you.', mpOver: 'The round is already over and the room has closed.', mpOverLast: 'Round over. Last known result: {score} points, place {rank} of {total}.', mpLost: 'Connection lost.', mpSaved: 'Result saved to the online leaderboard.', mpSaving: 'Saving result…',
   mpNotSaved: 'Result was not saved.', mpMenu: 'Back to menu', mpGone: 'The room has closed. Please try again.', mpStarted: 'The round has already started. Please try again.', mpFull: 'The room is full. Please try again.',
   mpPing: '{n} ms', mpAi: 'AI',
+  mpRejoinBusy: 'You are in an online round that is still running · {t} left', mpRejoinLeaveGo: 'Leave it and continue',
 });
 
 const $ = (id) => document.getElementById(id);
@@ -35,11 +38,12 @@ export class OnlineUi {
     this.btn = null;
     this.lobby = null;
     this._last = null;
+    this.friends = new FriendsUi();   // private (friend) rooms: src/net/friends.js
     onLang(() => this._relabel());
   }
 
   /** "Online (beta)" button under the Play button + a status line. */
-  mountButton(onClick) {
+  mountButton(onClick, onFriends) {
     const play = $('play');
     if (!play || $('play-online')) return;
     const b = mk('button', 'play-online', 'btn');
@@ -50,6 +54,7 @@ export class OnlineUi {
     const st = mk('p', 'mp-status', '');
     st.setAttribute('role', 'status');
     play.after(b, st);
+    if (onFriends) this.friends.mountEntry(b, onFriends);   // one compact secondary button beside Online
     if (!('WebSocket' in window)) { b.disabled = true; }
   }
 
@@ -58,7 +63,7 @@ export class OnlineUi {
     if (this._last) this.lobbyUpdate(this._last);
   }
 
-  setButtonBusy(v) { if (this.btn) this.btn.disabled = v || !('WebSocket' in window); }
+  setButtonBusy(v) { if (this.btn) this.btn.disabled = v || !('WebSocket' in window); this.friends.setBusy(v); }
   /** Status line under the buttons; `action` = { label, run } adds a small button after the text (e.g. the reload offer). */
   setStatus(text, ok = false, action = null) {
     const s = $('mp-status');

@@ -417,10 +417,16 @@ try {
       // the waiting spot must also be away from EVERY pickup (the layout depends on the room seed: a shield 10 m from the waiting hole made A drive into it and get eaten)
       const pus = await O(A2, () => window.__online.powerups);
       let gx = ap.x + dx * 30, gz = ap.z + dz * 30, best = -1;
+      // ... and the big hole must not have to walk OVER A to get there (it is ~22 m in radius: a path across A's start swallows it before the test begins; this made the phase
+      // flaky whenever the random layout put the hole on the far side of A from the waiting spot): only spots whose straight path from the hole never gets closer than 27 m to A (the spots are 30 m from A) qualify
+      const segD = (px, pz, ax, az, bx, bz) => { const vx = bx - ax, vz = bz - az, l2 = vx * vx + vz * vz || 1, t = Math.max(0, Math.min(1, ((px - ax) * vx + (pz - az) * vz) / l2)); return Math.hypot(px - (ax + vx * t), pz - (az + vz * t)); };
+      let ok = false;
       for (let k = 0; k < 12; k++) {        // 12 spots 30 m around A: take the one furthest from every pickup (the waiting hole must not sit next to a pickup A drives to)
         const ang = k * Math.PI / 6, cx = ap.x + (dx * Math.cos(ang) - dz * Math.sin(ang)) * 30, cz = ap.z + (dx * Math.sin(ang) + dz * Math.cos(ang)) * 30;
         const dmin = Math.min(1e9, ...pus.map((r) => Math.hypot(r[2] - cx, r[3] - cz)));
-        if (dmin > best + (k === 0 ? 0 : 8)) { best = dmin; gx = cx; gz = cz; }
+        const clear = segD(ap.x, ap.z, P.x, P.z, cx, cz) >= 27;
+        if (clear && (!ok || dmin > best + 8)) { ok = true; best = dmin; gx = cx; gz = cz; }
+        else if (!ok && dmin > best + (k === 0 ? 0 : 8)) { best = dmin; gx = cx; gz = cz; }
       }
       console.log('  [P before]', JSON.stringify({ x: P.x, z: P.z, r: P.r, st: P.st, state: P.state, goal: [gx, gz] }));
       P.goal = { x: gx, z: gz }; P.walk = true; await P.until(() => Math.hypot(P.x - gx, P.z - gz) < 3, 30000); console.log('  [P after]', JSON.stringify({ x: P.x, z: P.z, rb: P.msgs.filter((m) => m.t === 'rb').length })); P.walk = false; P.goal = null; }

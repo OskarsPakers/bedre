@@ -24,7 +24,7 @@ async function fetchJson(path, init, timeoutMs = 5000) {
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(path, { ...init, signal: ctrl.signal });
-    if (!res.ok) throw new Error('http' + res.status);
+    if (!res.ok) { const e = new Error('http' + res.status); e.status = res.status; throw e; }
     return await res.json();
   } finally { clearTimeout(timer); }
 }
@@ -56,21 +56,26 @@ export class MpClient {
   /** Ask the matchmaker for the open lobby. */
   matchmake(badRoom) { return fetchJson('/api/mp/join' + (badRoom ? '?bad=' + encodeURIComponent(badRoom) : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }); }
 
-  /** Open the socket and send the hello frame. Resolves when open, rejects (Error code) on failure. */
-  connect(room, { name, hash }) {
+  /** Friend rooms: create a private room (the token binds the host to this tab's session) -> {code, max}; rejects with .status 429 when rate limited. */
+  createRoom() { return fetchJson('/api/mp/room', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: this.token }) }); }
+  /** Look a private room up: {ok, phase, humans, max}; rejects with .status 404 (no such / expired room) or 429. */
+  roomInfo(code) { return fetchJson('/api/mp/room?code=' + encodeURIComponent(code), { cache: 'no-store' }, 5000); }
+
+  /** Open the socket and send the hello frame. Resolves when open, rejects (Error code) on failure. `priv` = a private room code (friend rooms). */
+  connect(room, { name, hash, sk, priv }) {
     this.close(true);
     this._closing = false;
     return new Promise((resolve, reject) => {
       let settled = false, wasOpen = false;
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
       let ws;
-      try { ws = new WebSocket(`${proto}//${location.host}/api/mp/ws?room=${encodeURIComponent(room)}`); } catch { reject(new Error('socket')); return; }
+      try { ws = new WebSocket(`${proto}//${location.host}/api/mp/ws?${priv ? 'priv' : 'room'}=${encodeURIComponent(room)}`); } catch { reject(new Error('socket')); return; }
       this.ws = ws;
       const timer = setTimeout(() => { if (!settled) { settled = true; try { ws.close(); } catch { /* */ } reject(new Error('timeout')); } }, 7000);
       ws.onopen = () => {
         wasOpen = true;
         if (!settled) { settled = true; clearTimeout(timer); resolve(); }
-        this.send({ t: 'hello', v: PROTOCOL_VERSION, name, token: this.token, hash });
+        this.send({ t: 'hello', v: PROTOCOL_VERSION, name, token: this.token, hash, sk });
         this.ping();
         clearInterval(this._pingTimer); clearInterval(this._watchTimer);
         this.lastRx = performance.now();

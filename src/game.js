@@ -531,7 +531,7 @@ export class Game {
       this._v.set(o.x, 0, o.z - o.radius * 0.95).project(cam);
       const vis = o.alive && this._v.z < 1 && Math.abs(this._v.x) < 1.08 && this._v.y > -1.05 && this._v.y < 1.1;
       items.push({ id: o.id, name: o.name, color: '#' + o.color.getHexString(), x: (this._v.x * 0.5 + 0.5) * w, y: (-this._v.y * 0.5 + 0.5) * h - 4,
-        visible: vis, leader: o === this.leader, me: o.isPlayer });
+        visible: vis, leader: o === this.leader, me: o.isPlayer, tg: (o.skin && o.skin[2]) || 0 });
     }
     this.hud.updateTags(items);
     const me = items.find((i) => i.me);

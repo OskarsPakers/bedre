@@ -225,3 +225,33 @@ Agisoft Metashape"; see `tools/detail/README.md`). Every option below that ships
 
 **Recommendation: do (3) now (cheap, safe) and prepare (2b) as the "looks real" upgrade, gated on a written permission from the municipality; do not build (1).**
 Ask GeoRiga first, with `hero.png` and `compare-chase.png` as the pitch: if they permit derived facade textures, (2b) gives most of the look at game-sized data.
+
+## 5. Streaming round 2: look-ahead along the route (after the owner saw detail arrive late)
+
+What changed (`play/drive.js`, `select.mjs`, `serve.mjs`, `play/tile.worker.js`, `prefetch.mjs`, start page; the old behaviour is kept as `?legacy=1` for before/after runs):
+* **Predictive loading**: every 8 m of the next H metres of track (H = look-ahead seconds x speed, clamped: Balanced 25 s, 400-650 m; High 30 s, 500-800 m; Ultra 35 s, 650-1000 m; +300 m while standing at a stop) gets its FINAL detail cut (distance scale 0.8, i.e. slightly finer than needed) for the chase camera, the cab camera and the tram itself (orbit). The union is the load queue, ordered by arrival then distance; the cut for the current camera goes first. Cut selection costs ~0.02 ms, so the full look-ahead is recomputed continuously, time-sliced (1.6 ms/frame).
+* **Texture size by future distance**: a node's texture cap comes from the smallest distance the tram will have to it (Balanced: full resolution within 35 m, 1 M texels to 80 m, 256 k to 150 m; High 50/110/200 m; Ultra full resolution to 130 m), not the distance when it was requested.
+* **Memory**: eviction is "behind first" (anything the display cut or look-ahead still needs is protected); the look-ahead is truncated when its estimated texture bytes reach 60 % of the budget; requests pause when the budget is full.
+* **Throughput**: 6 workers (was 3), 16 requests in flight (was 8), ONE request per tile (`/tile/<layer>/<geometry>/<texture>` returns both: browsers allow ~6 connections per host, two requests per tile halved the effective concurrency), keep-alive 120 s, texture upload budget 6 ms per frame when the frame has headroom (2.5 ms otherwise), warm start: the first ~400 m ahead must be resident before the drive starts.
+* **Camera switch**: chase and cab cut are both in the look-ahead set, so C is instant when the tram is moving through prepared tiles; orbit refines around the tram.
+* **Indicator** (key I, off by default): sharp ahead (m), loaded ahead (m), pending tiles, texture MB / budget. Key X = wait-for-sharp (brakes when sharp-ahead < 80 m).
+* **Presets** (start page): Balanced (texture budget 1.1 GB, was 0.9), High (1.5 GB), Ultra (3.2 GB, full-resolution textures to 130 m, needs 16 GB+ unified memory). Expected download of the whole route (estimate, JPEG textures + geometry): centrs-3 Balanced 1.8 GB / High 2.9 GB / Ultra 4.0 GB; centrs-1 Balanced 2.0 GB / High 2.9 GB / Ultra 3.8 GB. On this machine Balanced is fully cached for both routes; High needs ~1.2 GB more per route, Ultra ~2.2-2.5 GB more.
+* **Start page**: each route shows "Prepare route (X GB)" prominently when it is not fully cached, a note that driving before preparation will look soft, and the download runs in travel order (the start of the route is ready first).
+
+Measured, autopilot, whole routes, Balanced, Chromium + Metal (before = `?legacy=1`, after = new; `scripts/out/realistic/preload-trace-*.json`). "Sharp ahead" = metres of track ahead whose flanking nodes (within 120 m, final cut) are resident; it is capped by the look-ahead horizon (400 m at walking pace of the tram, up to 650 m).
+
+| | centrs-3 before | centrs-3 after | centrs-1 before | centrs-1 after |
+| --- | --- | --- | --- | --- |
+| sharp ahead min / p10 / median (m) | 0 / 0 / 0 | 0 / 16 / 400 | 0 / 0 / 0 | 0 / 120 / 400 |
+| frames with any node within 100 m ahead coarser than final | 19.5 % | 2.4 % | 17.5 % | 2.3 % |
+| coarse stand-in nodes drawn (sum over cut updates) | 1 163 | 85 | 1 820 | 114 |
+| camera switch to cab, median (ms; measurement floor ~120) | 450 (max 2 073) | 128 (max 456) | 243 (max 442) | 127 (max 342) |
+| frame time p50 / p95 / p99 | 16.7 / 16.7 / 16.8 | 16.7 / 16.8 / 16.8 | 16.7 / 16.7 / 16.8 | 16.7 / 16.7 / 16.8 |
+| worst frame / frames > 50 ms | 33 ms / 0 | 50 ms / 0 | 33 ms / 0 | 50 ms / 0 |
+| peak decoded texture memory | 850 MB | 1 195 MB | 846 MB | 1 204 MB |
+| peak triangles per frame | 2.0 M | 2.2 M | 2.0 M | 2.0 M |
+
+Hitch-free: 0 frames over 50 ms in all runs (1-2 frames at 33 ms in the new runs; about 20-50 main-thread slices of 30 ms CPU time inside a frame that still made vsync, they coincide with batches of texture uploads: the table in the JSON lists them).
+Frames: `scripts/out/realistic/preload/preload-{before,after}-<route>-<s>.png` at the same track positions every 60 m (51 pairs on centrs-3, 68 pairs on centrs-1, looked at as 4x6 contact sheets), `preload/preload-presets-centrs-1-2520-*.png` (Balanced | High | Ultra at the same spot), `preload-clip.mp4` (24 s drive with the new loader).
+
+Frank: in stills, before vs after look nearly the same, because the coarse tiles were only on screen in ~1 frame in 5 and for fractions of a second; the change is that they no longer appear (19 % -> 2 % of frames), camera switches are instant, and the loader does not fall behind at 46 km/h. What still looks soft is the data and the preset, not the loader: buildings 30-100 m ahead in Balanced are drawn from nodes with ~1-3 m vertex spacing (F = 0.12 + 0.03 d) and the source facade geometry itself is simplified (leaf nodes of some buildings have few vertices); High and Ultra are visibly crisper there (see the preset sheet) for 1.5x / 2.2x the download and 1.3x / 2.4x the texture memory. Remaining late arrivals (2 % of frames, p10 sharp-ahead 16 m on centrs-3): the first metres after a stop or a sharp turn (new view directions need nodes that were outside the look-ahead cone), eviction churn when the 1.1 GB budget is full (the look-ahead is then truncated rather than exceeding it), and a cold network (tiles not prepared).

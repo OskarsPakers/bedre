@@ -19,6 +19,7 @@ export class Hole {
     this.name = name;
     this.color = new THREE.Color(color);
     this.isPlayer = isPlayer;
+    this.skin = null;       // cosmetic [rim, trail, tag] ids (src/skins.js); null = default (bots without one get a little variety in holeView). NEVER read by gameplay code
     this.alive = true;
     // control: dir (x,z unit-ish) or target point; set each frame by input/AI
     this.control = { mode: 'none', x: 0, z: 0 };

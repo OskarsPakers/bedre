@@ -107,7 +107,7 @@ async function boot() {
   initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
   initMeta({ game, world }).catch((e) => console.warn('[meta]', e)); // album, achievements, % meter, recap, share (src/meta/)
   initRadio(); initPwa();
-  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden)');
+  const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden), #mp-priv:not(.hidden), #mp-friends:not(.hidden), #mp-noroom:not(.hidden)');
 
   game.hud.setReady(true, playLabel());
   onLang(() => { if (!$('play').disabled) $('play').textContent = playLabel(); });

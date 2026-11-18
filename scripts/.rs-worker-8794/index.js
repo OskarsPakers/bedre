@@ -523,12 +523,12 @@ var PowerupField = class {
   }
   /** Slot whose pickup this hole (x, z, r) touches, or -1. `slack` widens the reach (server: latency allowance). */
   touching(x, z, r, slack = 0) {
-    const R = pickRadius(r) + slack;
+    const R2 = pickRadius(r) + slack;
     let best = -1, bd = Infinity;
     for (const s of this.slots) {
       if (s.state !== "on") continue;
       const d = Math.hypot(s.x - x, s.z - z);
-      if (d <= R && d < bd) {
+      if (d <= R2 && d < bd) {
         bd = d;
         best = s.id;
       }
@@ -794,11 +794,11 @@ function validateSubmission(p) {
   const out = /* @__PURE__ */ __name(() => ({ verdict: hard.length ? "reject" : soft.length ? "suspect" : "ok", reasons: [...hard, ...soft] }), "out");
   const m = MODES[p.mode];
   const ML = limitsFor(p.map || "centrs");
-  const L = ML.modes[p.mode];
-  if (!m || !L) return { verdict: "reject", reasons: ["mode"] };
+  const L2 = ML.modes[p.mode];
+  if (!m || !L2) return { verdict: "reject", reasons: ["mode"] };
   const tr = p.trace;
   if (!tr || typeof tr !== "object") return { verdict: "reject", reasons: ["trace_missing"] };
-  if (tr.v === 2) return validateV2(p, m, ML, L, hard, soft, out);
+  if (tr.v === 2) return validateV2(p, m, ML, L2, hard, soft, out);
   const arrs = ["t", "s", "r", "e", "k"];
   if (tr.v !== 1 || !arrs.every((a) => Array.isArray(tr[a]) && tr[a].every(isNum))) return { verdict: "reject", reasons: ["trace_format"] };
   const n = tr.t.length;
@@ -827,18 +827,18 @@ function validateSubmission(p) {
   if (Math.abs(sF - p.score) > 1.01 || Math.abs(eF - p.eaten) > 0) hard.push("final_mismatch");
   if (kindTotal !== eF) hard.push("kinds_sum");
   if (!Number.isInteger(tr.kills) || tr.kills !== kF || !Number.isInteger(tr.deaths) || tr.deaths < 0) hard.push("kills_format");
-  if (kF > L.maxKills * 2 + 5) hard.push("kills_range");
+  if (kF > L2.maxKills * 2 + 5) hard.push("kills_range");
   if (p.rank !== null && p.rank !== void 0 && (p.rank < 1 || p.rank > m.holes)) hard.push("rank_range");
   if (hard.length) return out();
-  if (sF > L.cap * HARD) hard.push("cap_hard");
-  else if (sF > L.cap * SOFT) soft.push("cap_soft");
+  if (sF > L2.cap * HARD) hard.push("cap_hard");
+  else if (sF > L2.cap * SOFT) soft.push("cap_soft");
   let prevS = 0, prevE = 0, prevK = 0, prevT = 0;
   for (let i = 0; i < n; i++) {
     const dt = tr.t[i] - prevT;
     const stretch = Math.max(1, dt / TRACE_STEP);
     const band = bandOf(radiusForMode(prevS, p.mode));
     const dK = tr.k[i] - prevK;
-    const base = L.gain[band] * stretch + dK * L.killMax;
+    const base = L2.gain[band] * stretch + dK * L2.killMax;
     const gain = tr.s[i] - prevS;
     if (gain > base * HARD) {
       hard.push("gain_hard");
@@ -846,11 +846,11 @@ function validateSubmission(p) {
     }
     if (gain > base * SOFT && !soft.includes("gain_soft")) soft.push("gain_soft");
     const dE = tr.e[i] - prevE;
-    if (dE > L.eaten10 * stretch * HARD + 25) {
+    if (dE > L2.eaten10 * stretch * HARD + 25) {
       hard.push("eaten_rate");
       break;
     }
-    if (dE > L.eaten10 * stretch * SOFT + 25 && !soft.includes("eaten_soft")) soft.push("eaten_soft");
+    if (dE > L2.eaten10 * stretch * SOFT + 25 && !soft.includes("eaten_soft")) soft.push("eaten_soft");
     const want = radiusForMode(tr.s[i], p.mode);
     if (Math.abs(tr.r[i] - want) > want * 0.03 + 0.05 && !soft.includes("radius_formula")) soft.push("radius_formula");
     prevS = tr.s[i];
@@ -861,7 +861,7 @@ function validateSubmission(p) {
   if (hard.length) return out();
   let maxSum = 0;
   for (const [k, v] of Object.entries(kinds)) maxSum += v * (Object.hasOwn(ML.value, k) ? ML.value[k][1] : ML.valueOther);
-  maxSum += kF * L.killMax;
+  maxSum += kF * L2.killMax;
   if (sF > maxSum * 3 + 100) hard.push("kind_values_hard");
   else if (sF > maxSum * 1.25 + 25) soft.push("kind_values");
   if (isNum(p.radius) && p.radius > radiusForMode(sF, p.mode) * 1.5 + 1) hard.push("radius_hard");
@@ -871,7 +871,7 @@ function validateSubmission(p) {
 __name(validateSubmission, "validateSubmission");
 var U_KEYS = PU_TYPES;
 var allInts = /* @__PURE__ */ __name((a) => Array.isArray(a) && a.every((v) => Number.isInteger(v) && v >= 0 && v < 1e6), "allInts");
-function validateV2(p, m, ML, L, hard, soft, out) {
+function validateV2(p, m, ML, L2, hard, soft, out) {
   const tr = p.trace;
   const arrs = ["t", "s", "m", "r", "e", "k", "w", "p", "c"];
   if (!arrs.every((a) => Array.isArray(tr[a]) && tr[a].every(isNum))) return { verdict: "reject", reasons: ["trace_format"] };
@@ -901,11 +901,11 @@ function validateV2(p, m, ML, L, hard, soft, out) {
   if (Math.abs(sF - p.score) > 1.01 || Math.abs(eF - p.eaten) > 0) hard.push("final_mismatch");
   if (kindTotal !== eF) hard.push("kinds_sum");
   if (!Number.isInteger(tr.kills) || tr.kills !== kF || !Number.isInteger(tr.deaths) || tr.deaths < 0) hard.push("kills_format");
-  if (kF > L.maxKills * 2 + 5) hard.push("kills_range");
+  if (kF > L2.maxKills * 2 + 5) hard.push("kills_range");
   if (p.rank !== null && p.rank !== void 0 && (p.rank < 1 || p.rank > m.holes)) hard.push("rank_range");
   if (hard.length) return out();
-  if (sF > L.cap * HARD) hard.push("cap_hard");
-  else if (sF > L.cap * SOFT) soft.push("cap_soft");
+  if (sF > L2.cap * HARD) hard.push("cap_hard");
+  else if (sF > L2.cap * SOFT) soft.push("cap_soft");
   const bounds = mapBySlug(p.map || "centrs").bounds;
   const slots = puCountFor(bounds);
   let maxMultSeen = 1;
@@ -914,7 +914,7 @@ function validateV2(p, m, ML, L, hard, soft, out) {
     const dt = tr.t[i] - prev.t, stretch = Math.max(1, dt / TRACE_STEP);
     const band = bandOf(radiusForMode(prev.m, p.mode));
     const dK = tr.k[i] - prev.k;
-    const base = L.gain[band] * stretch + dK * L.killMax;
+    const base = L2.gain[band] * stretch + dK * L2.killMax;
     const gain = tr.s[i] - prev.s;
     if (gain > base * HARD) {
       hard.push("gain_hard");
@@ -922,11 +922,11 @@ function validateV2(p, m, ML, L, hard, soft, out) {
     }
     if (gain > base * SOFT && !soft.includes("gain_soft")) soft.push("gain_soft");
     const dE = tr.e[i] - prev.e;
-    if (dE > L.eaten10 * stretch * HARD + 25) {
+    if (dE > L2.eaten10 * stretch * HARD + 25) {
       hard.push("eaten_rate");
       break;
     }
-    if (dE > L.eaten10 * stretch * SOFT + 25 && !soft.includes("eaten_soft")) soft.push("eaten_soft");
+    if (dE > L2.eaten10 * stretch * SOFT + 25 && !soft.includes("eaten_soft")) soft.push("eaten_soft");
     const want = radiusForMode(tr.m[i], p.mode);
     if (Math.abs(tr.r[i] - want) > want * 0.03 + 0.05 && !soft.includes("radius_formula")) soft.push("radius_formula");
     if (tr.c[i] > COMBO.maxWeight * tr.e[i] + 1) {
@@ -941,7 +941,7 @@ function validateV2(p, m, ML, L, hard, soft, out) {
       hard.push("points_mult");
       break;
     }
-    if (gain > dP + dK * L.killMax + 5) {
+    if (gain > dP + dK * L2.killMax + 5) {
       hard.push("points_jump");
       break;
     }
@@ -959,8 +959,8 @@ function validateV2(p, m, ML, L, hard, soft, out) {
     prev = { s: tr.s[i], m: tr.m[i], e: tr.e[i], k: tr.k[i], t: tr.t[i], w: tr.w[i], p: tr.p[i], pick };
   }
   if (hard.length) return out();
-  if (sF > pF + kF * L.killMax + 5) hard.push("points_mismatch");
-  if (mF > wF + kF * L.killMax + 5) hard.push("mass_mismatch");
+  if (sF > pF + kF * L2.killMax + 5) hard.push("points_mismatch");
+  if (mF > wF + kF * L2.killMax + 5) hard.push("mass_mismatch");
   if (mF > sF + 5) hard.push("mass_gt_points");
   let maxSum = 0;
   for (const [k, v] of Object.entries(kinds)) maxSum += v * (Object.hasOwn(ML.value, k) ? ML.value[k][1] : ML.valueOther);
@@ -1092,6 +1092,75 @@ async function handleStats(request, env, url) {
 }
 __name(handleStats, "handleStats");
 
+// ../src/skins.js
+var SLOTS = ["rim", "trail", "tag"];
+var PAT = { plain: 0, stripes: 1, flag: 2, dots: 3, wave: 4, checker: 5, shimmer: 6, scallop: 7, metal: 8 };
+var SHAPE = { puff: 0, spark: 1, ring: 2, petal: 3, dumpling: 4, glow: 5 };
+var R = /* @__PURE__ */ __name((id, key, lv, en, pat, c1, c2, tint, u) => ({ id, key, lv, en, pat, c1, c2, tint, u }), "R");
+var T = /* @__PURE__ */ __name((id, key, lv, en, shape, c1, c2, u) => ({ id, key, lv, en, shape, c1, c2, u }), "T");
+var G = /* @__PURE__ */ __name((id, key, lv, en, bg, fg, frame, u) => ({ id, key, lv, en, bg, fg, frame, u }), "G");
+var L = /* @__PURE__ */ __name((n) => ({ t: "lv", n }), "L");
+var SKINS = {
+  rim: [
+    R(0, "classic", "Klasika", "Classic", PAT.plain, 0, 0, null, null),
+    R(1, "flag", "Sarkanbaltsarkanais", "Carmine & white", PAT.flag, 10361650, 16777215, 8000036, L(2)),
+    R(2, "amber", "Dzintars", "Amber", PAT.metal, 16758812, 12082176, 12088320, L(4)),
+    R(3, "daugava", "Daugavas vi\u013C\u0146i", "Daugava waves", PAT.wave, 2056104, 9425919, 1724294, L(6)),
+    R(4, "gold", "Zelta mirdzums", "Gold shimmer", PAT.shimmer, 16763176, 16773808, 13081104, { t: "rw", id: "streak-30" }),
+    R(5, "jugend", "J\u016Bgendstils", "Art Nouveau", PAT.scallop, 11132100, 16040622, 6266758, L(10)),
+    R(6, "pelmenis", "Pelmenis", "Pelmenis", PAT.dots, 15918020, 12159564, 9071162, { t: "ach", id: "combo2" }),
+    R(7, "jani", "J\u0101\u0146u ugunskurs", "Midsummer fire", PAT.stripes, 16738842, 16765503, 12075532, { t: "wk", tier: "hard", n: 1 }),
+    R(8, "saha", "\u0160aha galdi\u0146\u0161", "Chequerboard", PAT.checker, 2304563, 15986920, 4870232, L(14)),
+    R(9, "aurora", "Zieme\u013Cbl\u0101zma", "Aurora", PAT.shimmer, 8146896, 3137720, 5913248, L(20))
+  ],
+  trail: [
+    T(0, "none", "Bez takas", "No trail", 0, 0, 0, null),
+    T(1, "dust", "Putek\u013Ci", "Dust", SHAPE.puff, 15986143, 12167818, L(3)),
+    T(2, "ribbon", "Karm\u012Bna lente", "Carmine ribbon", SHAPE.puff, 11739194, 16747164, { t: "rw", id: "streak-7" }),
+    T(3, "sparks", "Dzintara dzirksteles", "Amber sparks", SHAPE.spark, 16758812, 16773280, L(7)),
+    T(4, "bubbles", "Daugavas burbu\u013Ci", "Daugava bubbles", SHAPE.ring, 7059199, 14283007, { t: "wk", tier: "medium", n: 1 }),
+    T(5, "petals", "Ziedlapi\u0146as", "Petals", SHAPE.petal, 16234184, 16770026, { t: "wk", tier: "all", n: 1 }),
+    T(6, "pelmeni", "Pelme\u0146u birums", "Dumpling spill", SHAPE.dumpling, 15918020, 13214570, { t: "alb", n: 40 }),
+    T(7, "aurora", "Zieme\u013Cbl\u0101zmas mirdzums", "Aurora glow", SHAPE.glow, 8146896, 3137720, { t: "rw", id: "streak-100" })
+  ],
+  tag: [
+    G(0, "plain", "Parast\u0101", "Plain", 0, 0, 0, null),
+    G(1, "amber", "Dzintara birka", "Amber tag", 16769696, 5911040, 14258714, L(5)),
+    G(2, "carmine", "Karm\u012Bna r\u0101mis", "Carmine frame", 16774388, 7147296, 10361650, { t: "rw", id: "streak-3" }),
+    G(3, "daugava", "Daugavas zil\u0101", "Daugava blue", 14479359, 866918, 2056104, L(9)),
+    G(4, "gold", "Zelta r\u0101mis", "Gold frame", 16774084, 5915392, 14723072, { t: "rw", id: "streak-14" }),
+    G(5, "pastel", "Paste\u013Cto\u0146i", "Pastel", 16246511, 4864602, 11132100, L(16)),
+    G(6, "night", "Nakts", "Night", 2832970, 16183263, 8146896, { t: "wk", tier: "hard", n: 2 }),
+    G(7, "royal", "Karalisk\u0101", "Royal", 3874155, 16771496, 14723072, { t: "rw", id: "streak-60" }),
+    G(8, "meadow", "P\u013Cava", "Meadow", 14939346, 2312722, 7054394, { t: "wk", tier: "easy", n: 1 })
+  ]
+};
+var SKIN_COUNTS = SLOTS.map((s) => SKINS[s].length);
+var ITEM_TOTAL = SKIN_COUNTS.reduce((a, b) => a + b, 0) - SLOTS.length;
+var WEEK_ITEMS = (() => {
+  const m = { easy: [], medium: [], hard: [], all: [] };
+  SLOTS.forEach((slot, si) => {
+    for (const it of SKINS[slot]) if (it.u && it.u.t === "wk") m[it.u.tier][it.u.n - 1] = [si, it.id];
+  });
+  for (const k of Object.keys(m)) m[k] = m[k].filter(Boolean);
+  return m;
+})();
+function cleanSkin(sk) {
+  const out = [0, 0, 0];
+  if (Array.isArray(sk)) for (let i = 0; i < 3; i++) {
+    const v = sk[i];
+    if (Number.isInteger(v) && v >= 0 && v < SKIN_COUNTS[i]) out[i] = v;
+  }
+  return out;
+}
+__name(cleanSkin, "cleanSkin");
+function botSkin(id, salt = 0) {
+  const h = (Math.imul((id + 1) * 2654435761 + salt * 40503, 2246822519) >>> 0) % 100;
+  const rim = h < 55 ? 0 : h < 70 ? 1 : h < 82 ? 2 : h < 92 ? 3 : 5;
+  return [rim, 0, 0];
+}
+__name(botSkin, "botSkin");
+
 // ../worker/mp/protocol.js
 var PROTOCOL_VERSION = 3;
 var MP = {
@@ -1143,7 +1212,20 @@ var MP = {
   moverPointsRate: 80,
   // value of mover claims per second per hole
   moverPointsBurst: 200,
-  names: "abcdefghjkmnpqrstuvwxyz23456789"
+  names: "abcdefghjkmnpqrstuvwxyz23456789",
+  // private (friend) rooms
+  codeAlphabet: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+  // 32 symbols, no I / O / 0 / 1: 6 symbols = 30 bits
+  codeLen: 6,
+  privMaxHumans: 12,
+  privTtlMs: 15 * 60 * 1e3,
+  // a private room lives this long after its last activity (empty lobby / end of the last round)
+  privCreatePerHour: 10,
+  // room creations per (hashed) IP per hour
+  privFailPer10Min: 12,
+  // failed joins / lookups per (hashed) IP per 10 minutes (codes cannot be enumerated)
+  privLens: [120, 300]
+  // round lengths the host can choose; only the 300 s one can be ranked (the public round length)
 };
 function mpConfig(env) {
   const num = /* @__PURE__ */ __name((v, d, lo, hi) => {
@@ -1161,6 +1243,7 @@ function mpConfig(env) {
     botHumanGrace: num(e.MP_BOT_GRACE, MP.botHumanGrace, 0, 300),
     removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1e3, 3e5),
     silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3e3, 12e4),
+    privTtlMs: num(e.MP_PRIV_TTL_MS, MP.privTtlMs, 1e3, 36e5),
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === "1" || e.MP_TEST_CLOSE_SPAWN === 1,
     testPowerups: e.MP_TEST_PU === "1" || e.MP_TEST_PU === 1,
     // tests only: the first pickups appear next to the humans' starts (scripts/smoke-mp.mjs)
@@ -1173,6 +1256,16 @@ function mpConfig(env) {
 __name(mpConfig, "mpConfig");
 var validToken = /* @__PURE__ */ __name((s) => typeof s === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(s), "validToken");
 var validRoom = /* @__PURE__ */ __name((s) => typeof s === "string" && /^[a-z0-9]{6,24}$/.test(s), "validRoom");
+var validCode = /* @__PURE__ */ __name((s) => typeof s === "string" && /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(s), "validCode");
+var normCode = /* @__PURE__ */ __name((s) => String(s || "").toUpperCase().replace(/[\s-]/g, "").slice(0, 6), "normCode");
+function makeCode() {
+  const a = new Uint8Array(MP.codeLen);
+  crypto.getRandomValues(a);
+  let c = "";
+  for (const b of a) c += MP.codeAlphabet[b & 31];
+  return c;
+}
+__name(makeCode, "makeCode");
 var isNum2 = /* @__PURE__ */ __name((v) => typeof v === "number" && Number.isFinite(v), "isNum");
 function parseClientMessage(text, cfg = MP) {
   if (typeof text !== "string" || text.length > cfg.maxMsgBytes) return null;
@@ -1186,7 +1279,7 @@ function parseClientMessage(text, cfg = MP) {
   switch (m.t) {
     case "hello":
       if (typeof m.hash !== "string" || m.hash.length > 16) return null;
-      return { t: "hello", v: m.v | 0, name: m.name, token: m.token, hash: m.hash };
+      return { t: "hello", v: m.v | 0, name: m.name, token: m.token, hash: m.hash, sk: cleanSkin(m.sk) };
     case "u": {
       const out = { t: "u", q: Number.isInteger(m.q) ? m.q : 0, x: null, z: null, c: [], m: [], p: [], ct: isNum2(m.ct) ? m.ct : null };
       if (m.x !== void 0 || m.z !== void 0) {
@@ -1221,6 +1314,12 @@ function parseClientMessage(text, cfg = MP) {
       return { t: "ping", c: isNum2(m.c) ? m.c : 0, r: isNum2(m.r) && m.r >= 0 ? Math.min(m.r, 5e3) : 0 };
     case "bye":
       return { t: "bye" };
+    case "cfg":
+      return { t: "cfg", len: m.len === 120 || m.len === 300 ? m.len : 300, bots: m.bots === false || m.bots === 0 ? false : true };
+    case "go":
+      return { t: "go" };
+    case "rematch":
+      return { t: "rematch" };
     default:
       return null;
   }
@@ -1746,13 +1845,15 @@ var StaticIndex = class {
     }
   }
 };
-function makeHole({ id, slot, name, bot, token }) {
+function makeHole({ id, slot, name, bot, token, sk }) {
   return {
     id,
     slot,
     name,
     bot: !!bot,
     token: token || null,
+    sk: cleanSkin(sk),
+    // cosmetic ids only (never read by the simulation)
     x: 0,
     z: 0,
     vx: 0,
@@ -1828,9 +1929,9 @@ var RoomSim = class {
     return this.holes.filter((h) => !h.bot);
   }
   /** id/slot may be given by the lobby (so ids and colours stay what the players already saw). */
-  addHuman(name, token, id = this.nextId, slot = this.freeSlot()) {
+  addHuman(name, token, id = this.nextId, slot = this.freeSlot(), sk = null) {
     this.nextId = Math.max(this.nextId, id + 1);
-    const h = makeHole({ id, slot, name, token });
+    const h = makeHole({ id, slot, name, token, sk });
     this.holes.push(h);
     this.byId.set(h.id, h);
     return h;
@@ -1848,7 +1949,7 @@ var RoomSim = class {
     const h = this.byId.get(id);
     if (!h || h.bot) return;
     this.removeHole(id);
-    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
+    this.left.push({ id: h.id, name: h.name, slot: h.slot, sk: h.sk, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
   }
   // ---- round start ----------------------------------------------------------------------------------------------
   start(now2, introMs, roundMs) {
@@ -1864,7 +1965,7 @@ var RoomSim = class {
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
     for (let i = 0; i < nBots; i++) {
-      const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true });
+      const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true, sk: botSkin(this.nextId, i) });
       h.speedMul = Math.min(1.04, CFG.bots.speedMin + (CFG.bots.speedMax - CFG.bots.speedMin) * this.rng());
       h.brain = new BotBrain(h, this.rng, i, nBots, this.cfg.botSkill ?? 1);
       h.comboScale = this.cfg.botComboScale ?? 1;
@@ -1992,13 +2093,13 @@ var RoomSim = class {
         }
       }
       if (found < 0) continue;
-      const T = dens[idx[found]], score = T * (1 + 15e-4 * (sp0 - 60));
-      if (!pick || score > pick.score) pick = { sep: sp0, found, T, score };
+      const T2 = dens[idx[found]], score = T2 * (1 + 15e-4 * (sp0 - 60));
+      if (!pick || score > pick.score) pick = { sep: sp0, found, T: T2, score };
     }
     if (pick) {
       sep = pick.sep;
-      const { found, T } = pick;
-      const band = idx.slice(0, found + 1).filter((i) => dens[i] <= T * 1.08 + 1);
+      const { found, T: T2 } = pick;
+      const band = idx.slice(0, found + 1).filter((i) => dens[i] <= T2 * 1.08 + 1);
       for (let a = band.length - 1; a > 0; a--) {
         const j = Math.floor(this.rng() * (a + 1));
         [band[a], band[j]] = [band[j], band[a]];
@@ -2333,6 +2434,7 @@ var RoomSim = class {
       id: h.id,
       name: h.name,
       slot: h.slot,
+      sk: h.sk,
       bot: h.bot,
       score: Math.round(h.score),
       eaten: h.eaten,
@@ -2604,12 +2706,12 @@ var BotBrain = class {
     }
     const c = this.cands;
     c.length = 0;
-    const R = dir ? dir.range : Math.max(26, r * 7) * (0.75 + 0.25 * Math.min(1.2, this.skill));
+    const R2 = dir ? dir.range : Math.max(26, r * 7) * (0.75 + 0.25 * Math.min(1.2, this.skill));
     const k = r * 1.5 + 4;
     const lmW = Math.min(1, 0.25 + Math.max(0, nowMs - sim.playAt) / 1e3 / 240);
     const val = /* @__PURE__ */ __name((id) => t.flags[id] & F_LANDMARK ? t.value[id] * lmW : t.value[id], "val");
     let n = 0;
-    sim.index.query(h.x, h.z, R, sim.eaten, (id, d) => {
+    sim.index.query(h.x, h.z, R2, sim.eaten, (id, d) => {
       if (n >= 800 || t.fit[id] >= maxFit || id === this.banId && now2 < this.banUntil) return;
       if (dir && d > 1 && ((t.x[id] - h.x) * dir.dx + (t.z[id] - h.z) * dir.dz) / d < dir.minDot) return;
       for (const o of bigs) if (Math.hypot(t.x[id] - o.x, t.z[id] - o.z) < o.r * (D.reach + 0.6) + 6) return;
@@ -2650,6 +2752,8 @@ var BotBrain = class {
 // ../worker/mp/room.js
 var MAX_SOCKETS = 40;
 var MAX_SCORE = 1e7;
+var HOST_GRACE_MS = 8e3;
+var MP_PRIV_MAX = 12;
 var tablePromise = null;
 async function loadTable(env) {
   if (!tablePromise) {
@@ -2696,13 +2800,23 @@ var MpRoom = class {
   }
   // ---- connection -----------------------------------------------------------------------------------------------
   async fetch(request) {
+    const u = new URL(request.url);
+    if (u.pathname === "/priv-init" && request.method === "POST") return this.privInit(request);
+    if (u.pathname === "/priv-info") return this.privInfo();
     if (request.headers.get("Upgrade") !== "websocket") return new Response("expected websocket", { status: 426 });
     const name = request.headers.get("x-mp-room");
-    if (!validRoom(name)) return new Response("bad room", { status: 400 });
-    if (this.meta.phase === "closed") return new Response("room closed", { status: 410 });
-    if (!this.meta.name) {
-      this.meta.name = name;
-      await this.saveMeta();
+    const wantsPriv = request.headers.get("x-mp-priv") === "1";
+    if (wantsPriv) {
+      if (!validCode(name)) return new Response("bad room", { status: 400 });
+      if (!this.meta.priv || this.meta.phase === "closed") return new Response("no such room", { status: 404 });
+    } else {
+      if (!validRoom(name)) return new Response("bad room", { status: 400 });
+      if (this.meta.priv) return new Response("no such room", { status: 404 });
+      if (this.meta.phase === "closed") return new Response("room closed", { status: 410 });
+      if (!this.meta.name) {
+        this.meta.name = name;
+        await this.saveMeta();
+      }
     }
     if (this.ctx.getWebSockets().length >= MAX_SOCKETS) return new Response("busy", { status: 503 });
     const pair = new WebSocketPair();
@@ -2722,9 +2836,22 @@ var MpRoom = class {
     const out = [];
     for (const ws of this.ctx.getWebSockets()) {
       const a = this.att(ws);
-      if (a.pid >= 0) out.push({ ws, id: a.pid, name: a.name, slot: a.slot, token: a.token });
+      if (a.pid >= 0 && !a.wait) out.push({ ws, id: a.pid, name: a.name, slot: a.slot, token: a.token, sk: a.sk });
     }
     return out;
+  }
+  /** Private rooms: late arrivals that wait for the next round (they are not in the simulation). */
+  waiters() {
+    const out = [];
+    for (const ws of this.ctx.getWebSockets()) {
+      const a = this.att(ws);
+      if (a.pid >= 0 && a.wait) out.push({ ws, id: a.pid, name: a.name, slot: a.slot, token: a.token, sk: a.sk });
+    }
+    return out;
+  }
+  /** Is anybody (other than `except`) still connected to this room with a seat? */
+  lobbyConnected(except) {
+    return this.ctx.getWebSockets().some((w) => w !== except && this.att(w).pid >= 0);
   }
   async webSocketMessage(ws, data) {
     if (typeof data !== "string") return;
@@ -2759,6 +2886,11 @@ var MpRoom = class {
       if (a.pid < 0) return;
       if (m.t === "bye") return this.onLeave(ws, a, true);
       if (m.t === "u") return this.onUpdate(ws, a, m, now2);
+      if (this.meta.priv) {
+        if (m.t === "cfg") return await this.onCfg(ws, a, m, now2);
+        if (m.t === "go") return await this.onGo(ws, a, now2);
+        if (m.t === "rematch") return await this.onRematch(ws, a, now2);
+      }
     } catch (e) {
       console.error("mp message error", e && e.message);
     }
@@ -2787,31 +2919,37 @@ var MpRoom = class {
       console.error("table", e && e.message);
       return this.refuse(ws, "room");
     }
-    if (m.hash !== table.hash || m.v !== PROTOCOL_VERSION) return this.refuse(ws, "version", { hash: table.hash });
-    if (!await this.checkKnown()) return this.refuse(ws, "room");
+    if (m.hash !== table.hash || m.v !== PROTOCOL_VERSION) return this.refuse(ws, "version", { hash: table.hash, sv: PROTOCOL_VERSION });
+    const priv = !!this.meta.priv;
+    if (!priv && !await this.checkKnown()) return this.refuse(ws, "room");
+    const sk = m.sk;
     const phase = this.meta.phase;
     if (phase === "lobby" && !this.sim) {
       const players = this.lobbyPlayers();
       const dup = players.find((p) => p.token === m.token);
       if (dup) {
-        ws.serializeAttachment({ pid: dup.id, name, slot: dup.slot, token: m.token });
+        ws.serializeAttachment({ pid: dup.id, name, slot: dup.slot, token: m.token, sk });
         try {
           dup.ws.serializeAttachment({ pid: -1 });
           dup.ws.close(4001, "replaced");
         } catch {
         }
       } else {
-        if (players.length >= this.cfg.maxHumans) return this.refuse(ws, "full");
+        if (players.length >= (priv ? MP_PRIV_MAX : this.cfg.maxHumans)) return this.refuse(ws, "full");
         const used = new Set(players.map((p) => p.slot));
         let slot = 0;
         while (used.has(slot)) slot++;
-        ws.serializeAttachment({ pid: this.meta.nextPid++, name, slot, token: m.token });
+        ws.serializeAttachment({ pid: this.meta.nextPid++, name, slot, token: m.token, sk });
       }
       await this.lobbyChanged(now2);
       return;
     }
     if (this.sim && (phase === "intro" || phase === "playing" || phase === "ended")) {
       const h = this.sim.holes.find((x) => !x.bot && x.token === m.token);
+      if (!h && priv && phase === "ended" && !this.lobbyConnected(ws)) {
+        await this.resetToLobby(now2, true);
+        return this.onHello(ws, m, now2);
+      }
       if (!h) {
         const gone = this.sim.left.find((x) => x.token === m.token);
         if (gone && phase === "ended") {
@@ -2821,6 +2959,7 @@ var MpRoom = class {
           return;
         }
         if (gone) return this.refuse(ws, "left");
+        if (priv) return this.joinWaiting(ws, m, name, now2);
         return this.refuse(ws, phase === "ended" ? "room" : "started");
       }
       for (const o of this.ctx.getWebSockets()) {
@@ -2833,7 +2972,7 @@ var MpRoom = class {
           }
         }
       }
-      ws.serializeAttachment({ pid: h.id, name: h.name, slot: h.slot, token: m.token });
+      ws.serializeAttachment({ pid: h.id, name: h.name, slot: h.slot, token: m.token, sk: h.sk });
       h.connected = true;
       h.discAt = 0;
       h.lastMsgAt = now2;
@@ -2868,6 +3007,7 @@ var MpRoom = class {
     return stub.fetch("https://mm.invalid" + path, body ? { method: "POST", body: JSON.stringify(body) } : void 0);
   }
   report(now2, phase = this.meta.phase) {
+    if (this.meta.priv) return;
     const sim = this.sim;
     const body = { room: this.meta.name, phase, humans: sim ? sim.humans().length : this.lobbyPlayers().length, startsAt: this.meta.startsAt, endAt: sim ? sim.endAt : null };
     if (sim && (phase === "playing" || phase === "intro")) body.top = sim.ranking().slice(0, 5).map((r) => ({ n: r.name, s: r.score, b: r.bot }));
@@ -2876,13 +3016,159 @@ var MpRoom = class {
   }
   // ---- lobby ------------------------------------------------------------------------------------------------------------
   lobbyMsg(now2, ws) {
-    const players = this.lobbyPlayers();
+    const players = this.lobbyPlayers().sort((x, y) => x.id - y.id);
     const me = ws ? this.att(ws).pid : -1;
-    return { t: "lobby", room: this.meta.name, you: me, players: players.map((p) => ({ id: p.id, name: p.name, slot: p.slot })), startsAt: this.meta.startsAt, max: this.cfg.maxHumans, s: now2 };
+    const m = { t: "lobby", room: this.meta.name, you: me, players: players.map((p) => ({ id: p.id, name: p.name, slot: p.slot, sk: p.sk })), startsAt: this.meta.startsAt, max: this.cfg.maxHumans, s: now2 };
+    if (this.meta.priv) {
+      m.priv = true;
+      m.code = this.meta.code;
+      m.max = MP_PRIV_MAX;
+      m.host = this.hostOf(players);
+      m.phase = this.meta.phase;
+      m.cfg = { len: this.meta.cfgLen, bots: this.meta.cfgBots };
+      m.ranked = this.meta.cfgLen === 300 && players.length >= 2;
+      if (ws && this.att(ws).wait) {
+        m.wait = true;
+        m.running = this.runningView(now2);
+      }
+    }
+    return m;
   }
-  async lobbyChanged(now2) {
+  // ---- private (friend) rooms ------------------------------------------------------------------------------------------
+  /** The host: the creator while present, else the oldest remaining player (lowest player id). -1 when the lobby is empty. */
+  hostOf(players) {
+    if (!players.length) return -1;
+    const h = players.find((p) => p.token === this.meta.hostToken);
+    if (h) return h.id;
+    if (this.meta.hostToken) return -1;
+    return players.reduce((a, b) => b.id < a.id ? b : a).id;
+  }
+  async privInit(request) {
+    let b = null;
+    try {
+      b = await request.json();
+    } catch {
+    }
+    if (!b || !validCode(b.code)) return new Response("bad", { status: 400 });
+    if (this.meta.priv && this.meta.phase !== "closed") return new Response("exists", { status: 409 });
+    const now2 = Date.now();
+    this.meta = { name: b.code, known: true, phase: "lobby", startsAt: null, nextPid: 0, priv: true, code: b.code, hostToken: validToken(b.token) ? b.token : null, hostSeen: false, cfgLen: 300, cfgBots: true, created: now2 };
+    this.sim = null;
+    this.meta.expireAt = now2 + this.cfg.privTtlMs;
+    await this.saveMeta();
+    await this.ctx.storage.setAlarm(this.meta.expireAt);
+    return new Response("ok", { status: 201 });
+  }
+  privInfo() {
+    if (!this.meta.priv || this.meta.phase === "closed") return new Response(JSON.stringify({ ok: false }), { status: 404, headers: { "content-type": "application/json" } });
+    const sockets = this.ctx.getWebSockets().filter((w) => this.att(w).pid >= 0).length;
+    return new Response(JSON.stringify({ ok: true, phase: this.meta.phase, humans: sockets, max: MP_PRIV_MAX }), { headers: { "content-type": "application/json" } });
+  }
+  runningView(now2) {
+    const sim = this.sim;
+    if (!sim) return null;
+    return { timeLeft: Math.max(0, Math.round((sim.endAt - now2) / 1e3)), top: sim.ranking().slice(0, 5).map((r) => ({ n: r.name, s: r.score, b: r.bot })), phase: this.meta.phase };
+  }
+  privSeconds(len) {
+    return len === 300 ? this.cfg.roundSeconds : Math.max(5, Math.round(this.cfg.roundSeconds * 0.4));
+  }
+  async onCfg(ws, a, m, now2) {
+    if (this.meta.phase !== "lobby" || this.sim || a.wait) return;
+    if (this.hostOf(this.lobbyPlayers()) !== a.pid) return;
+    this.meta.cfgLen = m.len;
+    this.meta.cfgBots = !!m.bots;
+    await this.lobbyChanged(now2);
+  }
+  async onGo(ws, a, now2) {
+    if (this.meta.phase !== "lobby" || this.sim || a.wait) return;
+    const players = this.lobbyPlayers();
+    if (!players.length || this.hostOf(players) !== a.pid) return;
+    await this.startRound(now2);
+  }
+  /** A late arrival in a running private round: waits (sees the leaderboard), joins the lobby when the room goes back to it. */
+  async joinWaiting(ws, m, name, now2) {
+    const mine = this.waiters().find((p) => p.token === m.token);
+    const taken = /* @__PURE__ */ new Set([...this.sim.holes.map((h) => h.slot), ...this.waiters().map((p) => p.slot)]);
+    if (mine) {
+      try {
+        mine.ws.serializeAttachment({ pid: -1 });
+        mine.ws.close(4001, "replaced");
+      } catch {
+      }
+    } else if (this.sim.humans().length + this.waiters().length >= MP_PRIV_MAX) return this.refuse(ws, "full");
+    let slot = mine ? mine.slot : 0;
+    if (!mine) while (taken.has(slot)) slot++;
+    ws.serializeAttachment({ pid: mine ? mine.id : this.meta.nextPid++, name, slot, token: m.token, sk: m.sk, wait: 1 });
+    await this.saveMeta();
+    send(ws, this.lobbyMsg(now2, ws));
+  }
+  /** Back to the lobby (rematch / nobody left at the results): the round is forgotten, everybody still connected sits in the lobby again. */
+  async resetToLobby(now2, quiet = false) {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    this.sim = null;
+    this.finalRank = null;
+    this.savedOk = void 0;
+    this.rankedPriv = false;
+    this.meta.phase = "lobby";
+    this.meta.startsAt = null;
+    const seats = [];
+    for (const ws of this.ctx.getWebSockets()) {
+      const a = this.att(ws);
+      if (a.pid >= 0) seats.push({ ws, a });
+    }
+    seats.sort((x, y) => x.a.pid - y.a.pid);
+    const used = /* @__PURE__ */ new Set();
+    for (const { ws, a } of seats) {
+      let slot = a.slot;
+      if (used.has(slot) || a.wait) {
+        slot = 0;
+        while (used.has(slot)) slot++;
+      }
+      used.add(slot);
+      ws.serializeAttachment({ pid: a.pid, name: a.name, slot, token: a.token, sk: a.sk });
+    }
+    await this.lobbyChanged(now2);
+  }
+  async onRematch(ws, a, now2) {
+    if (this.meta.phase !== "ended") return;
+    await this.resetToLobby(now2);
+  }
+  /** Host migration: the oldest remaining player (lowest id). */
+  migrateHost(players) {
+    const o = players.reduce((x, y) => y.id < x.id ? y : x);
+    this.meta.hostToken = o.token;
+    this.meta.hostSeen = true;
+    this.meta.hostGoneAt = 0;
+  }
+  async lobbyChanged(now2, immediate = false) {
     const players = this.lobbyPlayers();
     const n = players.length;
+    if (this.meta.priv) {
+      this.meta.expireAt = now2 + this.cfg.privTtlMs;
+      let next = this.meta.expireAt;
+      if (n) {
+        const hp = players.find((p) => p.token === this.meta.hostToken);
+        if (hp) {
+          this.meta.hostSeen = true;
+          this.meta.hostGoneAt = 0;
+        } else if (!this.meta.hostToken || !this.meta.hostSeen && now2 - (this.meta.created || 0) >= 3e4) this.migrateHost(players);
+        else if (this.meta.hostSeen) {
+          if (immediate || this.meta.hostGoneAt && now2 - this.meta.hostGoneAt >= HOST_GRACE_MS) this.migrateHost(players);
+          else {
+            this.meta.hostGoneAt = this.meta.hostGoneAt || now2;
+            next = Math.min(next, this.meta.hostGoneAt + HOST_GRACE_MS + 150);
+          }
+        }
+      }
+      this.meta.startsAt = null;
+      await this.saveMeta();
+      await this.ctx.storage.setAlarm(next);
+      for (const p of players) send(p.ws, this.lobbyMsg(now2, p.ws));
+      return;
+    }
     if (n === 0) {
       this.meta.startsAt = null;
       await this.ctx.storage.deleteAlarm();
@@ -2906,20 +3192,42 @@ var MpRoom = class {
     ws.serializeAttachment({ pid: -1 });
     const now2 = Date.now();
     if (this.sim && this.meta.phase !== "lobby") {
-      const h = this.sim.byId.get(a.pid);
+      const h = a.wait ? null : this.sim.byId.get(a.pid);
       if (h && !h.bot) {
         h.connected = false;
         h.discAt = now2;
       }
+      if (this.meta.priv) {
+        if (this.meta.phase === "ended") {
+          this.meta.expireAt = now2 + this.cfg.privTtlMs;
+          this.ctx.waitUntil(this.saveMeta().then(() => this.ctx.storage.setAlarm(this.meta.expireAt)));
+        }
+        return;
+      }
       if (this.meta.phase === "ended" && this.ctx.getWebSockets().filter((w) => this.att(w).pid >= 0).length === 0) this.ctx.storage.setAlarm(now2 + (explicit ? 2e3 : 2e4));
       return;
     }
-    this.ctx.waitUntil(this.lobbyChanged(now2));
+    this.ctx.waitUntil(this.lobbyChanged(now2, !!explicit));
   }
   // ---- round ------------------------------------------------------------------------------------------------------------
   async alarm() {
     const now2 = Date.now();
     try {
+      if (this.meta.priv) {
+        const ph = this.meta.phase;
+        if (ph === "lobby" && !this.sim) {
+          if (this.lobbyConnected(null)) await this.lobbyChanged(now2);
+          else if (now2 >= (this.meta.expireAt || 0)) await this.cleanup();
+          else await this.ctx.storage.setAlarm(this.meta.expireAt);
+          return;
+        }
+        if (ph === "ended") {
+          if (this.lobbyConnected(null)) await this.resetToLobby(now2);
+          else if (now2 >= (this.meta.expireAt || 0)) await this.cleanup();
+          else await this.ctx.storage.setAlarm(this.meta.expireAt);
+          return;
+        }
+      }
       if (this.meta.phase === "lobby" && !this.sim) {
         if (this.lobbyPlayers().length > 0) await this.startRound(now2);
       } else if (this.meta.phase === "intro" || this.meta.phase === "playing") {
@@ -2936,10 +3244,14 @@ var MpRoom = class {
   async startRound(now2) {
     const table = await loadTable(this.env);
     const players = this.lobbyPlayers();
-    const sim = new RoomSim(table, this.cfg, Math.random() * 2 ** 31 | 0);
-    for (const p of players) sim.addHuman(p.name, p.token, p.id, p.slot);
-    sim.start(now2, this.cfg.introMs, this.cfg.roundSeconds * 1e3);
+    const priv = !!this.meta.priv;
+    const secs = priv ? this.privSeconds(this.meta.cfgLen) : this.cfg.roundSeconds;
+    const sim = new RoomSim(table, priv && !this.meta.cfgBots ? { ...this.cfg, totalHoles: 0 } : this.cfg, Math.random() * 2 ** 31 | 0);
+    for (const p of players) sim.addHuman(p.name, p.token, p.id, p.slot, p.sk);
+    sim.start(now2, this.cfg.introMs, secs * 1e3);
     this.sim = sim;
+    if (priv) this.meta.nextPid = Math.max(this.meta.nextPid, sim.nextId);
+    this.rankedPriv = false;
     this.meta.phase = "intro";
     await this.saveMeta();
     await this.ctx.storage.setAlarm(sim.endAt + 1e3);
@@ -2960,8 +3272,9 @@ var MpRoom = class {
       playAt: s.playAt,
       endAt: s.endAt,
       hash: s.table.hash,
-      holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round12(o.x), z: round12(o.z) })),
-      pu: s.puList()
+      holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round12(o.x), z: round12(o.z), sk: o.sk })),
+      pu: s.puList(),
+      ...this.meta.priv ? { priv: { code: this.meta.code, len: this.meta.cfgLen, ranked: this.meta.cfgLen === 300 } } : null
     };
   }
   resumeMsg(h, now2) {
@@ -2987,20 +3300,35 @@ var MpRoom = class {
       this.ticks++;
       if (this.ticks % this.cfg.snapEvery === 0) {
         const text = JSON.stringify(sim.snapshot(now2));
-        for (const ws of this.ctx.getWebSockets()) send(ws, text);
+        for (const ws of this.ctx.getWebSockets()) {
+          if (this.meta.priv && this.att(ws).wait) continue;
+          send(ws, text);
+        }
       }
       if (now2 - this.lastReport > 2e3) {
         this.lastReport = now2;
         this.report(now2);
+        if (this.meta.priv) this.waitTick(now2);
       }
-      if (sim.humans().length === 0) this.cleanup().catch(() => {
-      });
+      if (sim.humans().length === 0) {
+        if (this.meta.priv) this.resetToLobby(now2).catch(() => {
+        });
+        else this.cleanup().catch(() => {
+        });
+      }
     } else if (sim.phase === "ended" && this.meta.phase !== "ended") {
       this.endRound(now2).catch((e) => console.error("endRound", e && e.message));
     }
   }
   endMsg(saved = false) {
-    return { t: "end", saved, rank: this.finalRank };
+    return { t: "end", saved, rank: this.finalRank, ...this.meta.priv ? { priv: { ranked: !!this.rankedPriv, len: this.meta.cfgLen } } : null };
+  }
+  /** Late arrivals of a private room: a light view of the running round every ~2 s (no snapshots). */
+  waitTick(now2) {
+    const ws = this.waiters();
+    if (!ws.length) return;
+    const text = JSON.stringify({ t: "wait", ...this.runningView(now2) });
+    for (const w of ws) send(w.ws, text);
   }
   async endRound(now2) {
     const sim = this.sim;
@@ -3011,26 +3339,32 @@ var MpRoom = class {
     }
     const text = JSON.stringify(sim.snapshot(now2));
     this.finalRank = sim.ranking();
+    if (this.meta.priv) this.rankedPriv = this.meta.cfgLen === 300 && sim.humans().length >= 2;
     const endText = JSON.stringify(this.endMsg(false));
     for (const ws of this.ctx.getWebSockets()) {
       send(ws, text);
       send(ws, endText);
     }
     await this.saveMeta();
-    await this.ctx.storage.setAlarm(now2 + this.cfg.resultsSeconds * 1e3);
+    if (this.meta.priv) {
+      this.meta.expireAt = now2 + this.cfg.privTtlMs;
+      await this.saveMeta();
+    }
+    await this.ctx.storage.setAlarm(now2 + (this.meta.priv ? this.cfg.privTtlMs : this.cfg.resultsSeconds * 1e3));
     this.report(now2, "ended");
     const ok = await this.saveScores(now2).catch((e) => {
       console.error("scores", e && e.message);
       return false;
     });
     this.savedOk = ok;
-    const saved = JSON.stringify({ t: "saved", ok });
+    const saved = JSON.stringify({ t: "saved", ok, ...this.meta.priv && !this.rankedPriv ? { why: "unranked" } : null });
     for (const ws of this.ctx.getWebSockets()) send(ws, saved);
   }
   /** The SERVER writes the result of every human that finished the round (mode 'online'); clients never submit these. */
   async saveScores(now2) {
     const db = this.env.DB;
     if (!db) return false;
+    if (this.meta.priv && !this.rankedPriv) return false;
     const t = Math.floor(now2 / 1e3);
     const humans = new Set(this.sim.humans().map((h) => h.id));
     let ok = true;
@@ -3038,7 +3372,7 @@ var MpRoom = class {
       if (!humans.has(r.id)) continue;
       const score = Math.min(MAX_SCORE, Math.max(0, r.score));
       try {
-        await insertScore(this.env, { mode: "online", name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.name, createdAt: t, rules: RULES_VERSION });
+        await insertScore(this.env, { mode: "online", name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.priv ? "p" + this.meta.code + "-" + this.sim.startAt : this.meta.name, createdAt: t, rules: RULES_VERSION });
       } catch (e) {
         ok = false;
         console.error("score insert", e && e.message);
@@ -3079,11 +3413,13 @@ var MpRoom = class {
       this.timer = null;
     }
     const now2 = Date.now();
-    if (this.meta.name) await this.mm("/report", { room: this.meta.name, phase: "closed", humans: 0 }).catch(() => {
+    const priv = !!this.meta.priv;
+    if (this.meta.name && !priv) await this.mm("/report", { room: this.meta.name, phase: "closed", humans: 0 }).catch(() => {
     });
     for (const ws of this.ctx.getWebSockets()) {
       try {
         ws.serializeAttachment({ pid: -1 });
+        if (priv) send(ws, { t: "err", code: "closed" });
         ws.close(1e3, "room closed");
       } catch {
       }
@@ -3207,6 +3543,25 @@ function sameOrigin2(request) {
   }
 }
 __name(sameOrigin2, "sameOrigin");
+var envInt = /* @__PURE__ */ __name((env, key, d) => {
+  const v = Number(env[key]);
+  return Number.isFinite(v) && v > 0 ? v : d;
+}, "envInt");
+var privStub = /* @__PURE__ */ __name((env, code) => env.MP_ROOM.get(env.MP_ROOM.idFromName("priv:" + code)), "privStub");
+async function failBlocked(env, request) {
+  if (!env.DB) return false;
+  const ih = await ipHashOf(request);
+  const row = await env.DB.prepare("SELECT n FROM rate_limits WHERE k = ? AND exp > ?").bind("pf:" + ih, now()).first().catch(() => null);
+  return !!row && row.n >= envInt(env, "RATE_PRIV_FAIL", MP.privFailPer10Min);
+}
+__name(failBlocked, "failBlocked");
+async function noteFail(env, request) {
+  if (!env.DB) return;
+  const ih = await ipHashOf(request);
+  await rateHit(env, "pf:" + ih, 1e9, 600).catch(() => {
+  });
+}
+__name(noteFail, "noteFail");
 var mmStub = /* @__PURE__ */ __name((env) => env.MP_MATCHMAKER.get(env.MP_MATCHMAKER.idFromName("mm")), "mmStub");
 async function handleMp(request, env, url) {
   if (!env.MP_ROOM || !env.MP_MATCHMAKER) return json3({ error: "multiplayer not configured" }, 503);
@@ -3226,14 +3581,62 @@ async function handleMp(request, env, url) {
       const t = await loadTable(env);
       return json3({ v: PROTOCOL_VERSION, hash: t.hash, objects: t.n });
     }
+    if (path === "/api/mp/room" && request.method === "POST") {
+      if (!sameOrigin2(request)) return json3({ error: "cross-origin" }, 403);
+      let body = {};
+      try {
+        body = await request.json();
+      } catch {
+      }
+      if (env.DB) {
+        const ih = await ipHashOf(request);
+        if (!await rateHit(env, "pc:" + ih, envInt(env, "RATE_PRIV_CREATE", MP.privCreatePerHour), 3600)) return json3({ error: "ratelimit" }, 429);
+      }
+      for (let i = 0; i < 6; i++) {
+        const code = makeCode();
+        const r = await privStub(env, code).fetch("https://room.invalid/priv-init", { method: "POST", body: JSON.stringify({ code, token: validToken(body && body.token) ? body.token : null }) });
+        if (r.status === 201) return json3({ code, max: MP.privMaxHumans }, 201);
+        if (r.status !== 409) break;
+      }
+      return json3({ error: "multiplayer unavailable" }, 503);
+    }
+    if (path === "/api/mp/room" && request.method === "GET") {
+      if (await failBlocked(env, request)) return json3({ error: "ratelimit" }, 429);
+      const code = normCode(url.searchParams.get("code"));
+      if (!validCode(code)) {
+        await noteFail(env, request);
+        return json3({ error: "noroom" }, 404);
+      }
+      const r = await privStub(env, code).fetch("https://room.invalid/priv-info");
+      if (r.status === 404) {
+        await noteFail(env, request);
+        return json3({ error: "noroom" }, 404);
+      }
+      return new Response(r.body, { status: r.status, headers: { "content-type": "application/json", "cache-control": "no-store" } });
+    }
     if (path === "/api/mp/ws" && request.method === "GET") {
       if (request.headers.get("Upgrade") !== "websocket") return json3({ error: "expected websocket" }, 426);
       if (!sameOrigin2(request)) return json3({ error: "cross-origin" }, 403);
+      if (url.searchParams.has("priv")) {
+        if (await failBlocked(env, request)) return json3({ error: "ratelimit" }, 429);
+        const code = normCode(url.searchParams.get("priv"));
+        if (!validCode(code)) {
+          await noteFail(env, request);
+          return json3({ error: "noroom" }, 404);
+        }
+        const headers2 = new Headers(request.headers);
+        headers2.set("x-mp-room", code);
+        headers2.set("x-mp-priv", "1");
+        const r = await privStub(env, code).fetch(new Request(request, { headers: headers2 }));
+        if (r.status === 404) await noteFail(env, request);
+        return r;
+      }
       const room = url.searchParams.get("room");
       if (!validRoom(room)) return json3({ error: "bad room" }, 400);
       const stub = env.MP_ROOM.get(env.MP_ROOM.idFromName(room));
       const headers = new Headers(request.headers);
       headers.set("x-mp-room", room);
+      headers.delete("x-mp-priv");
       return stub.fetch(new Request(request, { headers }));
     }
   } catch (e) {
@@ -3259,7 +3662,7 @@ function roundSeconds(env, mode) {
   return Number.isFinite(o) && o > 0 ? o : MODES[mode].seconds;
 }
 __name(roundSeconds, "roundSeconds");
-var envInt = /* @__PURE__ */ __name((env, key, dflt) => {
+var envInt2 = /* @__PURE__ */ __name((env, key, dflt) => {
   const v = Number(env[key]);
   return Number.isFinite(v) && v > 0 ? v : dflt;
 }, "envInt");
@@ -3289,7 +3692,7 @@ async function createRound(request, env) {
   }
   const ipHash = await ipHashOf(request, t);
   const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND created_at > ?").bind(ipHash, t - 3600).first();
-  if (row.n >= envInt(env, "RATE_ROUNDS_PER_HOUR", MAX_ROUNDS_PER_HOUR)) return err(429, "too many rounds, try again later");
+  if (row.n >= envInt2(env, "RATE_ROUNDS_PER_HOUR", MAX_ROUNDS_PER_HOUR)) return err(429, "too many rounds, try again later");
   const roundId = crypto.randomUUID();
   await env.DB.prepare("INSERT INTO rounds (id, created_at, ip_hash, used, mode, day, seed, map) VALUES (?, ?, ?, 0, ?, ?, ?, ?)").bind(roundId, t, ipHash, mode, day, seed, map).run();
   await purgeStale(env, t);
@@ -3334,7 +3737,7 @@ async function submitScore(request, env) {
   if (age < len * MIN_AGE_FRACTION) return err(403, "round not finished yet");
   if (age > len + MAX_EXTRA_AGE_S) return err(403, "round expired");
   const ipHash = await ipHashOf(request, t);
-  const cap = envInt(env, `CAP_${round.mode.toUpperCase()}`, SUBMIT_CAP_PER_DAY[round.mode]);
+  const cap = envInt2(env, `CAP_${round.mode.toUpperCase()}`, SUBMIT_CAP_PER_DAY[round.mode]);
   const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM rounds WHERE ip_hash = ? AND used = 1 AND mode = ? AND created_at > ?").bind(ipHash, round.mode, t - 86400).first();
   if (used.n >= cap) return err(429, "daily limit of ranked submissions reached");
   if (turnstileEnabled(env)) {

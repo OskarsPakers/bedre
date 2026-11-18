@@ -9,7 +9,7 @@ import { dailyUsed, dailyInfo, todayRiga } from './daily.js';
 import { qualityChoice, rememberQuality } from './quality.js';
 
 const $ = (id) => document.getElementById(id);
-const MODALS = ['meta-panel', 'scores', 'about', 'mp-lobby', 'pause', 'results', 'start'];
+const MODALS = ['meta-panel', 'scores', 'about', 'mp-lobby', 'mp-priv', 'mp-friends', 'mp-noroom', 'pause', 'results', 'start'];
 const TABBABLE = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 extendStrings({
@@ -24,7 +24,7 @@ const cap = (s) => s[0].toUpperCase() + s.slice(1);
 /** No round button / ping badge may sit on top of an open panel's controls or text (small phones in landscape, small desktop windows):
  *  when the geometry says they would meet, they are hidden (body.hud-guard) for as long as that panel is open. */
 function initHudGuard() {
-  const SEL = '#start:not(.hidden) .panel-inner, #results:not(.hidden) .panel-inner, #scores:not(.hidden) .panel-inner, #about:not(.hidden) .panel-inner, #meta-panel:not(.hidden) .panel-inner, #mp-lobby:not(.hidden) .panel-inner, #pause:not(.hidden) .panel-inner';
+  const SEL = '#start:not(.hidden) .panel-inner, #results:not(.hidden) .panel-inner, #scores:not(.hidden) .panel-inner, #about:not(.hidden) .panel-inner, #meta-panel:not(.hidden) .panel-inner, #mp-lobby:not(.hidden) .panel-inner, #mp-priv:not(.hidden) .panel-inner, #mp-friends:not(.hidden) .panel-inner, #mp-noroom:not(.hidden) .panel-inner, #pause:not(.hidden) .panel-inner';
   const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
   let last = false;
   const check = () => {

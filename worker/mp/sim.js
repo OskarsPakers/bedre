@@ -17,6 +17,7 @@ import { F_MOVER, F_BUILDING, F_LANDMARK } from './table.js';
 import { Combo, COMBO, comboWeight, totalMult } from '../../src/combo.js';
 import { makeField, makeFx, fxOn, fxMask, fxRemain, speedFactor, reachFactor, doubleMul, grant, pickRadius, PU, PU_TYPES, PU_ORDER } from './powerups.js';
 import { magnetFactor } from '../../src/powerups.js';
+import { botSkin, cleanSkin } from '../../src/skins.js';
 
 const GROWTH_K = 16;
 const D = CFG.duel;
@@ -95,9 +96,9 @@ class StaticIndex {
 }
 
 /** A hole as the server knows it. state: 0 alive, 1 dying (being swallowed), 2 dead (waiting to respawn). */
-function makeHole({ id, slot, name, bot, token }) {
+function makeHole({ id, slot, name, bot, token, sk }) {
   return {
-    id, slot, name, bot: !!bot, token: token || null,
+    id, slot, name, bot: !!bot, token: token || null, sk: cleanSkin(sk),   // cosmetic ids only (never read by the simulation)
     x: 0, z: 0, vx: 0, vz: 0, score: 0, mass: 0, r: H.startRadius, eaten: 0, kills: 0, deaths: 0, biggest: 0,
     combo: new Combo(), comboScale: 1, fxUntil: makeFx(), picks: { magnet: 0, speed: 0, double: 0, shield: 0 }, rtt: 0, lastClaimMs: 0, lastClaimNow: 0, puBudget: 0,
     state: 0, dyingEnd: 0, respawnAt: 0, protectUntil: 0, by: -1,
@@ -137,9 +138,9 @@ export class RoomSim {
   humans() { return this.holes.filter((h) => !h.bot); }
 
   /** id/slot may be given by the lobby (so ids and colours stay what the players already saw). */
-  addHuman(name, token, id = this.nextId, slot = this.freeSlot()) {
+  addHuman(name, token, id = this.nextId, slot = this.freeSlot(), sk = null) {
     this.nextId = Math.max(this.nextId, id + 1);
-    const h = makeHole({ id, slot, name, token });
+    const h = makeHole({ id, slot, name, token, sk });
     this.holes.push(h); this.byId.set(h.id, h);
     return h;
   }
@@ -156,7 +157,7 @@ export class RoomSim {
     const h = this.byId.get(id);
     if (!h || h.bot) return;
     this.removeHole(id);
-    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
+    this.left.push({ id: h.id, name: h.name, slot: h.slot, sk: h.sk, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
   }
 
   // ---- round start ----------------------------------------------------------------------------------------------
@@ -168,7 +169,7 @@ export class RoomSim {
     const pool = BOT_NAMES.slice();
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(this.rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     for (let i = 0; i < nBots; i++) {
-      const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true });
+      const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true, sk: botSkin(this.nextId, i) });
       h.speedMul = Math.min(1.04, CFG.bots.speedMin + (CFG.bots.speedMax - CFG.bots.speedMin) * this.rng());
       h.brain = new BotBrain(h, this.rng, i, nBots, this.cfg.botSkill ?? 1);
       h.comboScale = this.cfg.botComboScale ?? 1;
@@ -538,7 +539,7 @@ export class RoomSim {
 
   ranking() {
     return [...this.holes, ...this.left].sort((a, b) => b.score - a.score || a.id - b.id).map((h, i) => ({
-      rank: i + 1, id: h.id, name: h.name, slot: h.slot, bot: h.bot, score: Math.round(h.score), eaten: h.eaten,
+      rank: i + 1, id: h.id, name: h.name, slot: h.slot, sk: h.sk, bot: h.bot, score: Math.round(h.score), eaten: h.eaten,
       kills: h.kills, deaths: h.deaths, radius: Math.round(h.r * 100) / 100, bestCombo: Math.round(h.combo.best), bestMult: h.combo.bestMult, ...(h.left ? { left: true } : null),
     }));
   }

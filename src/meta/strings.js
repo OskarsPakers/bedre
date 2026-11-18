@@ -27,6 +27,12 @@ const S = {
     goalsRound: 'Nedēļas mērķi šajā kārtā', goalsNone: 'Šī kārta mērķus nevirzīja.', goalDoneTag: 'izpildīts',
     rwTitle: 'Balvas', rwNone: 'Vēl nav balvu — tās atver sērija un nedēļas mērķi.', rwStreak: '{n} dienu sērija', rwWeek: 'Nedēļas mērķis ({tier}) · {w}. ned.', rwAll: 'Visi nedēļas mērķi · {w}. ned.',
     cardStreak: 'Sērija {n} d.', cardGoals: 'Mērķi {n}/3',
+    // ---- wardrobe + player level ----
+    tabWardrobe: 'Skapis', wdLevel: 'Līmenis {n}', wdXp: '{a} / {b} XP', wdMax: 'Augstākais līmenis', wdGroupRim: 'Apmale', wdGroupTrail: 'Taka', wdGroupTag: 'Vārda birka',
+    wdEquipped: 'Uzvilkts', wdNew: 'JAUNS', wdPreview: 'Priekšskatījums', wdHint: 'Pieskaries, lai uzvilktu. Tikai izskats: tas neietekmē ne punktus, ne izmēru, ne ātrumu.', wdHintOnline: 'Citi spēlētāji redz tavu izskatu (pārbaudīt to nevar — tas ir tikai skaistums).',
+    wdLvUnlock: 'Atslēdzas {n}. līmenī (tev {have}.)', wdStreakUnlock: 'Sērija: {n} dienas pēc kārtas', wdWeekUnlock: 'Nedēļas mērķi ({tier}): {have}/{need}', wdAchUnlock: 'Sasniegums: {name}', wdAlbUnlock: 'Albums: {have}/{need} objekti',
+    wdTrailLow: 'Taka nav redzama zemajā grafikā.', xpGain: '+{n} XP', xpDetail: 'kārta {base} · vieta {place} · punkti {score} · mērķi {goals} · sērija {streak}', xpNone: 'Šī kārta XP nedeva.', lvUp: 'Jauns līmenis: {n}!', lvUnlocked: 'Skapī jauns: {names}', lvWardrobe: 'Atvērt skapi',
+    wdBadge: 'Spēlētāja līmenis {n}',
   },
   en: {
     myProgress: 'My progress', progTitle: 'My progress', tabAlbum: 'Rīga objects', tabAch: 'Achievements', close: 'Close',
@@ -53,6 +59,12 @@ const S = {
     goalsRound: 'Weekly goals this round', goalsNone: 'This round did not move any goal.', goalDoneTag: 'done',
     rwTitle: 'Rewards', rwNone: 'No rewards yet — streaks and weekly goals unlock them.', rwStreak: '{n}-day streak', rwWeek: 'Weekly goal ({tier}) · week {w}', rwAll: 'All weekly goals · week {w}',
     cardStreak: 'Streak {n} d.', cardGoals: 'Goals {n}/3',
+    // ---- wardrobe + player level ----
+    tabWardrobe: 'Wardrobe', wdLevel: 'Level {n}', wdXp: '{a} / {b} XP', wdMax: 'Top level', wdGroupRim: 'Rim', wdGroupTrail: 'Trail', wdGroupTag: 'Name tag',
+    wdEquipped: 'Worn', wdNew: 'NEW', wdPreview: 'Preview', wdHint: 'Tap to wear. Looks only: it never changes points, size or speed.', wdHintOnline: 'Other players see your look (it cannot be verified — it is purely cosmetic).',
+    wdLvUnlock: 'Unlocks at level {n} (you are {have})', wdStreakUnlock: 'Streak: {n} days in a row', wdWeekUnlock: 'Weekly goals ({tier}): {have}/{need}', wdAchUnlock: 'Achievement: {name}', wdAlbUnlock: 'Album: {have}/{need} objects',
+    wdTrailLow: 'The trail is not drawn on the Low graphics setting.', xpGain: '+{n} XP', xpDetail: 'round {base} · place {place} · points {score} · goals {goals} · streak {streak}', xpNone: 'This round gave no XP.', lvUp: 'Level up: {n}!', lvUnlocked: 'New in the wardrobe: {names}', lvWardrobe: 'Open wardrobe',
+    wdBadge: 'Player level {n}',
   },
 };
 
