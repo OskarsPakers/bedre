@@ -1,0 +1,14 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+import { buildTrack } from '/Users/oskars/projects/holeio/src/proto/tram/track.js';
+import { poseAt } from '/Users/oskars/projects/holeio/tools/realistic/poses.mjs';
+const T = buildTrack(JSON.parse(fs.readFileSync('/Users/oskars/projects/holeio/src/proto/tram/routes/centrs-3.json','utf8')));
+const p = poseAt(T, 1250, 9).cab;
+const b = await chromium.launch({ headless: true, args: ['--use-angle=metal','--ignore-gpu-blocklist'] });
+const pg = await b.newPage();
+await pg.goto('http://localhost:5193/tramvajs/?route=centrs-3&lang=en');
+await pg.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 120000 });
+const r = await pg.evaluate((p) => { const w = window.__tram.S.world; const out = []; const dx = p.lx - p.x, dz = p.lz - p.z, l = Math.hypot(dx, dz);
+  for (const it of w.buildingItems) { const d = Math.hypot(it.x - p.x, it.z - p.z); const al = ((it.x - p.x) * dx + (it.z - p.z) * dz) / l; if (d < 60 && al > -5) out.push({ id: it.id, d: Math.round(d), al: Math.round(al), h: it.h, t: it.t, n: it.name, x: Math.round(it.x), z: Math.round(it.z) }); } return out; }, p);
+console.log(JSON.stringify(r));
+await b.close();

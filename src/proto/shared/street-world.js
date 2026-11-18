@@ -34,7 +34,7 @@ export function selectMap(params) {
   return m;
 }
 
-export async function bootStreetWorld({ canvas, params = new URLSearchParams(location.search), onProgress = () => {}, onPhase = () => {}, sky: skyLook } = {}) {
+export async function bootStreetWorld({ canvas, params = new URLSearchParams(location.search), onProgress = () => {}, onPhase = () => {}, sky: skyLook, buildCity = null } = {}) {
   const map = selectMap(params);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, CFG.pixelRatioCap));
@@ -50,6 +50,8 @@ export async function bootStreetWorld({ canvas, params = new URLSearchParams(loc
   await nextFrame(); // let the loading screen repaint before the long synchronous build
   const world = new World(scene, data);
   world.flush();
+  // optional own building renderer (the tram game's src/proto/tram/city): it reads the engine's building batch and draws its own meshes; the engine's mesh is then hidden
+  const city = buildCity ? await buildCity({ THREE, scene, world, data, slug: map.slug }) : null;
 
   // day look = the Lighting defaults (== theme.js LOOKS.day); evening / winter / night need the ThemeManager (which needs a Game), not used here
   const light = new Lighting(scene);
@@ -60,7 +62,7 @@ export async function bootStreetWorld({ canvas, params = new URLSearchParams(loc
   const quality = new Quality({ renderer, light, world, canvas });
 
   return {
-    THREE, renderer, scene, world, data, light, sky, quality, slug: map.slug,
+    THREE, renderer, scene, world, data, light, sky, quality, city, slug: map.slug,
     /** per frame: sky follows the camera; ground close-up layer + sun shadow window follow (fx, fz); dist = nominal "camera distance" for the shadow / detail logic */
     tick(camera, fx, fz, time = 0, { detailDist = 30, shadowDist = 200, detailX = fx, detailZ = fz } = {}) {
       sky.update(camera, time, 0);

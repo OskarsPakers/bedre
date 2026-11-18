@@ -72,11 +72,12 @@ async function testDevice(D) {
   const T = (fn, arg) => page.evaluate(fn, arg);
   const st = () => T(() => window.__tram.state());
   const cdp = D.engine === chromium ? await ctx.newCDPSession(page) : null;
-  const open = async (url) => { await ensureServer(); await page.goto(base + url); await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 240000 }); return !(await T(() => document.body.dataset.error)); };
+  const open = async (url) => { await ensureServer(); await page.goto(base + url + (process.env.CITY ? '&city=' + process.env.CITY : '')); await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 240000 }); return !(await T(() => document.body.dataset.error)); };
   const tap = (sel) => (D.touch ? page.locator(sel).tap() : page.locator(sel).click());
 
   // ======== session A: the city centre ========================================================================================================================
   check(`${D.name}: boots (centre map)`, await open('/tramvajs/?route=centrs-1&lang=' + D.lang));
+  { const cl = await T(() => window.__tram.S.city && window.__tram.S.city.checkClearance ? window.__tram.S.city.checkClearance(1.6) : null); check(`${D.name}: tram city: no building geometry (below 4.6 m) within 1.6 m of any track on the centre map`, !cl || cl.violations === 0, JSON.stringify(cl)); }
   check(`${D.name}: language`, (await T(() => document.documentElement.lang)) === D.lang, await T(() => document.documentElement.lang));
   check(`${D.name}: start card: 4 route cards, short / full, themes, credits + link back`, await T(() => document.querySelectorAll('#routes .rcard').length === 4 && document.querySelectorAll('#runsel button').length === 2 && document.querySelectorAll('#themesel button').length === 3 && !!document.querySelector('#start:not(.hidden)') && document.querySelector('#foot a[href="/"]') != null && /OpenStreetMap/.test(document.getElementById('foot').textContent) && /LĢIA/.test(document.getElementById('foot').textContent)));
   const infos = await T(() => [...document.querySelectorAll('#runsel button .sub')].map((e) => e.textContent));
@@ -248,6 +249,7 @@ async function testDevice(D) {
     // ---- pedestrian crossing: the person steps out in front of the tram; the bell makes them hurry (no stop needed), without the bell the collision protection stops the tram -------
     const pedTest = (bell) => T((bell) => {
       const t = window.__tram; t.start('full', 'centrs-3'); t.setManual(true); t.net.ai.forEach((a) => { a.active = false; });
+      try { t.S.world.traffic.setFraction(0); } catch { /* the engine's traffic moves in real time: an object on the rails at the start (seen in the failing runs: gap 0.1 m, 1.8 m/s) made this scenario depend on wall-clock timing */ }
       const run = t.run, p = t.hazards.peds[0], q = t.life.peds[0];
       run.awaitBell = false; run.started = true; run.s = p.s - 135 - 3.78; run.v = 9; run.lever = 0.3;
       let rang = false, hit = false, maxSpeed = 0, crossT = 0, onTrack = 0, atp0 = run.stats.atp, minGap = 1e9, g = 0;
@@ -324,6 +326,7 @@ async function testDevice(D) {
   errors.length = 0;
   if (D.full || D.touch) {
     check(`${D.name}: boots (Mežaparks map)`, await open('/tramvajs/?route=mezaparks&lang=' + D.lang));
+    { const cl = await T(() => window.__tram.S.city && window.__tram.S.city.checkClearance ? window.__tram.S.city.checkClearance(1.6) : null); check(`${D.name}: tram city: no building geometry within 1.6 m of any track (Mežaparks)`, !cl || cl.violations === 0, JSON.stringify(cl)); }
     await shot(`menu-mezaparks-${dn}`);
     if (D.full) {
       for (const kind of ['short', 'full']) {

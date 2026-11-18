@@ -26,6 +26,10 @@
 /data/*/thumb.png
   Cache-Control: public, max-age=86400
 
+# Tram game's own city data (public/data/tram/**): fetched lazily by /tramvajs/ only, never by the hole game, never precached
+/data/tram/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
 # Placement files (the canonical swallowable-object list of each map, also the multiplayer object table): the client asks for them as
 # riga-objects.bin.gz?v=<content id> (id baked into its bundle), so a cached copy can never be the wrong revision; revalidate (ETag) anyway.
 /data/riga-objects.bin.gz

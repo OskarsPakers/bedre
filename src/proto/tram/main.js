@@ -3,6 +3,7 @@
 import './tram.css';
 import * as THREE from 'three';
 import { bootStreetWorld, webglOk } from '../shared/street-world.js';
+import { buildTramCity } from './city/index.js';
 import { buildTrack } from './track.js';
 import { makeRun, Run, TRAM, SCORE, PEN, perfectDriver, recklessDriver } from './sim.js';
 import { buildRails, Stops, Passengers } from './scene.js';
@@ -459,7 +460,8 @@ function visuals(dt, time) {
   metrics.frames++;
   S.world.update(dt, time);
   // street-level view distance: tiny props thin out / trees take the cheap crown on phones; fog + far plane hold the horizon in
-  S.world.setViewDistance(phone() ? 1000 : 640);
+  S.world.setViewDistance(+params.get('vd') || (phone() ? 2500 : 640));   // ?vd= for experiments
+  if (S.city) S.city.update(camera);
   const f = track.at(run.s + 12, _q);
   // the engine's close-up ground layer repaints a 110 m window every 22 m (a 33-50 ms frame); this game hands it a focus that jumps in 42 m steps, 38 m ahead of the tram
   const dc = detailCentre; const ahead = track.at(run.s + 38, _q);
@@ -519,7 +521,7 @@ async function boot() {
   applyStatic(); setLoad(0, 'loading');
   if (!webglOk()) { fail('noWebgl'); return; }
   try {
-    S = await bootStreetWorld({ canvas: $('c'), params: new URLSearchParams({ map: route.map }), onProgress: (f) => setLoad(f, 'loading'), onPhase: () => setLoad(null, 'building') });
+    S = await bootStreetWorld({ canvas: $('c'), params: new URLSearchParams({ map: route.map }), onProgress: (f) => setLoad(f, 'loading'), onPhase: () => setLoad(null, 'building'), buildCity: params.get('city') === '0' ? null : (ctx) => buildTramCity({ ...ctx, routes: ROUTES, phone: phone() }) }); // ?city=0: the previous look (engine buildings), for before / after sheets
   } catch (e) { console.error(e); fail('bootError'); return; }
   env = new Env(S);
   setupRoute(route);

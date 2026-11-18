@@ -1,0 +1,11 @@
+{
+  "_note": "hand corrections from the 100-facade review of centrs-3 (scripts/out/tramcity/review/): skip = unusable rectification (smeared / partial mesh, scaffolding, trees), floors = regenerate the window rows with this floor count and keep the measured columns",
+  "49627675_1": {"skip": true}, "49627638_6": {"skip": true}, "49615423_6": {"skip": true}, "49614719_23": {"skip": true}, "49628370_7": {"skip": true},
+  "49615510_3": {"skip": true}, "49615314_3": {"skip": true}, "49615194_0": {"skip": true}, "49628779_15": {"skip": true}, "49615321_17": {"skip": true},
+  "49614719_13": {"skip": true}, "49627862_6": {"skip": true}, "49628598_8": {"skip": true}, "49627865_3": {"skip": true}, "49629046_2": {"skip": true},
+  "49615802_76": {"skip": true}, "49614762_5": {"skip": true}, "49628737_6": {"skip": true}, "49615917_21": {"skip": true}, "49615873_6": {"skip": true},
+  "49615873_2": {"skip": true}, "49615802_106": {"skip": true}, "49615321_15": {"skip": true}, "49615318_0": {"skip": true}, "49615802_96": {"skip": true},
+  "49615550_10": {"skip": true}, "49628730_2": {"skip": true}, "49615427_6": {"skip": true}, "49615399_2": {"skip": true}, "49616015_3": {"skip": true},
+  "49616143_3": {"floors": 4},
+  "49615709_2": {"floors": 5}
+}
