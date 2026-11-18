@@ -516,6 +516,7 @@ export class OnlineMode {
     clearInterval(this.lobbyTimer); clearInterval(this.statusT);
     this.ui.showLobby(false); this.ui.friends.showPriv(false);
     g.world.reset(); restoreMoved(g.world);
+    bus.emit('fmSet', !!m.fm);        // the server's Freedom Monument rule for this room (11-18 Nov)
     this.drive = null;
     this.serverEaten.clear(); this.mine.clear();
     this.pendC.length = 0; this.pendM.length = 0; this.pendP.length = 0; this.pickAsked.clear(); this.inflight.clear(); this.optimistic = 0; this.optPts = 0; this.serverScore = 0; this.serverMass = 0; this.saved = null;

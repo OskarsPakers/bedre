@@ -30,7 +30,7 @@ function sample(t) {
 function push(s) { for (const a of ARR) tr[a].push(s[a]); for (const k of PU_TYPES) tr.u[k].push(s.u[k]); }
 
 function reset() {
-  tr = { v: 2, kinds: {}, u: {} };
+  tr = { v: 2, kinds: {}, u: {}, fm: game && game.fmProtected ? 1 : 0 };
   for (const a of ARR) tr[a] = [];
   for (const k of PU_TYPES) tr.u[k] = [];
   next = TRACE_STEP;
@@ -54,7 +54,7 @@ export function initTrace(g, world) {
 /** Trace of the current / just finished round (call when the round ends). null before any round started. */
 export function getTrace() {
   if (!tr || !game) return null;
-  const out = { v: 2, kinds: { ...tr.kinds }, u: {} };
+  const out = { v: 2, kinds: { ...tr.kinds }, u: {}, fm: tr.fm };
   for (const a of ARR) out[a] = tr[a].slice();
   for (const k of PU_TYPES) out.u[k] = tr.u[k].slice();
   const f = sample(game.playT);

@@ -107,6 +107,9 @@ function makeHole({ id, slot, name, bot, token, sk }) {
   };
 }
 
+/** Freedom Monument rule (11-18 November, Riga calendar): the monument is not edible in online rooms. True for the Riga day `day` ('YYYY-MM-DD'). */
+export const fmDay = (day) => { const m = /^\d{4}-(\d\d)-(\d\d)$/.exec(day || ''); return !!m && m[1] === '11' && +m[2] >= 11 && +m[2] <= 18; };
+
 export class RoomSim {
   /** table: parsed object table (worker/mp/table.js); cfg: mpConfig(env); seed: any int. */
   constructor(table, cfg, seed = 1) {
@@ -114,6 +117,7 @@ export class RoomSim {
     this.cfg = cfg;
     this.rng = mulberry32(seed);
     this.index = table.index || (table.index = new StaticIndex(table)); // built once per isolate
+    this.fmId = -1;                 // Freedom Monument object id while protected (protectFreedom): its fit is infinite for claims, bots and the server's own swallows
     this.eaten = new Uint8Array(table.n);
     this.coarse = Float32Array.from(this.index.coarse0);
     this.holes = [];
@@ -376,6 +380,13 @@ export class RoomSim {
     for (const m of movers) { if (take(m[0], true, m[1], m[2])) ok++; else bad.push(m[0]); }
     h.rejected += bad.length;
     return { bad, ok };
+  }
+
+  /** The monument cannot be swallowed by anybody in this room: a private copy of the table's fit column with an infinite fit at its id (the shared table stays untouched). */
+  protectFreedom() {
+    const t = this.table, ki = t.kinds.indexOf('freedom');
+    if (ki < 0) return;
+    for (let i = 0; i < t.n; i++) if (t.kind[i] === ki) { const fit = new Float32Array(t.fit); fit[i] = 1e9; this.table = { ...t, fit }; this.fmId = i; return; }
   }
 
   /** `ms` = the time the swallow counts at (claim time for humans, server time for bots). */

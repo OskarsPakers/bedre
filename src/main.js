@@ -10,6 +10,7 @@ import { initScoresUi } from './scoresUi.js';
 import { initOnline } from './net/index.js';
 import { initModes, BOT_CAPACITY, getMode, playLabel } from './modes.js';
 import { initTrace } from './trace.js';
+import { initFreedom } from './freedom.js';
 import { bindAnalytics } from './analytics.js';
 import { initMeta } from './meta/progress.js';
 import { initRadio } from './meta/radio.js';
@@ -104,7 +105,7 @@ async function boot() {
   initScoresUi();
   initOnline({ game, world });
   applyMapRules(game); // non-centre maps: unranked + no Online until the worker stores per-map boards
-  initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
+  initFreedom({ game, world }); initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
   initMeta({ game, world }).catch((e) => console.warn('[meta]', e)); // album, achievements, % meter, recap, share (src/meta/)
   initRadio(); initPwa();
   const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden), #mp-priv:not(.hidden), #mp-friends:not(.hidden), #mp-noroom:not(.hidden)');

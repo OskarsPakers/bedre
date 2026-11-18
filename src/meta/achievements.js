@@ -20,7 +20,7 @@ export function makeDefs(ctx) {
     D('bigbot', 'Lielā zivs', 'Big Fish', 'Norij pretinieku, kura rādiuss ≥ 8 m.', 'Swallow a rival hole with a radius of 8 m or more.', 1, () => (R.bigBot ? 1 : 0)),
     D('twobots', 'Divi vienā', 'Two for One', 'Norij divus pretiniekus vienā kārtā.', 'Swallow two rival holes in one round.', 2, () => R.kills),
     D('churches', 'Zvanu klusums', 'Silent Bells', 'Norij visas Vecrīgas baznīcas vienā kārtā.', 'Swallow every Old Town church in one round.', Math.max(1, ctx.churchIds.size), () => R.churches.size, () => ctx.churchIds.size === 0),
-    D('freedom', 'Brīvība — brokastīs', 'Freedom for Breakfast', 'Norij Brīvības pieminekli.', 'Swallow the Freedom Monument.', 1, () => alb('freedom'), () => !ctx.album.entries.some((e) => e.id === 'freedom')),
+    D('freedom', 'Brīvība — brokastīs', 'Freedom for Breakfast', 'Norij Brīvības pieminekli.', 'Swallow the Freedom Monument.', 1, () => (st().album.freedom && !st().album.freedom.hon ? 1 : 0), () => !ctx.album.entries.some((e) => e.id === 'freedom')),
     D('cat', 'Kaķis maisā', 'Cat in the Bag', 'Norij Kaķu namu.', 'Swallow the Cat House.', 1, () => alb('cat'), () => !ctx.album.entries.some((e) => e.id === 'cat')),
     D('laima', 'Laiks ir šokolāde', 'Time Is Chocolate', 'Norij Laimas pulksteni.', 'Swallow the Laima Clock.', 1, () => alb('laima'), () => !ctx.album.entries.some((e) => e.id === 'laima')),
     D('market', 'Tirgus diena', 'Market Day', 'Norij Centrāltirgus paviljonu.', 'Swallow a Central Market pavilion.', 1, () => alb('market'), () => !ctx.album.entries.some((e) => e.id === 'market')),

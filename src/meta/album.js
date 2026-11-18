@@ -91,10 +91,11 @@ export const isCollected = (e) => !!load().album[e.id];
 export const collectedCount = (album) => album.entries.filter(isCollected).length;
 
 /** Collect an entry (first time only). Returns true when new. */
-export function collect(album, e, round) {
+export function collect(album, e, round, honour = false) {
   const st = load();
-  if (st.album[e.id]) return false;
-  st.album[e.id] = { d: new Date().toISOString().slice(0, 10), r: round || 0 };
+  const had = st.album[e.id];
+  if (had) { if (had.hon && !honour) { delete had.hon; save(); return false; } return false; }   // a real swallow turns an "honour" entry (Freedom Monument passed over on 18 Nov) into a normal one
+  st.album[e.id] = { d: new Date().toISOString().slice(0, 10), r: round || 0, ...(honour ? { hon: 1 } : null) };
   save();
   return true;
 }

@@ -145,6 +145,7 @@ function validateV2(p, m, ML, L, hard, soft, out) {
     if (!KIND_RE.test(k) || !Number.isInteger(v) || v < 0 || v > 1e6) return { verdict: 'reject', reasons: ['trace_format'] };
     kindTotal += v;
   }
+  if (tr.fm === 1 && Number(kinds.freedom) > 0) return { verdict: 'reject', reasons: ['freedom_protected'] };   // the round ran with the Freedom Monument protected (18 Nov theme): it cannot have been swallowed
   const tf = tr.t[n - 1];
   const sF = tr.s[n - 1], eF = tr.e[n - 1], kF = tr.k[n - 1], mF = tr.m[n - 1], wF = tr.w[n - 1], pF = tr.p[n - 1];
 

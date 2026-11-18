@@ -170,6 +170,10 @@ export async function initMeta({ game, world }) {
       }
     }
   });
+  bus.on('freedomPass', (o) => {   // 18 Nov: the monument cannot be swallowed; passing over it with a big enough hole collects its album entry ("honour": no swallow achievement)
+    const e = album.byObj.get(o.id);
+    if (e && collect(album, e, load().ctr.rounds + 1, true)) { R.newAlbum.push(e.id); noteMeta({ album: collectedCount(album) }); toast('📖', mt('newAlbum', { name: lname(e), n: collectedCount(album), total: album.entries.length })); }
+  });
   bus.on('holeEaten', ({ eater, victim }) => {
     if (eater && eater.isPlayer) { R.kills++; if (victim.radius >= 8 || (victim.targetRadius || 0) >= 8) R.bigBot = true; }
     if (victim && victim.isPlayer) { R.deaths++; R.survived = false; }

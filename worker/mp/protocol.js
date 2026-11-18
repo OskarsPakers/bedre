@@ -94,6 +94,7 @@ export function mpConfig(env) {
     removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1000, 300000),
     silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3000, 120000),
     privTtlMs: num(e.MP_PRIV_TTL_MS, MP.privTtlMs, 1000, 3600000),
+    testDate: /^\d{4}-\d\d-\d\d$/.test(String(e.MP_TEST_DATE || '')) ? String(e.MP_TEST_DATE) : null,   // tests only: the Riga calendar day the Freedom Monument rule sees (YYYY-MM-DD)
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === '1' || e.MP_TEST_CLOSE_SPAWN === 1,
     testPowerups: e.MP_TEST_PU === '1' || e.MP_TEST_PU === 1,                 // tests only: the first pickups appear next to the humans' starts (scripts/smoke-mp.mjs)
     testFxScale: num(e.MP_TEST_FX_SCALE, 1, 1, 10),                            // tests only: effects last this many times longer (the browser tests are slower than 6 s)

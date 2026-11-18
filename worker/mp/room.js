@@ -5,7 +5,8 @@ import { mpConfig, parseClientMessage, RateLimiter, validToken, validRoom, valid
 import { sanitizeName } from '../lib/moderation.js';
 import { insertScore } from '../lib/db.js';
 import { parseTable, inflateIfGzip } from './table.js';
-import { RoomSim } from './sim.js';
+import { RoomSim, fmDay } from './sim.js';
+import { rigaDay } from '../../src/rules.js';
 import { fxRemain } from './powerups.js';
 import { RULES_VERSION } from '../../src/combo.js';
 
@@ -406,6 +407,7 @@ export class MpRoom {
     const priv = !!this.meta.priv;
     const secs = priv ? this.privSeconds(this.meta.cfgLen) : this.cfg.roundSeconds;
     const sim = new RoomSim(table, priv && !this.meta.cfgBots ? { ...this.cfg, totalHoles: 0 } : this.cfg, (Math.random() * 2 ** 31) | 0);
+    if (fmDay(this.cfg.testDate || rigaDay(Math.floor(now / 1000)))) sim.protectFreedom();   // 11-18 Nov (Riga): the monument is not edible for anybody in this room
     for (const p of players) sim.addHuman(p.name, p.token, p.id, p.slot, p.sk);
     sim.start(now, this.cfg.introMs, secs * 1000);
     this.sim = sim;
@@ -427,6 +429,7 @@ export class MpRoom {
       t: type, room: this.meta.name, you: h.id, serverTime: now, startAt: s.startAt, playAt: s.playAt, endAt: s.endAt, hash: s.table.hash,
       holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round1(o.x), z: round1(o.z), sk: o.sk })),
       pu: s.puList(),
+      ...(s.fmId >= 0 ? { fm: 1 } : null),
       ...(this.meta.priv ? { priv: { code: this.meta.code, len: this.meta.cfgLen, ranked: this.meta.cfgLen === 300 } } : null),
     };
   }
