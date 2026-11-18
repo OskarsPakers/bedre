@@ -14,7 +14,7 @@ const ss = (A.s || '1200,1250,1300,1400,1500').split(',').map(Number);
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'] });
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
-await page.goto(`${url}/tramvajs/?route=${route}&city=${city}&quality=high&lang=en`);
+await page.goto(`${url}/tramvajs/?route=${route}&city=${city}&quality=high&lang=en${A.q ? '&' + A.q : ''}`);
 await page.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 120000 });
 if (theme !== 'day') await page.evaluate((t) => window.__tram.setTheme(t), theme);
 await page.addStyleTag({ content: '#start,#hud,.hud,#menu,#loading{display:none!important}' });

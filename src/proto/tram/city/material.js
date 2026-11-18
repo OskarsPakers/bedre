@@ -66,9 +66,9 @@ export function makeLoMaterial() {
     }
   }
   ${SNOW}`)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += winLc * winEm + diffuseColor.rgb * (0.16 * (1.0 - uNight) * (1.0 - smoothstep(0.6, 0.95, vNy)));');
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\nfloat flood = step(0.1, vA.x) * step(vA.x, 0.25); '+'\n'+'totalEmissiveRadiance += winLc * winEm + flood * vec3(1.0, 0.78, 0.5) * diffuseColor.rgb * uNight * 0.85 + diffuseColor.rgb * (0.16 * (1.0 - uNight) * (1.0 - smoothstep(0.6, 0.95, vNy)));');
   };
-  mat.customProgramCacheKey = () => 'tramcity-lo3';
+  mat.customProgramCacheKey = () => 'tramcity-lo4';
   return mat;
 }
 

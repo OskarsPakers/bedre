@@ -78,6 +78,7 @@ async function testDevice(D) {
   // ======== session A: the city centre ========================================================================================================================
   check(`${D.name}: boots (centre map)`, await open('/tramvajs/?route=centrs-1&lang=' + D.lang));
   { const cl = await T(() => window.__tram.S.city && window.__tram.S.city.checkClearance ? window.__tram.S.city.checkClearance(1.6) : null); check(`${D.name}: tram city: no building geometry (below 4.6 m) within 1.6 m of any track on the centre map`, !cl || cl.violations === 0, JSON.stringify(cl)); }
+  { const cl = await T(() => (window.__streetCheck ? window.__streetCheck(1.6) : null)); check(`${D.name}: tram street layer (cars, trees, kerbs): nothing below 4.6 m within 1.6 m of any track (centre map)`, !cl || cl.violations === 0, JSON.stringify(cl)); }
   check(`${D.name}: language`, (await T(() => document.documentElement.lang)) === D.lang, await T(() => document.documentElement.lang));
   check(`${D.name}: start card: 4 route cards, short / full, themes, credits + link back`, await T(() => document.querySelectorAll('#routes .rcard').length === 4 && document.querySelectorAll('#runsel button').length === 2 && document.querySelectorAll('#themesel button').length === 3 && !!document.querySelector('#start:not(.hidden)') && document.querySelector('#foot a[href="/"]') != null && /OpenStreetMap/.test(document.getElementById('foot').textContent) && /LĢIA/.test(document.getElementById('foot').textContent)));
   const infos = await T(() => [...document.querySelectorAll('#runsel button .sub')].map((e) => e.textContent));
@@ -327,6 +328,7 @@ async function testDevice(D) {
   if (D.full || D.touch) {
     check(`${D.name}: boots (Mežaparks map)`, await open('/tramvajs/?route=mezaparks&lang=' + D.lang));
     { const cl = await T(() => window.__tram.S.city && window.__tram.S.city.checkClearance ? window.__tram.S.city.checkClearance(1.6) : null); check(`${D.name}: tram city: no building geometry within 1.6 m of any track (Mežaparks)`, !cl || cl.violations === 0, JSON.stringify(cl)); }
+    { const cl = await T(() => (window.__streetCheck ? window.__streetCheck(1.6) : null)); check(`${D.name}: tram street layer: nothing below 4.6 m within 1.6 m of any track (Mežaparks)`, !cl || cl.violations === 0, JSON.stringify(cl)); }
     await shot(`menu-mezaparks-${dn}`);
     if (D.full) {
       for (const kind of ['short', 'full']) {

@@ -5,14 +5,14 @@
 // involved: this module is imported by the tram game only; nothing in src/buildings.js etc. is touched.
 import * as THREE from 'three';
 import { Acc } from './acc.js';
-import { emitLo, emitFromPlan, planGeneric, planMeasured, chimney, portico, archGable, lin } from './facade.js';
+import { emitLo, emitFromPlan, planGeneric, planMeasured, chimney, portico, archGable, grandFacade, lin } from './facade.js';
 import { makeLoMaterial, makeHiMaterial } from './material.js';
 import { loadLook, loadCorridor, loadFacades, restore } from './look.js';
 import { CURATED } from './curated.js';
 
 const CH = 150;                      // chunk size, metres
 const CORRIDOR_DETAIL = 72;          // an edge gets relief geometry only within this distance of a track
-const PLASTER = [0xd9cdb0, 0xe0d4b8, 0xcfc4a8, 0xe3d9c2, 0xd6c3a0, 0xc9b8a0, 0xdcd2c4, 0xd8c8a8, 0xe4d2a8, 0xcdbfae];
+const PLASTER = [0xd9cdb0, 0xe0d4b8, 0xcfc4a8, 0xe3d9c2, 0xd6c3a0, 0xc9b8a0, 0xdcd2c4, 0xd8c8a8, 0xe4d2a8, 0xcdbfae, 0xc9c8c2, 0xdcbfb0, 0xd6b784, 0xe6dca8, 0xbcc4b4, 0xc3c9cf, 0xd3cfc6, 0xdfc6b4];
 const mulberry = (a) => () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const segD = (px, pz, ax, az, bx, bz) => { const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1; const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / l2)); return Math.hypot(px - ax - t * dx, pz - az - t * dz); };
 function inPoly(x, z, ring) { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, zi] = ring[i], [xj, zj] = ring[j]; if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) c = !c; } return c; }
@@ -96,7 +96,7 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     const lite = wall.map((v) => Math.min(1, v * 1.12 + 0.03)); trim = trim ? trim.map((v, i) => v * 0.4 + lite[i] * 0.6) : lite;
     const B = {
       wall, trim, plinth: wall.map((v) => v * 0.8), stone: wall.map((v) => v * 0.7), shopTrim: trim, roofCol: roofCol || [roofRef.r, roofRef.g, roofRef.b],
-      win: frac > 0.2 || !!(rec && rec.nF), nF: rec && rec.nF ? rec.nF : 0, fh: rec && rec.fh ? rec.fh : Math.max(3.0, Math.min(4.2, floorH)), sp: Math.max(2.2, Math.min(4.2, rec && rec.sp ? rec.sp : spacing)),
+      win: frac > 0.2 || !!(rec && rec.nF) || !!(cur && cur.win), nF: rec && rec.nF ? rec.nF : 0, fh: rec && rec.fh ? rec.fh : Math.max(3.0, Math.min(4.2, floorH)), sp: Math.max(2.2, Math.min(4.2, rec && rec.sp ? rec.sp : spacing)),
       ww: rec && rec.ww ? rec.ww : 0.42, wh: rec && rec.wh ? rec.wh : 0.6, wy: rec && rec.wy ? rec.wy : 0.22,
       gh: cur && cur.gh ? cur.gh : rec && rec.nF ? rec.gh : (isCor && it.h > 9 && (it.t === 'res' || it.t === 'com' || it.t === 'oth') ? 3.9 : 0),
       co: cur && cur.co ? cur.co : rec && rec.nF ? rec.co : (it.h > 10 ? 0.7 : 0),
@@ -120,8 +120,18 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     }
     B.roofRise = roofMax - wallTopMax; B.ww = Math.min(B.ww, 1.35 / Math.max(2.2, B.sp)); B.wh = Math.min(B.wh, 2.0 / Math.max(2.8, B.fh));
     // ---- pass-through faces (roofs, spires, small wall pieces): roof-coloured faces re-coloured
+    const r0 = (v) => (C[v * 4] + C[v * 4 + 1] + C[v * 4 + 2]) / 255;
     const tol = 3.5 / 255, rr = roofRef.r, rg = roofRef.g, rb = roofRef.b;
+    const winFh = Math.max(2.6, B.fh), winA = [255, Math.round(winFh / 6 * 255), 0, Math.round(B.ww * 255)], winB = [Math.round(B.wh * 255), Math.round(B.wy * 255), 0, Math.round(B.hash * 255)];
     for (let t = 0; t < pass.length; t += 3) {
+      // large vertical wall faces that are not ground-based (setbacks, floating masses, e.g. Stockmann) get the shader window grid too
+      let winPass = false;
+      if ((isCor || cur) && B.win) { const a = pass[t], b2 = pass[t + 1], c2 = pass[t + 2];
+        if (Math.abs(N[a * ns + 1]) < 40 && Math.abs(N[b2 * ns + 1]) < 40 && Math.abs(N[c2 * ns + 1]) < 40) {
+          const h1 = Math.hypot(P[a * 3] - P[b2 * 3], P[a * 3 + 2] - P[b2 * 3 + 2]), h2 = Math.hypot(P[b2 * 3] - P[c2 * 3], P[b2 * 3 + 2] - P[c2 * 3 + 2]), h3 = Math.hypot(P[a * 3] - P[c2 * 3], P[a * 3 + 2] - P[c2 * 3 + 2]);
+          const yh = Math.max(P[a * 3 + 1], P[b2 * 3 + 1], P[c2 * 3 + 1]) - Math.min(P[a * 3 + 1], P[b2 * 3 + 1], P[c2 * 3 + 1]);
+          winPass = Math.max(h1, h2, h3) >= 2.5 && yh >= 2 && r0(a) + r0(b2) + r0(c2) > 0.6; } }
+      if (winPass) stats.winPass = (stats.winPass || 0) + 1;
       for (let q = 0; q < 3; q++) {
         const v = pass[t + q];
         let r = C[v * 4] / 255, g = C[v * 4 + 1] / 255, b = C[v * 4 + 2] / 255;
@@ -129,7 +139,9 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
         else if (cur && cur.forceEdges && Math.abs(N[v * ns + 1]) < 120 && r + g + b < 1.4) { r = wall[0] * 0.8; g = wall[1] * 0.8; b = wall[2] * 0.8; }
         else if (Math.abs(N[v * ns + 1]) < 51 && Math.abs(r - wallEng[0] * 0.78) + Math.abs(g - wallEng[1] * 0.78) + Math.abs(b - wallEng[2] * 0.78) < 0.06) { r = wall[0] * 0.85; g = wall[1] * 0.85; b = wall[2] * 0.85; }
         else if (Math.abs(N[v * ns + 1]) < 51 && Math.abs(r - wallEng[0]) + Math.abs(g - wallEng[1]) + Math.abs(b - wallEng[2]) < 0.06) { r = wall[0]; g = wall[1]; b = wall[2]; }
-        lo.raw(P[v * 3] + it.x, P[v * 3 + 1], P[v * 3 + 2] + it.z, N[v * ns] / 127, N[v * ns + 1] / 127, N[v * ns + 2] / 127, [r, g, b], noA, noB);
+        if (winPass) { const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2], fa = pass[t], nl = Math.hypot(N[fa * ns], N[fa * ns + 2]) || 1, tx = N[fa * ns + 2] / nl, tz = -N[fa * ns] / nl;
+          lo.vert(x + it.x, y, z + it.z, [N[v * ns] / 127, N[v * ns + 1] / 127, N[v * ns + 2] / 127], [r, g, b], 1, [(x * tx + z * tz) / B.sp + 1000, y / winFh, Math.max(0.4, wallTopMax || roofMax) - y + 0.6, y], winA, winB); }
+        else lo.raw(P[v * 3] + it.x, P[v * 3 + 1], P[v * 3 + 2] + it.z, N[v * ns] / 127, N[v * ns + 1] / 127, N[v * ns + 2] / 127, [r, g, b], noA, noB);
       }
       const n0 = lo.n - 3; lo.idx.push(n0, n0 + 1, n0 + 2);
     }
@@ -141,6 +153,7 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     const fruns = facades.get(it.id) || null; let bldWall = null;
     if (fruns) { const cs = fruns.filter((r) => r.col != null).sort((p, q) => q.len - p.len); if (cs.length) bldWall = lin(cs[0].col); }
     for (const E of E_list) {
+      if (cur && cur.grand && E.len >= 5) { grandFacade(lo, E, B, cur.grand); stats.grandEdges = (stats.grandEdges || 0) + 1; continue; }
       let detailed = false;
       if (isCor) {
         const mx = E.ax + E.dx * E.len / 2, mz = E.az + E.dz * E.len / 2;

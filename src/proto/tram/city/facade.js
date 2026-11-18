@@ -226,3 +226,50 @@ export function archGable(acc, E, o = {}) {
   plane(acc, E, u0, u0 + w, E.y0 + 0.2, yb, 0.08, lin(0x55605c));
   for (let k = 0; k < 5; k++) { const u = u0 + 1.2 + k * ((w - 2.4) / 4); plane(acc, E, u - 0.9, u + 0.9, E.y0 + 0.3, E.y0 + 2.9, 0.12, lin(0x3b4642)); }
 }
+
+// ===================== round 3: grand-order facade of a landmark (Opera) =====================
+// Everything goes into the lo layer (always drawn, also from far away). A[0] = 40 marks "floodlit stone" (the material adds a warm evening glow), glass quads use the
+// measured-glass flag (A[0] = 128) with the shop flag set (B[0] = 200) so most of them are lit at night.
+export function grandFacade(lo, E, B, o = {}) {
+  const H = E.top - E.y0, y0 = E.y0, L = E.len, wall = B.wall, trim = B.trim, stone = wall.map((v) => v * 0.9);
+  const gh = Math.min(o.gh ?? 6.4, H * 0.28), att = Math.min(3.4, H * 0.12), corn = 1.3, hp = H - gh - att - corn;
+  const A = [40, 0, 0, 0], GA = [128, 0, 0, 0], GB = [200, 0, 0, 0], dark = [0.05, 0.075, 0.11], joint = wall.map((v) => v * 0.62);
+  const U = (v, w = 0) => [v, 0, 0, 0], q = (a, b, c, d, n, col, k = 1) => lo.quad([a, b, c, d], n, col, [k, k, k, k], null, A);
+  const P = (u, y, off) => pt(E, u, y, off), n3 = N3(E);
+  const pl = (u0, u1, ya, yb, off, col, k = 1) => q(P(u0, ya, off), P(u1, ya, off), P(u1, yb, off), P(u0, yb, off), n3, col, k);
+  const tp = (u0, u1, y, o0, o1, col) => q(P(u0, y, o0), P(u1, y, o0), P(u1, y, o1), P(u0, y, o1), up, col);
+  const bx = (u0, u1, ya, yb, d, col) => { pl(u0, u1, ya, yb, d, col); tp(u0, u1, yb, 0, d, col); lo.quad([P(u0, ya, 0), P(u0, ya, d), P(u0, yb, d), P(u0, yb, 0)], [-E.dx, 0, -E.dz], col, [0.85, 0.85, 0.85, 0.85], null, A); lo.quad([P(u1, ya, 0), P(u1, ya, d), P(u1, yb, d), P(u1, yb, 0)], [E.dx, 0, E.dz], col, [0.85, 0.85, 0.85, 0.85], null, A); };
+  const glass = (u0, u1, ya, yb, off, h) => lo.quad([P(u0, ya, off), P(u1, ya, off), P(u1, yb, off), P(u0, yb, off)], n3, dark, [1, 1, 1, 1], [[h, 0, 0, 0], [h, 0, 0, 0], [h, 0, 0, 0], [h, 0, 0, 0]], GA, GB);
+  // wall body: darker rusticated base (horizontal joints), plain upper wall
+  pl(0, L, y0, y0 + gh, 0, stone, 0.92); pl(0, L, y0 + gh, E.top, 0, wall, 1);
+  for (let y = y0 + 0.7; y < y0 + gh - 0.3; y += 0.7) pl(0, L, y, y + 0.06, 0.03, joint);
+  const nb = Math.max(2, Math.round(L / 4.6)), bay = L / nb, rnd = (k) => { const h = Math.sin(k * 91.7 + 3.1) * 43758.5; return h - Math.floor(h); };
+  // string course on top of the base + cornice + attic band
+  bx(0, L, y0 + gh - 0.2, y0 + gh + 0.35, 0.28, trim);
+  for (let b = 0; b < nb; b++) {
+    const u0 = b * bay, uc = u0 + bay / 2, w = Math.min(2.3, bay * 0.52);
+    // ground floor: round-arched opening (door in the middle bay of a short wall, window elsewhere) in a rusticated surround
+    const yb = y0 + 0.5 + (b % 2 ? 0.7 : 0), ys = y0 + gh * 0.52, r = w / 2;
+    bx(uc - w / 2 - 0.25, uc + w / 2 + 0.25, yb - 0.1, ys + 0.2, 0.12, wall);
+    glass(uc - w / 2, uc + w / 2, yb, ys, 0.17, 3 + b);
+    const seg = 8; for (let i = 0; i < seg; i++) { const a0 = Math.PI * i / seg, a1 = Math.PI * (i + 1) / seg; lo.quad([P(uc - Math.cos(a0) * r, ys, 0.17), P(uc - Math.cos(a1) * r, ys, 0.17), P(uc - Math.cos(a1) * (r + 0.28), ys + Math.sin(a1) * (r + 0.28) * 0.9, 0.2), P(uc - Math.cos(a0) * (r + 0.28), ys + Math.sin(a0) * (r + 0.28) * 0.9, 0.2)], n3, trim, [1, 1, 1, 1], null, A); lo.tri([P(uc, ys, 0.17), P(uc - Math.cos(a0) * r, ys + Math.sin(a0) * r * 0.9, 0.17), P(uc - Math.cos(a1) * r, ys + Math.sin(a1) * r * 0.9, 0.17)], n3, dark, 1, GA, GB); }
+    // piano nobile: tall window with a triangular / segmental hood, sill, between pilasters
+    const wy0 = y0 + gh + 1.2, wy1 = y0 + gh + hp - 1.6, ww = Math.min(2.0, bay * 0.46);
+    if (wy1 - wy0 > 2) {
+      glass(uc - ww / 2, uc + ww / 2, wy0, wy1, 0.1, 40 + b);
+      pl(uc - ww / 2 - 0.22, uc - ww / 2, wy0 - 0.05, wy1 + 0.2, 0.14, trim); pl(uc + ww / 2, uc + ww / 2 + 0.22, wy0 - 0.05, wy1 + 0.2, 0.14, trim); bx(uc - ww / 2 - 0.3, uc + ww / 2 + 0.3, wy1, wy1 + 0.4, 0.3, trim);
+      lo.tri([P(uc - ww / 2 - 0.4, wy1 + 0.4, 0.3), P(uc + ww / 2 + 0.4, wy1 + 0.4, 0.3), P(uc, wy1 + 1.15, 0.3)], n3, trim, 1, A); bx(uc - ww / 2 - 0.25, uc + ww / 2 + 0.25, wy0 - 0.3, wy0, 0.35, trim);
+      // small square window (frieze level) above
+      const sy = y0 + gh + hp - 1.1; glass(uc - 0.45, uc + 0.45, sy, sy + 0.75, 0.08, 80 + b);
+    }
+    // attic: row of small windows
+    glass(uc - 0.7, uc + 0.7, E.top - att - corn + 0.7, E.top - corn - 0.5, 0.06, 120 + b);
+  }
+  // giant-order pilasters between the bays (every bay boundary), capitals, entablature
+  for (let b = 0; b <= nb; b++) { const u = Math.max(0.35, Math.min(L - 0.35, b * bay)); bx(u - 0.38, u + 0.38, y0 + gh + 0.35, y0 + gh + hp, 0.34, trim); bx(u - 0.55, u + 0.55, y0 + gh + hp, y0 + gh + hp + 0.35, 0.44, trim); bx(u - 0.5, u + 0.5, y0 + gh + 0.35, y0 + gh + 0.8, 0.4, trim); }
+  bx(0, L, y0 + gh + hp + 0.35, y0 + gh + hp + 0.8, 0.5, trim);
+  pl(0, L, y0 + gh + hp + 0.8, E.top - corn, 0.06, wall.map((v) => v * 0.97));
+  bx(0, L, E.top - corn, E.top - 0.35, 0.75, trim); bx(0, L, E.top - 0.35, E.top + 0.25, 0.95, trim);
+  // acroteria: a statue block on the corners and over every 3rd pilaster
+  for (let b = 0; b <= nb; b += 3) { const u = Math.max(0.7, Math.min(L - 0.7, b * bay)); bx(u - 0.5, u + 0.5, E.top + 0.25, E.top + 1.1, 0.7, trim); bx(u - 0.28, u + 0.28, E.top + 1.1, E.top + 2.3, 0.45, trim); }
+}

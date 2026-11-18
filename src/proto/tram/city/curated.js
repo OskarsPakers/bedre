@@ -2,8 +2,8 @@
 // Values are sRGB hex, chosen by eye from the photoreal reference renders (scripts/out/realistic/*) and public knowledge of the buildings.
 // wall / roof / trim; `gh` = ground band height override, `co` cornice depth override.
 export const CURATED = {
-  49615917: { name: 'Stockmann', wall: 0xd9d3c6, roof: 0x8d9293, trim: 0xe8e3d8, forceEdges: true, ww: 0.55, sp: 3.0, generic: true }, // glazed curtain faces in the engine geometry are not ground-based: rebuilt as ordinary facade
-  49616059: { name: 'Nacionālā opera', wall: 0xece7da, roof: 0x7f9a8c, trim: 0xf6f2e8, gh: 5.2, co: 1.1, portico: { cols: 6, w: 16, h: 12.5, d: 4.6 } },
+  49615917: { name: 'Stockmann', wall: 0xd9d3c6, roof: 0x8d9293, trim: 0xe8e3d8, forceEdges: true, win: true, ww: 0.55, sp: 3.0, generic: true }, // glazed curtain faces in the engine geometry are not ground-based: rebuilt as ordinary facade
+  49616059: { name: 'Nacionālā opera', wall: 0xece7da, roof: 0x7f9a8c, trim: 0xf6f2e8, gh: 5.2, co: 1.1, portico: { cols: 6, w: 16, h: 12.5, d: 4.6 }, grand: { gh: 6.4 } },
   49615783: { name: 'Operas piebūve', wall: 0xe8e2d4, roof: 0x7f9a8c, trim: 0xf3efe4 },
   49614719: { name: 'Nacionālais teātris', wall: 0xe9e1cf, roof: 0x80ac94, trim: 0xf4efe2 },
   49614728: { hangar: true, name: 'Centrāltirgus: Zivju paviljons', wall: 0xcfd3cf, roof: 0xa9b0ae },

@@ -4,6 +4,7 @@ import './tram.css';
 import * as THREE from 'three';
 import { bootStreetWorld, webglOk } from '../shared/street-world.js';
 import { buildTramCity } from './city/index.js';
+import { buildStreet } from './city/street.js';
 import { buildTrack } from './track.js';
 import { makeRun, Run, TRAM, SCORE, PEN, perfectDriver, recklessDriver } from './sim.js';
 import { buildRails, Stops, Passengers } from './scene.js';
@@ -112,6 +113,10 @@ function setupRoute(r) {
   hazards = planHazards(track, S.data.roads, track.stops);
   window.__clear = clearCorridor(S.world, all);
   for (const T of all) routeGroups.push(buildRails(S.scene, T));
+  if (params.get('street') !== '0') {   // round 3: sett bed, kerbs, centre lines, parked cars (this route) + street trees (whole map, once)
+    const mapTracks = []; for (const x of ROUTES) if (x.map === r.map) { mapTracks.push(x._track || (x._track = buildTrack(x))); for (const a of x.ai || []) mapTracks.push(buildTrack({ path: a.path, stops: a.stops, switches: [] })); }
+    const st = buildStreet({ scene: S.scene, S, tracks: all, mapTracks, phone: phone() }); S.scene.add(st.group); routeGroups.push(st.group); window.__street = st.stats; window.__streetCheck = st.check;
+  }
   const wires = buildWires(S.scene, track, S.world, { others: aiTracks }); routeGroups.push(wires.group);
   aiTracks.forEach((T) => routeGroups.push(buildWires(S.scene, T, S.world, { others: [track] }).group));
   window.__wires = { poles: wires.poles, skipped: wires.skipped };
