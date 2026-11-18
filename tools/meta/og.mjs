@@ -40,7 +40,7 @@ const html = `<html><body style="margin:0;width:1200px;height:630px;overflow:hid
     <div style="font-size:150px;font-weight:900;letter-spacing:.05em;line-height:1">BEDRE</div>
   </div>
   <div style="margin:18px 0 0 142px;font-size:44px;font-weight:800;letter-spacing:.42em;color:#ef7a52">RĪGA</div>
-  <div style="margin:34px 0 0 6px;font-size:36px;font-weight:700;line-height:1.3;max-width:700px;color:#e9e2d2">Norij pilsētu. Izaugsti.<br><span style="color:#aebccb;font-size:28px;font-weight:600">Swallow the city. Out-grow 7 rivals.</span></div>
+  <div style="margin:34px 0 0 6px;font-size:36px;font-weight:700;line-height:1.3;max-width:700px;color:#e9e2d2">Norij pilsētu. Audz.<br><span style="color:#aebccb;font-size:28px;font-weight:600">Swallow the city. Out-grow 7 rivals.</span></div>
 </div>
 <div style="position:absolute;left:76px;bottom:44px;font-size:30px;font-weight:800;color:#f6efdf;letter-spacing:.04em">bedre.pakers.lv</div>
 </body></html>`;

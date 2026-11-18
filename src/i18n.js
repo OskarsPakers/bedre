@@ -6,7 +6,7 @@ const S = {
   lv: {
     score: 'Rezultāts', time: 'Laiks', swallowedLbl: 'Norīts:', leaderboard: 'Līderi',
     size: 'Izmērs {n}', yourName: 'Tavs vārds', namePh: 'Tu', defaultName: 'Tu',
-    blurb: 'Vadi bedri pa Rīgu, norij visu, kas ietilpst — cilvēkus, mašīnas, veselas ēkas — un izaugsti lielāks par pretiniekiem.',
+    blurb: 'Vadi bedri pa Rīgu, norij visu, kas ietilpst — cilvēkus, mašīnas, veselas ēkas — un audz lielāks par pretiniekiem.',
     how: 'Pele, pirksta vilkšana vai WASD / bultiņas — kustība. Ritenītis vai divu pirkstu žests — tālummaiņa.',
     play: 'Spēlēt', loadingMap: 'Ielādē karti…', topScores: 'Labākie rezultāti', about: 'Par spēli', lang: 'Valoda',
     go: 'Aiziet!', swallowedBy: 'Tevi norija', backIn: 'Atpakaļ pēc', feedVerb: 'norija',
@@ -31,7 +31,7 @@ const S = {
     themeWinterDay: 'Ziema', themeWinterEve: 'Ziemas vakars', themeNov18Name: 'Lāčplēša diena', themeLigo: 'Līgo vakars',
     themeNow: 'Šobrīd: {name}', themeNov18CapWeek: 'Lāčplēša dienas un valsts svētku nedēļa', themeNov18CapDay: 'Latvijas Republikas proklamēšanas diena',
     optsTitle: 'Iestatījumi', aboutRadio: 'Radio (neobligāts, ieslēdz pats): Latvijas Radio 2 tiešraide no LSM', rtScore: 'Rezultāts', rtMap: 'Karte', rtAch: 'Sasniegumi', rtNone: 'Šoreiz nekā jauna.', tsMapAria: 'Karte', tsCentreOnly: 'Dienas izaicinājums un Tiešsaiste: tikai Centra karte.',
-    blurbShort: 'Norij Rīgu pa gabaliņam un izaugsti.',
+    blurbShort: 'Norij Rīgu pa gabaliņam un audz.',
   },
   en: {
     score: 'Score', time: 'Time', swallowedLbl: 'Swallowed:', leaderboard: 'Leaderboard',
