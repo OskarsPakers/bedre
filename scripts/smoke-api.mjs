@@ -25,7 +25,12 @@ const procs = [];
 process.on('exit', () => procs.forEach((p) => p.kill()));
 
 // ---- helpers ---------------------------------------------------------------------------------------------------
+// trace v2 (scoring rules 2): points s, growth mass m (= s when no combo), raw value w, swallow points p, best combo c, pickups u
+const U0 = (n) => ({ magnet: Array(n).fill(0), speed: Array(n).fill(0), double: Array(n).fill(0), shield: Array(n).fill(0) });
 const mkTrace = ({ mode = 'classic', score, eaten = 1, kinds = { building: 1 }, kills = 0, deaths = 0, t = 2 }) => ({
+  v: 2, t: [t], s: [score], m: [score], r: [Math.round(radiusForMode(score, mode) * 100) / 100], e: [eaten], k: [kills], w: [score], p: [score], c: [0], u: U0(1), kinds, kills, deaths,
+});
+const mkTraceV1 = ({ mode = 'classic', score, eaten = 1, kinds = { building: 1 }, kills = 0, deaths = 0, t = 2 }) => ({
   v: 1, t: [t], s: [score], r: [Math.round(radiusForMode(score, mode) * 100) / 100], e: [eaten], k: [kills], kinds, kills, deaths,
 });
 const gain0 = (mode) => limitsFor('centrs').modes[mode].gain[0];
@@ -39,26 +44,32 @@ const body = (mode, roundId, score, extra = {}) => ({
 
 async function main() {
   let r, j;
-  // ================= migrations: fresh DB (all) and upgrade of a DB that only had 0001 ============================
+  // ================= migrations: fresh DB (all) and upgrades from EVERY earlier schema (0001 ... 0005) ===============
   {
-    const only1 = resolve(root, 'scripts/.tmp-api/mig-0001');
-    freshDir(only1); cpSync(resolve(root, 'migrations/0001_init.sql'), resolve(only1, '0001_init.sql'));
-    const cfg1 = writeConfig('api-mig1', dist, only1);
-    migrate(cfg1, persistU);
-    sql(cfg1, persistU, "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at) VALUES ('Old Timer', 777, 10, 5.5, 2, 'tram', 1700000000)");
-    sql(cfg1, persistU, "INSERT INTO rounds (id, created_at, ip_hash, used) VALUES ('old-round', 1700000000, 'x', 1)");
-    migrate(config, persistU);   // now the full set (0002 + 0003) on the same DB
-    const row = sql(config, persistU, 'SELECT name, score, mode, map, day, suspect FROM scores')[0];
-    check('upgrade 0001 -> 0005: old score row becomes classic + centrs, not suspect', row && row.name === 'Old Timer' && row.mode === 'classic' && row.map === 'centrs' && row.suspect === 0 && row.day === null, JSON.stringify(row));
-    const rr = sql(config, persistU, "SELECT mode, map FROM rounds WHERE id='old-round'")[0];
-    check('upgrade: old round row becomes classic + centrs', rr && rr.mode === 'classic' && rr.map === 'centrs', JSON.stringify(rr));
-    const tabs = sql(config, persistU, "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('stats','rate_limits') ORDER BY name").map((r) => r.name);
-    check('upgrade: stats + rate_limits tables exist', tabs.join() === 'rate_limits,stats', tabs.join());
-    migrate(config, persistU);   // idempotent re-run
-    check('migrations re-apply is a no-op', sql(config, persistU, 'SELECT COUNT(*) AS n FROM scores')[0].n === 1);
+    const MIGS = ['0001_init.sql', '0002_modes_anticheat.sql', '0003_stats.sql', '0004_maps.sql', '0005_difficulty.sql'];
+    for (let k = 1; k <= MIGS.length; k++) {
+      const onlyK = resolve(root, `scripts/.tmp-api/mig-000${k}`);
+      freshDir(onlyK); for (const f of MIGS.slice(0, k)) cpSync(resolve(root, 'migrations', f), resolve(onlyK, f));
+      const persist = freshDir(resolve(root, `.wrangler/smoke-api-upgrade-${k}`));
+      const cfgK = writeConfig(`api-mig${k}`, dist, onlyK);
+      migrate(cfgK, persist);
+      sql(cfgK, persist, "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at) VALUES ('Old Timer', 777, 10, 5.5, 2, 'tram', 1700000000)");
+      sql(cfgK, persist, "INSERT INTO rounds (id, created_at, ip_hash, used) VALUES ('old-round', 1700000000, 'x', 1)");
+      migrate(config, persist);   // now the full set (up to 0006) on the same DB
+      const row = sql(config, persist, 'SELECT name, score, mode, map, day, suspect, rules FROM scores')[0];
+      check(`upgrade 0001..000${k} -> 0006: the old score row survives (classic + centrs, not suspect, rules NULL = archive)`, row && row.name === 'Old Timer' && row.mode === 'classic' && row.map === 'centrs' && row.suspect === 0 && row.day === null && row.rules === null, JSON.stringify(row));
+      const rr = sql(config, persist, "SELECT mode, map FROM rounds WHERE id='old-round'")[0];
+      check(`upgrade from 000${k}: old round row becomes classic + centrs`, rr && rr.mode === 'classic' && rr.map === 'centrs', JSON.stringify(rr));
+      const tabs = sql(config, persist, "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('stats','rate_limits') ORDER BY name").map((r) => r.name);
+      check(`upgrade from 000${k}: stats + rate_limits tables exist`, tabs.join() === 'rate_limits,stats', tabs.join());
+      migrate(config, persist);   // idempotent re-run
+      check(`upgrade from 000${k}: re-apply is a no-op`, sql(config, persist, 'SELECT COUNT(*) AS n FROM scores')[0].n === 1);
+      rmSync(persist, { recursive: true, force: true });
+    }
     migrate(config, persistA); migrate(config, persistB);
     const cols = sql(config, persistA, "SELECT name FROM pragma_table_info('scores')").map((r) => r.name);
-    check('fresh DB has the 0002 + 0004 + 0005 columns', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id', 'map', 'difficulty'].every((c) => cols.includes(c)), cols.join());
+    check('fresh DB has the 0002 + 0004 + 0005 + 0006 columns (rules is nullable)', ['mode', 'day', 'suspect', 'flags', 'trace', 'round_id', 'map', 'difficulty', 'rules'].every((c) => cols.includes(c)), cols.join());
+    check('0006 column is nullable INTEGER', sql(config, persistA, "SELECT type, \"notnull\" AS nn FROM pragma_table_info('scores') WHERE name='rules'").map((r) => r.type + r.nn).join() === 'INTEGER0');
   }
 
   const A = await startWorker({ config, persist: persistA, port: PORT, vars: { ROUND_SECONDS_OVERRIDE: 2, RATE_ROUNDS_PER_HOUR: 28, CAP_DAILY: 2 } });
@@ -113,7 +124,7 @@ async function main() {
   check('classic seeds are random per round', seeds.size === 2);
 
   // ---- create the rounds used below, then wait once for the round age
-  const roundNames = ['okA', 'dup', 'quick', 'daily', 'sus', 'rej', 'notrace', 'prof', 'modeMis', 'badTrace', 'invalid', 'diffOk', 'diffBad', 'diffNone'];
+  const roundNames = ['staleV1', 'okA', 'dup', 'quick', 'daily', 'sus', 'rej', 'notrace', 'prof', 'modeMis', 'badTrace', 'invalid', 'diffOk', 'diffBad', 'diffNone'];
   const R = {};
   for (const n of roundNames) R[n] = (await newRound(n === 'quick' ? { mode: 'quick' } : n === 'daily' ? { mode: 'daily' } : n.startsWith('diff') ? { map: 'mezaparks' } : {})).j.roundId;
   r = await post('/api/scores', body('classic', R.okA, okScore('classic')));
@@ -134,7 +145,7 @@ async function main() {
   r = await post('/api/scores', good, {}, 'not json'); check('reject invalid JSON', r.status === 400, `${r.status}`);
   r = await req('/api/scores', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify(good) });
   check('reject non-JSON content-type', r.status === 415, `${r.status}`);
-  r = await post('/api/scores', { ...good, pad: 'x'.repeat(9000) }); check('reject oversized body', r.status === 413, `${r.status}`);
+  r = await post('/api/scores', { ...good, pad: 'x'.repeat(13000) }); check('reject oversized body', r.status === 413, `${r.status}`);
   r = await post('/api/scores', good, { origin: 'https://evil.example' }); check('reject cross-origin POST', r.status === 403, `${r.status}`);
   r = await post('/api/scores', { ...good, mode: 'quick' }); check('mode mismatch with the round -> 400', r.status === 400, `${r.status}`);
   // none of the above burnt the round
@@ -156,6 +167,11 @@ async function main() {
   j = await r.json();
   check('gain between SOFT and HARD -> accepted as suspect (looks like success)', r.status === 201 && j.ok && j.rankAllTime >= 1, JSON.stringify(j));
 
+  // ---- a stale tab (old client) still sends the v1 trace: accepted, but it is a pre-combo score -> rules 1 = the archive, never the current board
+  r = await post('/api/scores', { ...body('classic', R.staleV1, okScore('classic')), trace: mkTraceV1({ mode: 'classic', score: okScore('classic') }), name: 'Stale Sam' }); j = await r.json();
+  check('v1 trace (old client) accepted, answered as an archive result', r.status === 201 && j.rules === 1, JSON.stringify(j));
+  check('...stored with rules = 1', sql(config, persistA, "SELECT rules FROM scores WHERE name = 'Stale Sam'")[0].rules === 1);
+
   // ---- good submissions + sanitising + per-mode boards
   r = await post('/api/scores', { ...body('classic', R.okA, okScore('classic')), name: '  <b>Ann\u0007a</b>\n  "Z"  ' });
   j = await r.json();
@@ -173,17 +189,28 @@ async function main() {
   r = await post('/api/scores', { ...body('daily', R.daily, okScore('daily')), name: 'Daily Dan' }); j = await r.json();
   check('daily submit ok, bound to the day', r.status === 201 && j.mode === 'daily' && j.day === today && j.rankAllTime === 1, JSON.stringify(j));
 
-  sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode) VALUES ('Net Nina', 999, 5, 9.5, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'online')`);
+  sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, rules) VALUES ('Net Nina', 999, 5, 9.5, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'online', 2)`);
+  // pre-combo rows (rules NULL / 1): not on the current boards, visible in the archive only
+  sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode) VALUES ('Old Olga', 123456, 50, 90, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'classic')`);
+  sql(config, persistA, `INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, rules) VALUES ('Old Oleg', 654321, 50, 90, 1, 'tram', ${Math.floor(Date.now() / 1000)}, 'online', 1)`);
   const names = (j2) => j2.scores.map((s) => s.name);
   const c = await scores('mode=classic&period=all'), q = await scores('mode=quick&period=all'), d = await scores(`mode=daily&day=${today}`), o = await scores('mode=online&period=all');
-  check('classic board: only classic rows, suspect row hidden (3 rows)', c.scores.length === 3 && ['bAnn a/b "Z"', 'Anna', 'Anonīms'].every((x) => names(c).includes(x)), JSON.stringify(names(c)));
+  check('classic board: only current-rules classic rows, suspect row hidden (3 rows)', c.scores.length === 3 && ['bAnn a/b "Z"', 'Anna', 'Anonīms'].every((x) => names(c).includes(x)), JSON.stringify(names(c)));
   check('quick board has only the quick score', names(q).join() === 'Quicky', JSON.stringify(names(q)));
   check('daily board (today) has only the daily score', names(d).join() === 'Daily Dan' && d.day === today, JSON.stringify(d));
   check('daily board of yesterday is empty', (await scores(`mode=daily&day=${yesterday}`)).scores.length === 0);
   check('online board shows server-written rows', names(o).join() === 'Net Nina', JSON.stringify(o));
   const flagged = sql(config, persistA, "SELECT suspect, flags, mode, length(trace) AS tl FROM scores WHERE suspect = 1");
   check('suspect row stored (suspect=1, reason codes, trace kept) but hidden', flagged.length === 1 && /gain_soft|cap_soft|kind_values/.test(flagged[0].flags) && flagged[0].tl > 20, JSON.stringify(flagged));
-  check('rejected rounds stored nothing (exactly 7 rows)', sql(config, persistA, 'SELECT COUNT(*) AS n FROM scores')[0].n === 7);
+  check('rejected rounds stored nothing (exactly 10 rows: 8 new + 2 archive rows)', sql(config, persistA, 'SELECT COUNT(*) AS n FROM scores')[0].n === 10);
+  // ---- scoring rules (migration 0006): boards = the current rules, ?archive=1 = the older ones; new rows carry rules 2
+  {
+    const ar = await scores('mode=classic&period=all&archive=1'), ao = await scores('mode=online&period=all&archive=1');
+    check('current board has no pre-combo rows (Old Olga hidden), says which rules', !names(c).includes('Old Olga') && c.rules === 2, JSON.stringify([names(c), c.rules]));
+    check('archive board (?archive=1) shows exactly the pre-combo rows (incl. the stale-tab v1 score), labelled', names(ar).join() === 'Old Olga,Stale Sam' && ar.rules === 'archive' && names(ao).join() === 'Old Oleg', JSON.stringify([names(ar), names(ao)]));
+    check('new rows are stored with rules = 2', sql(config, persistA, "SELECT rules FROM scores WHERE name = 'Quicky'")[0].rules === 2);
+    check('archive of a map without old rows is empty', (await scores('mode=classic&map=purvciems&period=all&archive=1')).scores.length === 0);
+  }
 
   // ---- per-map boards (migration 0004): rounds are bound to a map, boards are one per map x mode, daily / online are centre-only
   {
@@ -327,6 +354,54 @@ async function main() {
   check('validator: rank beyond the number of holes -> reject', v(tr, 'classic', { rank: 9 }).verdict === 'reject');
   tr = long('classic', low); tr.r[29] = tr.r[29] * 3;
   check('validator: radius inconsistent with growth formula -> not ok', v(tr).verdict !== 'ok');
+  // ---- trace v2 (combos + power-ups): the consistency checks
+  {
+    const long2 = (mode, perStep, { mult = 1, c = 0, eat = 1 } = {}) => {
+      const tr = { v: 2, t: [], s: [], m: [], r: [], e: [], k: [], w: [], p: [], c: [], u: U0(n), kinds: { building: eat * n }, kills: 0, deaths: 0 };
+      let raw = 0;
+      for (let i = 0; i < n; i++) {
+        raw += perStep; const pts = raw * mult;
+        tr.t.push(10 * (i + 1)); tr.s.push(Math.round(pts)); tr.m.push(Math.round(raw)); tr.w.push(Math.round(raw)); tr.p.push(Math.round(pts));
+        tr.r.push(Math.round(radiusForMode(raw, mode) * 100) / 100); tr.e.push(eat * (i + 1)); tr.k.push(0); tr.c.push(c);
+      }
+      return tr;
+    };
+    const v2 = (tr, mode = 'classic', extra = {}) => validateSubmission({ mode, seconds: sec, age: sec + 3, score: tr.s[n - 1], eaten: tr.e[n - 1], radius: tr.r[n - 1], rank: 2, trace: tr, ...extra });
+    const lowRaw = Math.max(10, Math.floor(gain0('classic') * 0.3));
+    check('v2: a modest round without a combo is ok', v2(long2('classic', lowRaw)).verdict === 'ok', JSON.stringify(v2(long2('classic', lowRaw))));
+    check('v2: a x3 combo round (counter 120) with points = 3 x raw is not rejected', v2(long2('classic', lowRaw / 2, { mult: 3, c: 120, eat: 40 })).verdict !== 'reject', JSON.stringify(v2(long2('classic', lowRaw / 2, { mult: 3, c: 120, eat: 40 }))));
+    let t2 = long2('classic', lowRaw, { mult: 1 });  t2.p = t2.p.map((x) => x * 4); t2.s = t2.s.map((x) => x * 4);
+    check('v2: inflated multiplier (points x4 with no combo) -> reject points_mult', (() => { const x = v2(t2); return x.verdict === 'reject' && x.reasons.includes('points_mult'); })(), JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw / 2, { mult: 4, c: 120, eat: 40 });
+    check('v2: x4 with a x3 combo and no Dubultpunkti -> reject points_mult', v2(t2).reasons.includes('points_mult'), JSON.stringify(v2(t2)));
+    // an honest x5 interval (x3 combo x2 Dubultpunkti): 100 raw -> 500 points in interval 9, the pickup counted at sample 9
+    {
+      const q = long2('classic', 20, { mult: 1, c: 120, eat: 40 });
+      q.u.double = q.u.double.map((_, i) => (i >= 9 ? 1 : 0));
+      for (let i = 9; i < n; i++) { const extra = i === 9 ? 20 * 4 : 0; q.p[i] += extra * 1; q.s[i] += extra; for (let j = i + 1; j < n; j++) { q.p[j] += extra; q.s[j] += extra; } }
+      // (interval 9: raw +20, points +20 + 80 = 100 = x5; every later interval is plain again)
+      check('v2: x3 combo x Dubultpunkti = x5 right after the pickup is accepted (combined cap 5), x6 would not be', !v2(q).reasons.includes('points_mult'), JSON.stringify(v2(q)));
+      const q6 = long2('classic', 20, { mult: 1, c: 120, eat: 40 }); q6.u.double = q6.u.double.map((_, i) => (i >= 9 ? 1 : 0));
+      for (let i = 9; i < n; i++) { const extra = i === 9 ? 20 * 5 : 0; q6.p[i] += extra; q6.s[i] += extra; for (let j = i + 1; j < n; j++) { q6.p[j] += extra; q6.s[j] += extra; } }
+      check('v2: ...x6 in that interval (beyond the combined cap) -> reject', v2(q6).reasons.includes('points_mult'), JSON.stringify(v2(q6)));
+    }
+    t2 = long2('classic', lowRaw); t2.u.speed = t2.u.speed.map((_, i) => 500 + i);
+    check('v2: impossible power-up count -> reject powerups_count', v2(t2).reasons.includes('powerups_count'), JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw); t2.u.shield = t2.u.shield.map((_, i) => (i >= 12 ? 70 : 0));
+    check('v2: more pickups in one interval than the map has slots -> reject powerups_burst', v2(t2).reasons.includes('powerups_burst'), JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw, { c: 9000 });
+    check('v2: combo longer than the swallowed count allows -> reject combo_eaten', v2(t2).reasons.includes('combo_eaten'), JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw); t2.m = t2.m.map((x) => x * 5);
+    check('v2: growth mass above the raw swallowed value -> reject mass_mismatch / mass_gt_points', v2(t2).verdict === 'reject', JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw, { mult: 3, c: 120 }); t2.r = t2.s.map((x) => Math.round(radiusForMode(x, 'classic') * 100) / 100);
+    check('v2: a radius that follows the multiplied points instead of the mass is flagged', v2(t2).verdict !== 'ok' && v2(t2).reasons.includes('radius_formula'), JSON.stringify(v2(t2)));
+    t2 = long2('classic', lowRaw); t2.u.magnet[3] = -1;
+    check('v2: negative / malformed pickup counts -> reject (format)', v2(t2).verdict === 'reject');
+    t2 = long2('classic', lowRaw); delete t2.u;
+    check('v2: missing power-up arrays -> reject (format)', v2(t2).verdict === 'reject');
+    t2 = long2('classic', lowRaw); t2.s[29] = t2.s[29] * 3; 
+    check('v2: final points x3 while the swallow points stay -> reject points_mismatch', v2(t2).verdict === 'reject', JSON.stringify(v2(t2)));
+  }
   check('validator: mode caps differ (quick growth is faster)', MODES.quick.growthK < MODES.classic.growthK && radiusForMode(500, 'quick') > radiusForMode(500, 'classic'));
   check('rigaDay: summer midnight (UTC+3) and winter midnight (UTC+2)',
     rigaDay(Date.UTC(2026, 5, 30, 20, 59, 59) / 1000) === '2026-06-30' && rigaDay(Date.UTC(2026, 5, 30, 21, 0, 0) / 1000) === '2026-07-01' &&

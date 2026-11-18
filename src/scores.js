@@ -130,10 +130,11 @@ export async function retrySubmit() {
   try { return await send(pending.r, pending.p); } catch { lastFailure = 'net'; return null; }
 }
 
-/** opts: { mode: 'classic'|'quick'|'daily'|'online', map: map slug (default centrs), day: 'YYYY-MM-DD' (daily) } */
+/** opts: { mode: 'classic'|'quick'|'daily'|'online', map: map slug (default centrs), day: 'YYYY-MM-DD' (daily), archive: true = boards of the older scoring rules } */
 export async function fetchScores(period = 'all', limit = 20, opts = {}) {
   const q = new URLSearchParams({ period, limit: String(limit), mode: opts.mode || 'classic', map: opts.map || 'centrs' });
   if (opts.day) q.set('day', opts.day);
+  if (opts.archive) q.set('archive', '1');                    // the older scoring rules (pre-combo boards)
   const data = await api(`/api/scores?${q}`, { cache: 'no-store' });
   return data && Array.isArray(data.scores) ? data.scores : null;
 }

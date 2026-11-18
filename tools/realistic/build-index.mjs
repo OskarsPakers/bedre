@@ -1,0 +1,1 @@
+import { buildIndex } from './index.mjs'; const t = Date.now(); const idx = await buildIndex(process.argv[2]); console.log(process.argv[2], 'nodes', idx.nodes.length, 'mesh nodes', idx.nodes.filter(n => n.vc).length, 'roots', idx.roots.length, ((Date.now() - t) / 1000) | 0, 's');

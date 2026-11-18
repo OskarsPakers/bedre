@@ -12,11 +12,13 @@
 import { CFG } from './config.js';
 import { Hole } from './holes.js';
 import { mulberry32 } from './rng.js';
+import { BOT_COMBO_SCALE } from './combo.js';
+import { BOT_PU, botPuRange } from './powerups.js';
 
 export const BOT_NAMES = [
   'Jānis', 'Līga', 'Kaķis', 'Rūķis', 'Laima', 'Bebrs', 'Ūdris', 'Zaķis', 'Lācis', 'Vilks', 'Pūce', 'Dzintars', 'Zane', 'Ieva',
   'Māris', 'Baiba', 'Uldis', 'Kārlis', 'Ilze', 'Gundega', 'Kurmis', 'Ezis', 'Vāvere', 'Sprīdītis', 'Čiekurs', 'Mārtiņš',
-  'Dzeguze', 'Lāsma', 'Saulīte', 'Mežavīrs', 'Pelmeņš', 'Rasa',
+  'Dzeguze', 'Lāsma', 'Saulīte', 'Mežavīrs', 'Pelmenis', 'Rasa',
 ];
 
 const TAU = Math.PI * 2;
@@ -103,7 +105,8 @@ class Brain {
     this.threatSince = -1; this.ban = null; this.banUntil = 0;
     this.roam = null; this.nextRoam = now + 0.5 + this.rng() * 1.5;
     this.prey = null; this.huntSince = 0; this.preyBan = null; this.preyBanUntil = 0;
-    this.rate = 1; this.peak = 0; this.rateScore = h.score; this.rateT = now;
+    this.rate = 1; this.peak = 0; this.rateScore = h.mass; this.rateT = now;
+    this.puGoal = -1; this.puUntil = 0; this.puCool = now + 15;   // (no detours in the first moments: eat first)
     this.heading = this.rng() * TAU;
     this.mode = 'eat';
   }
@@ -115,10 +118,10 @@ class Brain {
 
     // ---- own eating rate (score / s), smoothed over ~2 s windows; used to judge hunts
     if (now - this.rateT >= 2) {
-      const inst = Math.max(0, h.score - this.rateScore) / (now - this.rateT);
+      const inst = Math.max(0, h.mass - this.rateScore) / (now - this.rateT);
       this.rate = this.rate * 0.5 + inst * 0.5;
       this.peak = Math.max(this.rate, (this.peak || 0) * 0.97);
-      this.rateScore = h.score; this.rateT = now;
+      this.rateScore = h.mass; this.rateT = now;
     }
 
     // ---- stuck check (every ~1.5 s): barely moved while having a goal
@@ -152,11 +155,12 @@ class Brain {
       } else if (r >= o.radius * D.ratio * (o.isBot ? 1 : B.humanRatio) * 1.02 && !safe && h.protectT <= 0 && o.protectT < 0.5) {
         if (o === this.preyBan && now < this.preyBanUntil) continue;
         if (!o.isBot && (now < B.humanGrace || now - (o.respawnedAt ?? -1e9) < B.respawnGrace)) continue; // easy: no early dogpile, no spawn camping
-        if (o.score < h.score * B.preyMinFrac) continue; // not worth bullying tiny holes
+        if (o.fx.shield > 0) continue;                    // Vairogs: cannot be swallowed, do not chase it
+        if (o.mass < h.mass * B.preyMinFrac) continue; // not worth bullying tiny holes
         const gap = d - r * D.reach;
         if (gap > Math.max(18, r * B.huntRange) * (0.5 + this.aggr * 0.7)) continue;
         const catchT = Math.max(0, gap) / Math.max(1.5, h.speed - 0.75 * o.speed) + 0.5;
-        const v = (o.score * D.gain + 3) / catchT;
+        const v = (o.mass * D.gain + 3) / catchT;
         const greed = B.huntGreed - this.aggr + (this.leader && o.isBot ? B.leaderRestraint : 0);
         if (v > this.rate * greed && v > pv) { pv = v; prey = o; }
       }
@@ -189,6 +193,20 @@ class Brain {
         mode = 'hunt';
       }
     } else this.prey = null;
+
+    if (tx === undefined && this.field) {
+      // power-ups: notice one nearby (more often on hard, rarely on easy) and detour for it until it is taken or the detour times out
+      const P = BOT_PU[CFG.difficulty] || BOT_PU.normal;
+      const f = this.field;
+      let pu = null;
+      if (this.puGoal >= 0 && now < this.puUntil) { const s = f.slots[this.puGoal]; if (s && s.state === 'on') pu = { x: s.x, z: s.z }; else { this.puGoal = -1; this.puCool = now + P.cool; } }
+      else if (this.puGoal >= 0) { this.puGoal = -1; this.puCool = now + P.cool; }
+      if (!pu && now >= this.puCool) {
+        const cand = f.nearest(h.x, h.z, botPuRange(P, r));
+        if (cand && this.rng() < P.chance) { this.puGoal = cand.slot; this.puUntil = now + 4 + cand.d / Math.max(4, h.speed) * 1.3; pu = cand; }
+      }
+      if (pu) { tx = pu.x; tz = pu.z; mode = 'powerup'; }
+    }
 
     if (tx === undefined) {
       this._roamCheck(world, dmap, now);
@@ -291,6 +309,8 @@ class Brain {
     const cands = this.cands; cands.length = 0;
     const R = dir ? dir.range : Math.max(26, r * 7) * (0.75 + 0.25 * Math.min(1.2, this.skill));
     const k = r * 1.5 + 4;
+    // sights are the game's identity: bots do not go out of their way for them early in the round (the human gets to see them); a landmark counts 25 % at the start, full from 4 min on
+    const lmW = Math.min(1, 0.25 + now / 240);
     let n = 0;
     world.query(h.x, h.z, R, (o, d) => {
       if (o.state !== 0 || o.fit >= maxFit || n >= 1200) return;
@@ -303,7 +323,7 @@ class Brain {
         const bd = Math.hypot(o.x - b.x, o.z - b.z);
         if (bd < b.radius * (D.reach + 0.6) + 6) return;
       }
-      cands.push(o, d, o.value / (d + k)); n++;
+      cands.push(o, d, o.value * (o.landmark ? lmW : 1) / (d + k)); n++;
     });
     if (!n) return null;
     // top few by plain value density
@@ -322,9 +342,9 @@ class Brain {
       for (let j = 0; j < n; j++) {
         const p = cands[3 * j];
         const dx = p.x - o.x, dz = p.z - o.z;
-        if (dx * dx + dz * dz < cr2) cl += p.value;
+        if (dx * dx + dz * dz < cr2) cl += p.landmark ? p.value * lmW : p.value;
       }
-      const sc = (o.value * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
+      const sc = ((o.landmark ? o.value * lmW : o.value) * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
       if (sc > bs) { bs = sc; best = o; }
     }
     return best;
@@ -337,6 +357,7 @@ export class Bots {
     this.picker = picker;
     this.rng = mulberry32(CFG.seed + 101);
     this.dmap = new DensityMap(world);
+    this.field = null;               // PowerupField of the running round (set by Game)
     this.brains = [];
     this.holes = [];
     const pool = names.slice();
@@ -398,11 +419,13 @@ export class Bots {
     if (!(now < this.rankAt) || now - this.rankAt > 1) { // board position (~1 Hz): leaders hold back, underdogs play safe
       this.rankAt = now;
       let s1 = 0, s2 = 0;
-      for (const h of allHoles) { if (h.score > s1) { s2 = s1; s1 = h.score; } else if (h.score > s2) s2 = h.score; }
+      for (const h of allHoles) { if (h.mass > s1) { s2 = s1; s1 = h.mass; } else if (h.mass > s2) s2 = h.mass; }
       let human = 0;
-      for (const h of allHoles) if (!h.isBot && h.score > human) human = h.score;
+      for (const h of allHoles) if (!h.isBot && h.mass > human) human = h.mass;   // (growth value, not points: pacing is what it was before combos)
+      const cs = BOT_COMBO_SCALE[CFG.difficulty] ?? 1;
       for (const br of this.brains) {
-        const s = br.hole.score;
+        br.hole.comboScale = cs; br.field = this.field;
+        const s = br.hole.mass;
         // easy: rubber band against runaway bots (only ever slows a bot that is far ahead of the human)
         const cu = CFG.bots.catchUp;
         br.hole.gainMul = cu > 0 ? br.baseGain * Math.max(0.45, Math.min(1, 1 - cu * (s / Math.max(600, human) - 1.2))) : br.baseGain;

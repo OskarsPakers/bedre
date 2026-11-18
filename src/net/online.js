@@ -7,7 +7,9 @@
 // server score + not-yet-acknowledged claims) and gets corrected by acks and snapshots.
 import * as THREE from 'three';
 import { CFG, radiusFromScore } from '../config.js';
-import { Hole, updateSwallow } from '../holes.js';
+import { Hole, updateSwallow, pullObjects, restoreMoved } from '../holes.js';
+import { PU, PU_TYPES, pickRadius } from '../powerups.js';
+import { comboRound, resetComboRound } from '../combo.js';
 import { bus } from '../events.js';
 import { t, kindName } from '../i18n.js';
 import { MpClient, fetchStatus } from './client.js';
@@ -41,8 +43,8 @@ export class OnlineMode {
     this.room = null; this.me = -1;
     this.byId = new Map();            // server hole id -> Hole (player + remotes)
     this.remotes = [];
-    this.serverScore = 0; this.optimistic = 0;
-    this.pendC = []; this.pendM = []; this.inflight = new Map(); this.seq = 0; this.sendAt = 0;
+    this.serverScore = 0; this.serverMass = 0; this.optimistic = 0; this.optPts = 0;   // points / growth mass: server value + not-yet-acknowledged local swallows
+    this.pendC = []; this.pendM = []; this.pendP = []; this.pickAsked = new Map(); this.inflight = new Map(); this.seq = 0; this.sendAt = 0;
     this.serverEaten = new Set();
     this.mine = new Set();            // object ids this client claimed and has not seen confirmed
     this.lobby = null; this.status = null; this.statusT = null; this.lobbyTimer = null;
@@ -180,12 +182,13 @@ export class OnlineMode {
       this._enter = false;
       const s = this._solo;
       CFG.growth.k = s.k;
+      g.puView.clear();
       this._clearHoles();
       g.holes = s.holes;
       g.player.id = s.id; g.player.color = s.color; g.player.name = s.name; g.player.isBot = undefined;
       g.online = null;
       g.phase = 'menu'; g.intro = null; g.paused = false;
-      g.world.reset();
+      g.world.reset(); restoreMoved(g.world);
       g._placeAll();
       g.hud.clearTransient();
       g.hud.showResults(false); g.hud.showHud(false); g.hud.showTags(false); g.hud.showMarkers(false); g.hud.showStart(true);
@@ -371,10 +374,12 @@ export class OnlineMode {
     this.round = m;
     clearInterval(this.lobbyTimer); clearInterval(this.statusT);
     this.ui.showLobby(false);
-    g.world.reset();
+    g.world.reset(); restoreMoved(g.world);
     this.drive = null;
     this.serverEaten.clear(); this.mine.clear();
-    this.pendC.length = 0; this.pendM.length = 0; this.inflight.clear(); this.optimistic = 0; this.serverScore = 0; this.saved = null;
+    this.pendC.length = 0; this.pendM.length = 0; this.pendP.length = 0; this.pickAsked.clear(); this.inflight.clear(); this.optimistic = 0; this.optPts = 0; this.serverScore = 0; this.serverMass = 0; this.saved = null;
+    resetComboRound();
+    g.puView.clear(); for (const [slot, ty, x, z] of m.pu || []) g.puView.spawn({ slot, type: PU_TYPES[ty], x, z });
     this._makeHoles(m);
     g.player.control = { mode: 'none', x: 0, z: 0 };
     g.killer = null;
@@ -416,15 +421,18 @@ export class OnlineMode {
     // objects eaten so far (by anybody): hide the ones this client still shows; claims the server never saw are restored
     const eatenNow = new Set(m.eaten);
     for (const id of this.mine) if (!eatenNow.has(id)) { const o = this.world.objects[id]; if (o) this._restore(o); }
-    this.mine.clear(); this.pendC.length = 0; this.pendM.length = 0; this.inflight.clear(); this.optimistic = 0;
+    this.mine.clear(); this.pendC.length = 0; this.pendM.length = 0; this.pendP.length = 0; this.pickAsked.clear(); this.inflight.clear(); this.optimistic = 0; this.optPts = 0;
+    g.puView.clear(); for (const [slot, ty, x, z] of m.pu || []) g.puView.spawn({ slot, type: PU_TYPES[ty], x, z });
     for (const id of m.eaten) {
       this.serverEaten.add(id);
       const o = this.world.objects[id];
       if (o && o.state === 0) this._hideNow(o);
     }
-    this.serverScore = m.me.score;
+    this.serverScore = m.me.score; this.serverMass = m.me.mass ?? m.me.score;
     const p = g.player;
-    p.score = m.me.score; p.targetRadius = radiusFromScore(p.score);
+    this._setFx(m.me.fx);
+    p.combo.drop();
+    p.score = m.me.score; p.mass = this.serverMass; p.targetRadius = radiusFromScore(p.mass);
     if (m.me.state === 0 && (!p.alive || p.dying)) { p.alive = true; p.dying = null; }
     // remote holes may have changed (left / respawned): rebuild the missing ones, then apply the snapshot
     for (const h of m.holes) {
@@ -467,7 +475,7 @@ export class OnlineMode {
     const g = this.game;
     const seen = new Set();
     for (const row of m.h) {
-      const [id, x, z, r, score, st] = row;
+      const [id, x, z, r, score, st, mask] = row;
       seen.add(id);
       if (id === this.me) {
         this.serverScore = score;
@@ -477,6 +485,7 @@ export class OnlineMode {
       const h = this.byId.get(id);
       if (!h) continue;
       h.score = score; h.srvState = st;
+      for (const ty of PU_TYPES) { const on = (mask & (1 << PU_TYPES.indexOf(ty))) !== 0; h.fx[ty] = on ? Math.max(h.fx[ty], 5) : 0; }   // others: only whether an effect runs (shield ring, aura)
       h.buf.push({ T: m.T, x, z, r });
       if (h.buf.length > 240) h.buf.shift();
       if (st === 0 && !h.alive && !h.dying && !h._respawnPending) { h.alive = true; h.buf.length = 0; h.buf.push({ T: m.T, x, z, r }); }
@@ -484,7 +493,10 @@ export class OnlineMode {
     if (m.d) for (const id of m.d) this._removeHole(id);
     if (m.e) for (const [oid, hid] of m.e) this._remoteEat(oid, hid);
     if (m.k) for (const [a, v, gain] of m.k) this._onKill(a, v, gain);
-    if (m.r) for (const [id, x, z, score] of m.r) this._onRespawn(id, x, z, score, m.T);
+    if (m.r) for (const [id, x, z, score, mass] of m.r) this._onRespawn(id, x, z, score, m.T, mass);
+    if (m.ps) for (const [slot, ty, x, z] of m.ps) g.puView.spawn({ slot, type: PU_TYPES[ty], x, z });
+    if (m.px) for (const slot of m.px) { g.puView.remove(slot, false); this.pickAsked.delete(slot); }
+    if (m.pp) for (const [slot, hid, ty, ms] of m.pp) this._onPickup(slot, hid, PU_TYPES[ty], ms);
     if (silent) return;
     this._netBadge();
   }
@@ -496,8 +508,29 @@ export class OnlineMode {
 
   _applyScore() {
     const p = this.game.player;
-    p.score = Math.max(0, this.serverScore + this.optimistic);
-    p.targetRadius = radiusFromScore(p.score);
+    p.score = Math.max(0, this.serverScore + this.optPts);
+    p.mass = Math.max(0, this.serverMass + this.optimistic);       // the size follows the growth mass, never the multiplied points
+    p.targetRadius = radiusFromScore(p.mass);
+  }
+
+  /** Effects of the local hole from the server's remaining milliseconds (PU_TYPES order). */
+  _setFx(arr) {
+    const p = this.game.player;
+    if (!Array.isArray(arr)) return;
+    PU_TYPES.forEach((ty, i) => { const v = Math.max(0, +arr[i] || 0) / 1000; if (v > 0 || p.fx[ty] > 0) p.fx[ty] = v; });
+  }
+
+  /** The server says hole `hid` collected pickup `slot`: first valid claim wins. */
+  _onPickup(slot, hid, type, ms) {
+    const g = this.game, h = this.byId.get(hid);
+    this.pickAsked.delete(slot);
+    g.puView.remove(slot, true, h || null);
+    if (!h) return;
+    if (h === g.player) {
+      h.pick(type); if (ms > 0) h.fx[type] = ms / 1000;   // (the server's duration; the fx list of the next ack keeps it in step)
+      comboRound.picked.add(type); g.hud.puToast(type, PU[type].dur); bus.emit('powerupPicked', { type });
+    }
+    bus.emit('powerup', { type, hole: h, slot });
   }
 
   _removeHole(id) {
@@ -548,9 +581,12 @@ export class OnlineMode {
     if (b) {
       this.inflight.delete(m.q);
       this.optimistic = Math.max(0, this.optimistic - b.value);
+      this.optPts = Math.max(0, this.optPts - b.pts);
       for (const id of b.ids) this.mine.delete(id);
     }
-    this.serverScore = m.s;
+    this.serverScore = m.s; if (m.m != null) this.serverMass = m.m;
+    this._setFx(m.fx);
+    if (m.pb) for (const slot of m.pb) this.pickAsked.delete(slot);
     if (m.b && m.b.length) for (const id of m.b) { const o = this.world.objects[id]; if (o) this._restore(o); }
     this._applyScore();
   }
@@ -576,14 +612,14 @@ export class OnlineMode {
     }
   }
 
-  _onRespawn(id, x, z, score, T) {
+  _onRespawn(id, x, z, score, T, mass) {
     const g = this.game, h = this.byId.get(id);
     if (!h) return;
     h._respawnPending = false;
-    h.score = score;
+    h.score = score; h.mass = mass ?? score;
     h.respawn(x, z, 1, CFG.duel.protect);
     if (h === g.player) {
-      this.serverScore = score; this.optimistic = 0; this._applyScore();
+      this.serverScore = score; this.serverMass = mass ?? score; this.optimistic = 0; this.optPts = 0; this._applyScore();
       h.radius = h.targetRadius;
       g.killer = null; g.hud.showSwallowed(false); g.cam.snap(h);
     } else { h.buf.length = 0; h.buf.push({ T, x, z, r: h.radius }); }
@@ -617,9 +653,16 @@ export class OnlineMode {
     if (p.dying) g._advanceDying(p, dt);
     else if (!p.alive) p.respawnT = Math.max(0.5, p.respawnT - dt); // waits for the server's respawn
     else {
+      if (playing) { p.fx.tick(dt); p.boost = p.fx.speedMul; }
       p.update(dt, this.world.bounds);
       if (p.protectT > 0) p.protectT = Math.max(0, p.protectT - dt);
-      if (playing) updateSwallow(this.world, p, (hh, o) => { g._onSwallow(hh, o); this._claim(o); });
+      if (playing) {
+        if (p.fx.magnet > 0) pullObjects(this.world, p, dt);
+        updateSwallow(this.world, p, (hh, o, res) => { g._onSwallow(hh, o, res); this._claim(o, res); }, g.playT);
+        this._touchPickups(p);
+        const lost = p.combo.tick(g.playT);
+        if (lost) bus.emit('comboLost', { count: lost, hole: p });
+      }
     }
     // remote holes: interpolated from snapshots
     const rt = now - INTERP_MS;
@@ -669,11 +712,24 @@ export class OnlineMode {
   }
 
   // ---- outgoing --------------------------------------------------------------------------------------------------------------
-  _claim(o) {
-    this.optimistic += o.value;
+  _claim(o, res) {
+    const mass = res ? res.mass : o.value, pts = res ? res.pts : o.value;
+    this.optimistic += mass; this.optPts += pts;
     this.mine.add(o.id);
-    if (o.mover) this.pendM.push([o.id, r1(o.x), r1(o.z), o.value]);
-    else this.pendC.push([o.id, o.value]);
+    if (o.mover) this.pendM.push([o.id, r1(o.x), r1(o.z), mass, pts]);
+    else this.pendC.push([o.id, mass, pts]);
+  }
+
+  /** The local hole touches a pickup: ask the server for it (it validates distance + existence; the first valid claim wins). */
+  _touchPickups(p) {
+    const R = pickRadius(p.radius), now = performance.now();
+    for (const it of this.game.puView.items.values()) {
+      if (Math.hypot(it.x - p.x, it.z - p.z) > R) continue;
+      const at = this.pickAsked.get(it.slot);
+      if (at && now - at < 900) continue;
+      this.pickAsked.set(it.slot, now);
+      this.pendP.push(it.slot);
+    }
   }
 
   _flush() {
@@ -681,12 +737,13 @@ export class OnlineMode {
     if (now - this.sendAt < SEND_MS) return;
     this.sendAt = now;
     const p = this.game.player;
-    if (!p.alive || p.dying) { this.pendC.length = 0; this.pendM.length = 0; return; }
-    const msg = { t: 'u', q: ++this.seq, x: r1(p.x), z: r1(p.z) };
-    let value = 0; const ids = [];
-    if (this.pendC.length) { const take = this.pendC.splice(0, MP.maxClaimIds); msg.c = take.map((e) => { value += e[1]; ids.push(e[0]); return e[0]; }); }
-    if (this.pendM.length) { const take = this.pendM.splice(0, MP.maxClaimMovers); msg.m = take.map((e) => { value += e[3]; ids.push(e[0]); return [e[0], e[1], e[2]]; }); }
-    if (ids.length) this.inflight.set(msg.q, { value, ids });
+    if (!p.alive || p.dying) { this.pendC.length = 0; this.pendM.length = 0; this.pendP.length = 0; return; }
+    const msg = { t: 'u', q: ++this.seq, x: r1(p.x), z: r1(p.z), ct: Math.round(this.client.serverNow()) };   // ct: our clock estimate (the server's combo timing uses it)
+    let value = 0, pts = 0; const ids = [];
+    if (this.pendC.length) { const take = this.pendC.splice(0, MP.maxClaimIds); msg.c = take.map((e) => { value += e[1]; pts += e[2]; ids.push(e[0]); return e[0]; }); }
+    if (this.pendM.length) { const take = this.pendM.splice(0, MP.maxClaimMovers); msg.m = take.map((e) => { value += e[3]; pts += e[4]; ids.push(e[0]); return [e[0], e[1], e[2]]; }); }
+    if (this.pendP.length) msg.p = this.pendP.splice(0, MP.maxPickClaims);
+    if (ids.length) this.inflight.set(msg.q, { value, pts, ids });
     this.client.send(msg);
   }
 
@@ -720,8 +777,8 @@ export class OnlineMode {
     g.rows = rows;
     const mine = m.rank.find((r) => r.id === this.me) || { rank: rows.length, score: g.player.score, eaten: g.player.eaten, kills: 0, deaths: 0, radius: g.player.radius };
     const p = g.player;
-    p.score = mine.score; p.targetRadius = radiusFromScore(p.score);
-    g._res = { score: mine.score, eaten: mine.eaten, kills: mine.kills, deaths: mine.deaths, radius: mine.radius, level: g._level().level,
+    p.score = mine.score; p.targetRadius = mine.radius ? mine.radius : p.targetRadius;
+    g._res = { score: mine.score, bestCombo: mine.bestCombo || Math.round(p.combo.best), bestMult: mine.bestMult || p.combo.bestMult, picks: { ...p.picks }, eaten: mine.eaten, kills: mine.kills, deaths: mine.deaths, radius: mine.radius, level: g._level().level,
       biggest: p.biggest, rank: mine.rank, total: rows.length, table: rows, online: true };
     g._showResults();
     this._markResults(rows);
@@ -766,13 +823,19 @@ export class OnlineMode {
       get socket() { return o.client.ws ? o.client.ws.readyState : -1; },
       get stats() { return { ...o.client.stats }; },
       get serverScore() { return o.serverScore; },
+      get serverMass() { return o.serverMass; },
+      get pending() { return { inflight: o.inflight.size, seq: o.seq, pendC: o.pendC.length, mine: o.mine.size }; },
+      get combo() { const c = o.game.player.combo; return { count: c.count, mult: c.mult, best: c.best }; },
+      get fx() { return { ...o.game.player.fx }; },
+      get powerups() { return o.game.puView.list(); },
+      get picks() { return { ...o.game.player.picks }; },
       get optimistic() { return o.optimistic; },
       get log() { return o.log.slice(); },
       get lobby() { return o.lobby; },
       get round() { return o.round; },
       get saved() { return o.saved; },
       get final() { return o.finalRank; },
-      get self() { const p = o.game.player; return { id: p.id, x: p.x, z: p.z, radius: p.radius, score: p.score, alive: p.alive, dying: !!p.dying, protectT: p.protectT, kills: p.kills, deaths: p.deaths, eaten: p.eaten }; },
+      get self() { const p = o.game.player; return { id: p.id, x: p.x, z: p.z, radius: p.radius, score: p.score, mass: p.mass, alive: p.alive, dying: !!p.dying, protectT: p.protectT, kills: p.kills, deaths: p.deaths, eaten: p.eaten }; },
       drive: (x, z) => { o.drive = x == null ? null : { x, z }; },
       get reconnecting() { return !!o.rec; },
       get token() { return o.client.token; },
@@ -780,7 +843,7 @@ export class OnlineMode {
       get session() { return loadSession(); },
       get alive() { return o.client.checkAlive(1e9); },
       get lastRxAge() { return performance.now() - o.client.lastRx; },
-      remotes: () => o.remotes.map((h) => ({ id: h.id, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, isBot: !!h.isBot, alive: h.alive, dying: !!h.dying })),
+      remotes: () => o.remotes.map((h) => ({ id: h.id, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, fx: { ...h.fx }, isBot: !!h.isBot, alive: h.alive, dying: !!h.dying })),
       send: (m) => o.client.send(m),
       drop: () => o.client.dropForTest(),
       serverNow: () => o.client.serverNow(),

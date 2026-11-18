@@ -46,6 +46,7 @@ export function renderCard(canvas, rec, info) {
   const pw0 = g.measureText(`${info.pctMe}%`).width;
   g.fillStyle = '#9fb0c0'; g.font = `700 18px ${FONT}`; g.fillText(mt('cardEaten'), 56 + pw0 + 10, 566);
   g.textAlign = 'right'; g.fillStyle = '#f6efdf'; g.font = `800 26px ${FONT}`; g.fillText('bedre.pakers.lv', 1144, 604); g.textAlign = 'left';
+  if (info.extra) { g.fillStyle = '#e8855f'; g.font = `800 22px ${FONT}`; g.fillText(info.extra, 56, 606); }   // streak + weekly goals, no personal data
   g.fillStyle = '#9fb0c0'; g.font = `600 15px ${FONT}`;
   // map panel
   const px = 640, py = 40, pw = 512, ph = 520;

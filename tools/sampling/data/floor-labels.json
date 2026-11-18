@@ -1,0 +1,4 @@
+{"note":"hand count of window rows above the ground band on the rectified facade, seeded random sample of 40 centre buildings (SEED=7, buildings with rhythm confidence >= 2 before the extra gates); single rater. exact = detected nF equals my count, off1 = differs by one, bad = differs by >= 2 or the facade has no windows / no usable surface",
+ "exact":[49618392,49615980,49627413,49618779,49627654,49616911,49622235,49622254,49618920,49616339,49619718,49614533,49619774,49635367,49623489,49623539,49616499,49623565,49623538,49614573,49619050,49619755,49619808,49622215],
+ "off1":[49618905,49615751,49619766,49619816,49627937,49613618,49614901,49628769,49614842],
+ "bad":[49638527,49619787,49629594,49615157,49615765,49614354,49622262]}

@@ -1,0 +1,13 @@
+<!doctype html><meta charset=utf-8><title>meshview2</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/examples/":"/three/examples/"}}</script>
+<style>html,body{margin:0;background:#9cc3e6;overflow:hidden}canvas{display:block}</style>
+<script type="module">
+// real reality mesh of the WHOLE centre plan (plan-0.4.json, streamed by bounding box): window.__v.show(cx, cz, halfSize) then view(pose)
+import * as THREE from 'three'; import { loadCorridor } from '/mesh.js';
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setPixelRatio(1); renderer.setSize(1600, 900); renderer.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fbbe8); const camera = new THREE.PerspectiveCamera(42, 16 / 9, 1, 4000); const man = await (await fetch('/sc/plan-0.4.json')).json(); let cur = null;
+const mk = (tex) => { if (tex) tex.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, color: tex ? 0xffffff : 0x888888 }); };
+window.__v = { ready: true, async show(cx, cz, h) { if (cur) { scene.remove(cur.group); cur.dispose(); } cur = await loadCorridor('x', { man, base: '/mesh/', makeMaterial: mk, nodeFilter: (m) => m.bb && !(m.bb[2] < cx - h || m.bb[0] > cx + h || m.bb[3] < cz - h || m.bb[1] > cz + h) }); scene.add(cur.group); return cur.stats; },
+  view(o) { camera.fov = o.fov || 42; camera.near = o.near || 1; camera.far = o.far || 4000; camera.updateProjectionMatrix(); camera.position.set(o.x, o.y, o.z); camera.up.set(0, 1, 0); camera.lookAt(o.lx, o.ly, o.lz); renderer.render(scene, camera); } };
+document.title = 'done';
+</script>

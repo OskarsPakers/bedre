@@ -1,9 +1,15 @@
-// Progress trace sent with a score submission (the Worker's plausibility model checks it, worker/lib/validate.js):
-//   { v:1, t:[play seconds], s:[score], r:[radius], e:[eaten], k:[kills], kinds:{kind:count}, kills, deaths }
-// Sampled every TRACE_STEP (10 s) of PLAYED time (pauses excluded); the last sample is the final state.
+// Progress trace sent with a score submission (the Worker's plausibility model checks it, worker/lib/validate.js). Format v2 (scoring rules 2, combos + power-ups):
+//   { v:2, t:[play seconds], s:[points], m:[mass], r:[radius], e:[eaten], k:[kills],
+//     w:[raw value swallowed], p:[points earned by swallows], c:[best combo counter so far],
+//     u:{ magnet:[n..], speed:[n..], double:[n..], shield:[n..] }   cumulative power-ups collected,
+//     kinds:{kind:count}, kills, deaths }
+// Every array has one entry per sample; sampled every TRACE_STEP (10 s) of PLAYED time (pauses excluded); the last sample is the final state.
+//   s = points (what boards rank), m = growth mass (radius = growth(m): the size does NOT follow the multiplied points),
+//   w = cumulative unmultiplied value of swallowed objects, p = cumulative multiplied points of swallows (so p <= w x best achievable multiplier).
 // Honest-client bookkeeping only: a cheater can fabricate it, but has to fabricate it consistently (see README).
 import { bus } from './events.js';
 import { TRACE_STEP } from './rules.js';
+import { PU_TYPES } from './powerups.js';
 
 let game = null;
 let tr = null, next = TRACE_STEP;
@@ -13,14 +19,20 @@ const kindKey = (o) => {
   return String(o.kind || 'other').toLowerCase().replace(/\d+$/, '').replace(/[^a-z0-9_]/g, '').slice(0, 24) || 'other';
 };
 
+const ARR = ['t', 's', 'm', 'r', 'e', 'k', 'w', 'p', 'c'];
 function sample(t) {
   const p = game.player;
-  return [Math.round(t * 100) / 100, Math.round(p.score), Math.round(p.targetRadius * 100) / 100, p.eaten, p.kills];
+  return {
+    t: Math.round(t * 100) / 100, s: Math.round(p.score), m: Math.round(p.mass), r: Math.round(p.targetRadius * 100) / 100, e: p.eaten, k: p.kills,
+    w: Math.round(p.rawEaten), p: Math.round(p.swPts), c: Math.round(p.combo.best), u: { ...p.picks },
+  };
 }
-function push(s) { tr.t.push(s[0]); tr.s.push(s[1]); tr.r.push(s[2]); tr.e.push(s[3]); tr.k.push(s[4]); }
+function push(s) { for (const a of ARR) tr[a].push(s[a]); for (const k of PU_TYPES) tr.u[k].push(s.u[k]); }
 
 function reset() {
-  tr = { v: 1, t: [], s: [], r: [], e: [], k: [], kinds: {} };
+  tr = { v: 2, kinds: {}, u: {} };
+  for (const a of ARR) tr[a] = [];
+  for (const k of PU_TYPES) tr.u[k] = [];
   next = TRACE_STEP;
 }
 
@@ -42,11 +54,15 @@ export function initTrace(g, world) {
 /** Trace of the current / just finished round (call when the round ends). null before any round started. */
 export function getTrace() {
   if (!tr || !game) return null;
-  const t = game.playT, out = { v: 1, t: tr.t.slice(), s: tr.s.slice(), r: tr.r.slice(), e: tr.e.slice(), k: tr.k.slice(), kinds: { ...tr.kinds } };
-  const f = sample(t);
-  if (out.t.length && f[0] - out.t[out.t.length - 1] < 0.3) {   // a slot sample just happened: it becomes the final one
-    out.t[out.t.length - 1] = f[0]; out.s[out.s.length - 1] = f[1]; out.r[out.r.length - 1] = f[2]; out.e[out.e.length - 1] = f[3]; out.k[out.k.length - 1] = f[4];
-  } else { out.t.push(f[0]); out.s.push(f[1]); out.r.push(f[2]); out.e.push(f[3]); out.k.push(f[4]); }
+  const out = { v: 2, kinds: { ...tr.kinds }, u: {} };
+  for (const a of ARR) out[a] = tr[a].slice();
+  for (const k of PU_TYPES) out.u[k] = tr.u[k].slice();
+  const f = sample(game.playT);
+  const n = out.t.length;
+  if (n && f.t - out.t[n - 1] < 0.3) {   // a slot sample just happened: it becomes the final one
+    for (const a of ARR) out[a][n - 1] = f[a];
+    for (const k of PU_TYPES) out.u[k][n - 1] = f.u[k];
+  } else { for (const a of ARR) out[a].push(f[a]); for (const k of PU_TYPES) out.u[k].push(f.u[k]); }
   out.kills = game.player.kills; out.deaths = game.player.deaths;
   return out;
 }

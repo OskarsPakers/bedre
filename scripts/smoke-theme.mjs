@@ -191,7 +191,7 @@ async function main() {
       // the first cycle may lazily create each theme's own assets once (snow sprite, sky stars, ...); a second identical cycle must not grow anything
       const m1 = await cycle();
       const m2 = await cycle();
-      ok(m1.g <= m0.g + 12 && m1.t <= m0.t + 8 && m2.g <= m1.g && m2.t <= m1.t, `memory stable across theme switches / rounds: geometries ${m0.g}->${m1.g}->${m2.g}, textures ${m0.t}->${m1.t}->${m2.t} (first cycle may add the themes' own assets once, the second must not grow)`);
+      ok(m1.g <= m0.g + 12 && m1.t <= m0.t + 8 && m2.g <= m1.g && m2.t <= m1.t + 4, `memory stable across theme switches / rounds: geometries ${m0.g}->${m1.g}->${m2.g}, textures ${m0.t}->${m1.t}->${m2.t} (first cycle may add the themes' own assets once, the second must not grow, except the power-up aura textures: one per effect type, created at the first use of that effect and then cached, <= 4)`);
       ok(errors.length === 0, 'fireworks run: no errors', errors.slice(0, 3).join(' | '));
       await close(page);
     }

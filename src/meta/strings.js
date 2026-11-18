@@ -15,6 +15,18 @@ const S = {
     newVersion: 'Jauna versija — pārlādēt', reload: 'Pārlādēt',
     radioBtn: 'Radio', radioOn: 'Radio ieslēgts', radioVol: 'Skaļums', radioErr: 'Straume nav pieejama', radioStop: 'Izslēgt radio', radioLoading: 'Savienojas…',
     radioBy: 'Tiešraide', radioStopLbl: 'Izslēgt',
+    // ---- streak, weekly goals, rewards ----
+    tabWeek: 'Nedēļa', streakTitle: 'Dienu sērija', streakNow: 'Sērija: {n} {days}', streakNone: 'Sērija vēl nav sākta — nospēlē kārtu.', streakBest: 'Labākā: {n}',
+    streakDone: 'Šodien nospēlēts', streakOpen: 'Šodien vēl nav nospēlēts', streakAria: 'Sērija {n}. {today}',
+    freezes: 'Sērijas atlaides: {n}/2', freezeHint: 'Atlaide automātiski nosedz vienu izlaistu dienu; jaunu iegūsti ik pēc 7 dienu sērijas.',
+    streakRule: 'Dienu skaita kārta, kas beidzas tajā dienā (Rīgas laiks): Klasika, Ātrā, Dienas vai tiešsaiste, vismaz minūti.',
+    streakExt: '{n} {days} pēc kārtas!', streakStart: 'Sērija sākta!', streakReset: 'Jauna sērija sākta.',
+    freezeUsed: 'Atlaide nosedza izlaisto dienu.', freezeEarned: 'Jauna sērijas atlaide!', streakMile: '{n} dienu sērija!',
+    goalsTitle: 'Nedēļas mērķi', goalsLbl: 'Mērķi', goalsChip: 'Mērķi {n}/3', goalsAria: 'Nedēļas mērķi: {n} no 3 izpildīti', timeLeft: 'Vēl {t}', timeD: '{d} d {h} st.', timeH: '{h} st. {m} min',
+    tier_easy: 'Viegls', tier_medium: 'Vidējs', tier_hard: 'Grūts', goalDone: 'Nedēļas mērķis izpildīts: {name}', goalHalf: 'Pusceļā: {name}', goalAll: 'Visi nedēļas mērķi izpildīti!',
+    goalsRound: 'Nedēļas mērķi šajā kārtā', goalsNone: 'Šī kārta mērķus nevirzīja.', goalDoneTag: 'izpildīts',
+    rwTitle: 'Balvas', rwNone: 'Vēl nav balvu — tās atver sērija un nedēļas mērķi.', rwStreak: '{n} dienu sērija', rwWeek: 'Nedēļas mērķis ({tier}) · {w}. ned.', rwAll: 'Visi nedēļas mērķi · {w}. ned.',
+    cardStreak: 'Sērija {n} d.', cardGoals: 'Mērķi {n}/3',
   },
   en: {
     myProgress: 'My progress', progTitle: 'My progress', tabAlbum: 'Rīga objects', tabAch: 'Achievements', close: 'Close',
@@ -29,6 +41,18 @@ const S = {
     newVersion: 'New version — reload', reload: 'Reload',
     radioBtn: 'Radio', radioOn: 'Radio on', radioVol: 'Volume', radioErr: 'Stream unavailable', radioStop: 'Turn radio off', radioLoading: 'Connecting…',
     radioBy: 'Live', radioStopLbl: 'Stop',
+    // ---- streak, weekly goals, rewards ----
+    tabWeek: 'Week', streakTitle: 'Daily streak', streakNow: 'Streak: {n} {days}', streakNone: 'No streak yet — finish a round.', streakBest: 'Best: {n}',
+    streakDone: 'Played today', streakOpen: 'Not played today yet', streakAria: 'Streak {n}. {today}',
+    freezes: 'Streak freezes: {n}/2', freezeHint: 'A freeze automatically covers one missed day; you earn a new one every 7-day streak.',
+    streakRule: 'A round that ENDS on a day counts for it (Riga time): Classic, Quick, Daily or online, at least a minute.',
+    streakExt: '{n} days in a row!', streakStart: 'Streak started!', streakReset: 'A new streak begins.',
+    freezeUsed: 'A freeze covered your missed day.', freezeEarned: 'New streak freeze!', streakMile: '{n}-day streak!',
+    goalsTitle: 'Weekly goals', goalsLbl: 'Goals', goalsChip: 'Goals {n}/3', goalsAria: 'Weekly goals: {n} of 3 done', timeLeft: 'Left: {t}', timeD: '{d}d {h}h', timeH: '{h}h {m}m',
+    tier_easy: 'Easy', tier_medium: 'Medium', tier_hard: 'Hard', goalDone: 'Weekly goal done: {name}', goalHalf: 'Halfway: {name}', goalAll: 'All weekly goals done!',
+    goalsRound: 'Weekly goals this round', goalsNone: 'This round did not move any goal.', goalDoneTag: 'done',
+    rwTitle: 'Rewards', rwNone: 'No rewards yet — streaks and weekly goals unlock them.', rwStreak: '{n}-day streak', rwWeek: 'Weekly goal ({tier}) · week {w}', rwAll: 'All weekly goals · week {w}',
+    cardStreak: 'Streak {n} d.', cardGoals: 'Goals {n}/3',
   },
 };
 

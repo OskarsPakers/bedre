@@ -124,7 +124,7 @@ export class MpClient {
     return true;
   }
 
-  ping() { this.send({ t: 'ping', c: performance.now() }); }
+  ping() { this.send({ t: 'ping', c: performance.now(), r: Math.round(this.rtt) }); }
 
   _pong(m) {
     const rtt = performance.now() - m.c;

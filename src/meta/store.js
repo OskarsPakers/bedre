@@ -24,3 +24,36 @@ export function save() {
 export function saveSoon() { if (!timer) timer = setTimeout(save, 1500); }
 export function reloadFromDisk() { state = null; return load(); }
 window.addEventListener('pagehide', () => { if (timer) save(); });
+
+// ---- global (NOT per map) retention state: daily streak, weekly goals, rewards. One versioned key for the whole device. ----------------
+// { v:1, streak:{cur,best,last,freezes,frozen[]}, goals:{week,ids[],prog{},done{},all}, rewards:{id:{d,s}}, seen:{event:1} }
+export const GKEY = 'bedre.meta.global.v1';
+const gblank = () => ({
+  v: 1,
+  streak: { cur: 0, best: 0, last: '', freezes: 0, frozen: [] },
+  goals: { week: '', ids: [], prog: {}, done: {}, all: false },
+  rewards: {}, seen: {},
+});
+let gstate = null, gtimer = 0;
+export function loadG() {
+  if (gstate) return gstate;
+  gstate = gblank();
+  try {
+    const raw = localStorage.getItem(GKEY);
+    if (raw) {
+      const o = JSON.parse(raw);
+      if (o && o.v === 1) {
+        const b = gblank();
+        gstate = { ...b, ...o, streak: { ...b.streak, ...(o.streak || {}) }, goals: { ...b.goals, ...(o.goals || {}) }, rewards: o.rewards || {}, seen: o.seen || {} };
+      }
+    }
+  } catch { /* corrupt or blocked: start empty */ }
+  return gstate;
+}
+export function saveG() {
+  clearTimeout(gtimer); gtimer = 0;
+  try { localStorage.setItem(GKEY, JSON.stringify(gstate || gblank())); } catch { /* ignore */ }
+}
+export function saveGSoon() { if (!gtimer) gtimer = setTimeout(saveG, 1500); }
+export function reloadG() { gstate = null; return loadG(); }
+window.addEventListener('pagehide', () => { if (gtimer) saveG(); });

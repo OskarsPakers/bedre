@@ -2,8 +2,28 @@
 import { CFG } from './config.js';
 import { t, fmt, getLang, onLang, extendStrings } from './i18n.js';
 import { cleanName, sanitizeName } from '../worker/lib/moderation.js';   // the same name policy as the scores API and the multiplayer server
+import { bus } from './events.js';
+import { PU_TYPES, PU } from './powerups.js';
+import { iconCanvas, PU_COLOR } from './powerupView.js';
 const $ = (id) => document.getElementById(id);
-extendStrings({ nameAs: 'Tiks rādīts kā: {n}' }, { nameAs: 'Shown as: {n}' });
+extendStrings({
+  nameAs: 'Tiks rādīts kā: {n}',
+  puMagnet: 'Magnēts', puSpeed: 'Ātrums', puDouble: 'Dubultpunkti', puShield: 'Vairogs',
+  puMagnetHint: 'Tuvumā esošais slīd pie tevis', puSpeedHint: 'Kustība ātrāka ×1,5', puDoubleHint: 'Punkti ×2 (kopā ar kombo)', puShieldHint: 'Lielākās bedres tevi nevar norīt',
+  rCombo: 'Labākais kombo', comboLbl: 'Kombo', comboLost: 'Kombo beidzies',
+  aboutCombo: 'Kombo: norijot objektus ātri cits pēc cita, punkti tiek reizināti līdz ×3 (bedres izmērs no tā neaug ātrāk).',
+  aboutPowerups: 'Pastiprinājumi uz kartes: Magnēts, Ātrums, Dubultpunkti, Vairogs. Virzi bedri tiem pāri, lai tos savāktu.',
+}, {
+  nameAs: 'Shown as: {n}',
+  puMagnet: 'Magnet', puSpeed: 'Speed', puDouble: 'Double points', puShield: 'Shield',
+  puMagnetHint: 'Nearby things slide towards you', puSpeedHint: 'Move 1.5x faster', puDoubleHint: 'Points x2 (stacks with the combo)', puShieldHint: 'Bigger holes cannot swallow you',
+  rCombo: 'Best combo', comboLbl: 'Combo', comboLost: 'Combo lost',
+  aboutCombo: 'Combos: swallow things in quick succession and your points are multiplied up to ×3 (your size does not grow faster because of it).',
+  aboutPowerups: 'Power-ups on the map: Magnet, Speed, Double points, Shield. Steer the hole over one to collect it.',
+});
+const cap = (s0) => s0[0].toUpperCase() + s0.slice(1);
+const multText = (m) => '×' + (Math.round(m * 10) % 10 === 0 ? String(Math.round(m)) : m.toFixed(1).replace(/\.0$/, ''));
+const MULT_COL = { 1: '#ffffff', 1.2: '#ffe08a', 1.5: '#ffc84a', 2: '#ff9d3c', 2.5: '#ff7440', 3: '#ff4d3d' };
 
 export class Hud {
   constructor() {
@@ -19,7 +39,123 @@ export class Hud {
     try { const n = localStorage.getItem('bedre.name'); if (n && this.el.name) this.el.name.value = n; } catch (e) { /* storage blocked */ }
     onLang(() => { this._last = {}; this._lastRes = null; this._nameHint(); });
     this._bindName();
+    this._buildFx();
   }
+
+  // ---- combo chip + power-up badges + pickup toast (one small stack above the player's hole) -----------------------------
+  _buildFx() {
+    const box = document.createElement('div');
+    box.id = 'fx-hud'; box.hidden = true; box.setAttribute('aria-hidden', 'true');
+    box.innerHTML = '<div class="fx-toast" hidden><img alt=""><div><b></b><span></span></div></div>' +
+      '<div class="combo-chip" id="combo-chip" hidden><span class="cc-ring"><b class="cc-n">0</b></span><span class="cc-x">×1</span><span class="cc-l"></span></div>' +
+      '<div class="fx-badges" id="fx-badges"></div>';
+    document.body.appendChild(box);
+    this.fxBox = box;
+    this.fxToast = box.querySelector('.fx-toast');
+    this.chip = box.querySelector('.combo-chip');
+    this.badgeBox = box.querySelector('.fx-badges');
+    this.badges = {};
+    this._icon = {};
+    for (const type of PU_TYPES) {
+      this._icon[type] = iconCanvas(type, 64).toDataURL();
+      const b = document.createElement('span');
+      b.className = 'fx-badge'; b.dataset.type = type; b.hidden = true; b.style.setProperty('--c', PU_COLOR[type]);
+      b.innerHTML = `<img alt=""><span class="nm"></span><b></b><i></i>`;
+      b.firstChild.src = this._icon[type];
+      this.badgeBox.appendChild(b);
+      this.badges[type] = { el: b, t: b.querySelector('b'), bar: b.querySelector('i'), nm: b.querySelector('.nm'), last: '' };
+    }
+    this._cc = { shown: false, key: '', p: -1, lostT: 0 };
+    bus.on('combo', (e) => {
+      if (!e || !e.hole || !e.hole.isPlayer) return;
+      if (e.step) { this.chip.classList.remove('step'); void this.chip.offsetWidth; this.chip.classList.add('step'); }
+    });
+    onLang(() => { this._cc.key = ''; for (const k of PU_TYPES) this.badges[k].last = ''; });
+  }
+
+  /** Pickup toast (name + what it does) above the hole for ~2 s. */
+  puToast(type, dur) {
+    const el = this.fxToast, n = cap(type);
+    if (this._compact()) {   // phones / short windows: no floating toast (it would sit on a HUD lane or the hole): the badge itself names the pickup for a moment
+      const B = this.badges[type]; B.nm.textContent = t('pu' + n); B.el.classList.add('new');
+      clearTimeout(B.newT); B.newT = setTimeout(() => B.el.classList.remove('new'), 2300);
+      return;
+    }
+    el.hidden = false;
+    el.querySelector('img').src = this._icon[type];
+    el.querySelector('b').textContent = `${t('pu' + n)} · ${dur} s`;
+    el.querySelector('span').textContent = t('pu' + n + 'Hint');
+    el.style.setProperty('--c', PU_COLOR[type]);
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => { el.hidden = true; }, 2300);
+  }
+
+  _compact() { return window.matchMedia('(max-width: 900px), (max-height: 520px)').matches; }
+
+  /** Per frame (while playing): `hole` = the player's alive hole (null hides everything), `tag` = its screen item { x, y } (y = top edge of the hole on screen), `now` = round clock. */
+  updateFx(hole, tag, now) {
+    const box = this.fxBox, C = this._cc;
+    if (!hole || !tag) { if (!box.hidden) { box.hidden = true; C.shown = false; this.chip.hidden = true; this.fxToast.hidden = true; } return; }
+    const c = hole.combo, fx = hole.fx;
+    // chip
+    const total = Math.min(5, c.mult * fx.doubleMul);
+    const live = c.count >= 3;
+    if (live) {
+      C.shown = true; clearTimeout(C.lostT);
+      this.chip.classList.remove('lost'); this.chip.hidden = false;
+      const key = `${Math.floor(c.count)}|${total}|${getLang()}`;
+      if (key !== C.key) {
+        C.key = key;
+        this.chip.querySelector('.cc-n').textContent = String(Math.floor(c.count));
+        const x = this.chip.querySelector('.cc-x'); x.textContent = multText(total);
+        const col = MULT_COL[c.mult] || '#fff';
+        this.chip.style.setProperty('--c', col);
+        this.chip.classList.toggle('dbl', fx.doubleMul > 1);
+        this.chip.querySelector('.cc-l').textContent = fx.doubleMul > 1 ? '×2' : '';
+      }
+      const p = Math.round(c.left(now, hole.radius) * 100);
+      if (p !== C.p) { C.p = p; this.chip.style.setProperty('--p', p); }
+    } else if (C.shown) {
+      C.shown = false; C.key = '';
+      this.chip.classList.add('lost');
+      C.lostT = setTimeout(() => { if (!C.shown) this.chip.hidden = true; this.chip.classList.remove('lost'); }, 750);
+    }
+    // badges
+    let any = false;
+    for (const type of PU_TYPES) {
+      const B = this.badges[type], left = fx[type];
+      if (left > 0) {
+        any = true;
+        if (B.el.hidden) B.el.hidden = false;
+        const txt = `${Math.ceil(left)}`;
+        if (txt !== B.last) { B.last = txt; B.t.textContent = txt; }
+        B.bar.style.transform = `scaleX(${Math.min(1, left / this._dur(type)).toFixed(3)})`;
+        B.el.classList.toggle('low', left < 2);
+      } else if (!B.el.hidden) { B.el.hidden = true; B.last = ''; }
+    }
+    const visible = !this.chip.hidden || any || !this.fxToast.hidden;
+    if (box.hidden !== !visible) box.hidden = !visible;
+    if (!visible) return;
+    const w = window.innerWidth, vh = window.innerHeight, h = box.offsetHeight || 60;
+    const x = Math.max(86, Math.min(w - 86, tag.x));
+    // above the name tag when there is room under the top HUD row, otherwise (short landscape screens) just below the hole
+    const SAFE_TOP = 118;
+    const bottom = tag.y - 30;
+    if (bottom - h < SAFE_TOP && tag.cy != null) {   // short landscape screens: no room above the hole, so the stack sits beside it (right side), centred on it
+      const bw = box.offsetWidth || 90;
+      if (w <= 700) {   // tiny landscape: both side lanes (feed left, achievements right) are busy: sit below the hole
+        const top = Math.min(vh - 70 - h, tag.cy + (tag.pr || 30) + 8);
+        box.style.transform = `translate(${Math.min(w - bw / 2 - 8, Math.max(bw / 2 + 8, tag.x)).toFixed(1)}px, ${top.toFixed(1)}px) translate(-50%, 0)`;
+        return;
+      }
+      const sx = Math.min(w - bw / 2 - 8, tag.x + (tag.pr || 30) + 14 + bw / 2);
+      box.style.transform = `translate(${sx.toFixed(1)}px, ${tag.cy.toFixed(1)}px) translate(-50%, -50%)`;
+      return;
+    }
+    box.style.transform = `translate(${x.toFixed(1)}px, ${bottom.toFixed(1)}px) translate(-50%, -100%)`;
+  }
+  _dur(type) { return PU[type].dur; }
 
   /** Live preview of the name as the others will see it (angle brackets / invisible characters removed, filter -> "Anonīms"); on blur the field itself is normalised. */
   _bindName() {
@@ -67,10 +203,10 @@ export class Hud {
 
   showHud(v) { this.el.hud.classList.toggle('hidden', !v); }
 
-  popup(px, py, text, big = false) {
+  popup(px, py, text, big = false, hot = false) {
     if (this.el.popups.childElementCount > 14) this.el.popups.firstChild.remove();
     const d = document.createElement('div');
-    d.className = 'pop' + (big ? ' big' : '');
+    d.className = 'pop' + (big ? ' big' : '') + (hot ? ' hot' : '');   // hot: multiplied points (combo / double), warmer colour
     d.textContent = text;
     d.style.left = px + 'px'; d.style.top = py + 'px';
     this.el.popups.appendChild(d);
@@ -85,11 +221,12 @@ export class Hud {
     d.append(document.createTextNode(text));
     const i = document.createElement('i'); i.textContent = '✓'; d.append(i);
     this.el.labels.appendChild(d);
-    setTimeout(() => d.remove(), 2300);
+    setTimeout(() => d.remove(), 2600);
   }
 
   clearTransient() {
     this.el.popups.innerHTML = ''; this.el.labels.innerHTML = ''; this.el.feed.innerHTML = '';
+    if (this.fxBox) { this.fxBox.hidden = true; this.chip.hidden = true; this.fxToast.hidden = true; this._cc.shown = false; this._cc.key = ''; for (const k of PU_TYPES) { this.badges[k].el.hidden = true; this.badges[k].last = ''; } }
     this.showSwallowed(false); this.clearGo();
   }
 
@@ -150,7 +287,7 @@ export class Hud {
     if (this._hr && now - this._hrAt < 350) return this._hr;
     this._hrAt = now;
     const out = [];
-    for (const el of document.querySelectorAll('#hud .card, #board-chip, #meta-pct, #meta-area, #feed > *, #swallowed, #hud-btns > button, #mp-net, #end-free')) {
+    for (const el of document.querySelectorAll('#hud .card, #board-chip, #meta-pct, #meta-area, #feed > *, #swallowed, #hud-btns > button, #mp-net, #end-free, #fx-hud:not([hidden]) > *:not([hidden])')) {
       if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') continue;
       const r = el.getBoundingClientRect();
       if (r.width > 2 && r.height > 2) out.push({ l: r.left - 2, r: r.right + 2, t: r.top - 2, b: r.bottom + 2 });
@@ -286,6 +423,7 @@ export class Hud {
       $('r-biggest').textContent = s.biggest;
       $('r-size').textContent = s.size;
       $('r-kills').textContent = s.kills;
+      const rc = $('r-combo'); if (rc) rc.textContent = s.bestCombo ? `${s.bestCombo} · ${multText(s.bestMult || 1)}` : '—';
       $('r-deaths').textContent = s.deaths;
       $('r-place').textContent = placeText(s.rank, s.total);
       $('r-place').dataset.rank = s.rank;

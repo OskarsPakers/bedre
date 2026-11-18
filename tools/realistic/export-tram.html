@@ -1,0 +1,11 @@
+<!doctype html><meta charset=utf-8><script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three'; import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'; import { TramModel } from '/tram/tramModel.js';
+const scene = new THREE.Scene(); const tram = new TramModel(scene, { line: '11', dest: 'Centrs' });
+tram.place({ at(s, o) { o.x = s; o.z = 0; o.yaw = 0; return o; } }, 0, 0, 1); tram.setNight(false);
+// tram nose along +x, right = +z. glTF: forward +Z. Put the nose on +Z (rotate -90 deg about y: +x -> -z? use +90: x -> -z) -> choose so nose -> +z : rotation.y = -PI/2 maps +x to +z.
+const root = new THREE.Group(); root.add(tram.group); tram.group.position.x = -(3.78 - 25.2 / 2); root.rotation.y = -Math.PI / 2; scene.add(root); root.updateMatrixWorld(true);
+// hide the additive light beams
+tram.beams.forEach((b) => b.visible = false);
+new GLTFExporter().parse(root, (buf) => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); window.__glb = btoa(s); window.__done = true; }, (e) => { window.__err = String(e); window.__done = true; }, { binary: true });
+</script>

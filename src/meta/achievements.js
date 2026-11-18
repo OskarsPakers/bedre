@@ -2,6 +2,7 @@
 import { load, save } from './store.js';
 import { lname, mt } from './strings.js';
 import { getLang } from '../i18n.js';
+import { comboRound } from '../combo.js';
 
 /** ctx = { R: round state, album, st(): store, churchIds: Set(entry id), oldTown: area id|null, levelMax } */
 export function makeDefs(ctx) {
@@ -37,6 +38,10 @@ export function makeDefs(ctx) {
     D('collector', 'Kolekcionārs', 'Collector', 'Savāc 10 objektus Rīgas albumā.', 'Collect 10 album objects.', 10, () => Object.keys(st().album).length),
     D('guide', 'Rīgas gids', 'Riga Guide', 'Savāc trīs ceturtdaļas albuma.', 'Collect three quarters of the album.', Math.max(1, Math.ceil(total * 0.75)), () => Object.keys(st().album).length),
     D('regular', 'Pastāvīgais klients', 'Regular', 'Nospēlē 10 kārtas.', 'Play 10 rounds.', 10, () => st().ctr.rounds || 0),
+    // combos + power-ups (src/combo.js comboRound, kept up to date by the game; evaluated by the same eligibility rules as everything above: debug rounds never count)
+    D('combo2', 'Ķēdes reakcija', 'Chain Reaction', 'Sasniedz ×2 kombo reizinātāju (25 objekti pēc kārtas).', 'Reach a ×2 combo multiplier (25 swallows in a row).', 2, () => comboRound.bestMult),
+    D('combo3', 'Nepārtrauktā ķēde', 'Unbroken Chain', 'Sasniedz ×3 kombo reizinātāju (70 objekti pēc kārtas).', 'Reach the ×3 combo multiplier (70 swallows in a row).', 3, () => comboRound.bestMult),
+    D('fullkit', 'Pilns komplekts', 'Full Kit', 'Savāc visus četrus pastiprinājumus vienā kārtā.', 'Collect all four power-ups in one round.', 4, () => comboRound.picked.size),
   ];
   return list;
 }

@@ -157,7 +157,10 @@ async function main() {
     await shot('freedom');
     const small = await G(() => { const g = window.__game, o = window.__life.world.objects.find((x) => x.kind === 'freedom'); g.teleport(o.x, o.z); g.setRadius(4); g.step(1); return o.state; });
     check('small hole cannot eat the monument', small === 0, `state ${small}`);
-    const big = await G(() => { const g = window.__game, o = window.__life.world.objects.find((x) => x.kind === 'freedom'); const s0 = g.state.score; g.setRadius(9); g.teleport(o.x, o.z); g.step(2.5); return { state: o.state, gained: g.state.score - s0 }; });
+    // a 42 m monument needs a hole proportionate to its size (fit 14.5 m: swallowable from a radius of ~15.3 m; it used to fall at 6.5 m)
+    const mid = await G(() => { const g = window.__game, o = window.__life.world.objects.find((x) => x.kind === 'freedom'); g.setRadius(11); g.teleport(o.x, o.z); g.step(1.5); return o.state; });
+    check('a mid-size hole (radius 11) cannot eat the 42 m monument either', mid === 0, `state ${mid}`);
+    const big = await G(() => { const g = window.__game, o = window.__life.world.objects.find((x) => x.kind === 'freedom'); const s0 = g.state.score; g.setRadius(17); g.teleport(o.x, o.z); g.step(2.5); return { state: o.state, gained: g.state.score - s0 }; });
     check('big hole swallows the monument (worth a lot)', big.state === 2 && big.gained >= 400, JSON.stringify(big));
   }
 

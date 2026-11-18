@@ -1,0 +1,13 @@
+<!doctype html><meta charset=utf-8><title>probe</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/examples/":"/three/examples/"}}</script>
+<script type="module">
+import { CFG } from '/src/config.js'; import { mapPaths } from '/tools/maps.mjs'; import { loadCity } from '/src/data.js'; import { buildTrack } from '/src/proto/tram/track.js';
+const p = mapPaths('centrs'); CFG.dataUrl = p.data; CFG.shapesUrl = p.shapes; CFG.groundUrl = p.ground; CFG.sightsUrl = p.sights; CFG.map = { slug: 'centrs' };
+const data = await loadCity(false); const route = await (await fetch('/src/proto/tram/routes/centrs-3.json')).json(); const T = buildTrack(route);
+const pts = []; const q = {}; for (let s = 1150; s <= 1550; s += 5) { T.at(s, q); pts.push([q.x, q.z]); }
+const dmin = (x, z) => { let d = 1e9; for (const [a, b] of pts) d = Math.min(d, Math.hypot(a - x, b - z)); return d; };
+const out = {}; const cs = [60, 80, 100, 120, 150]; for (const c of cs) out[c] = 0; let shaped = 0, named = [];
+for (const b of data.buildings) { if (!b.p) continue; let cx = 0, cz = 0; for (const [x, z] of b.p) { cx += x; cz += z; } cx /= b.p.length; cz /= b.p.length; const d = dmin(cx, cz); for (const c of cs) if (d <= c) out[c]++; if (d <= 100 && data.shapes && data.shapes.recs.get(b.id)) shaped++; if (d <= 100 && b.n && !/\d/.test(b.n)) named.push(b.n); }
+window.__out = { out, shaped, named, nb: data.buildings.length, keys: Object.keys(data.buildings[0]), ex: data.buildings[5], meta: data.meta, s0: (T.at(1150, q), { ...q }), len: T.length };
+document.title = 'done';
+</script>

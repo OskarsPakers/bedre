@@ -1,0 +1,21 @@
+import { chromium, webkit, devices } from 'playwright';
+import fs from 'node:fs';
+const base = 'http://localhost:5193';
+const [,, url = '/tramvajs/', shotName = 'dev', dev = 'desktop', script = ''] = process.argv;
+const gpuArgs = process.env.GPU ? ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--use-gl=angle'];
+const D = { desktop: [chromium, { viewport: { width: 1280, height: 720 } }], pixel: [chromium, devices['Pixel 5']], iphone: [webkit, devices['iPhone 13']], iphoneL: [webkit, { ...devices['iPhone 13 landscape'] }] }[dev];
+const browser = await D[0].launch({ headless: true, args: D[0] === chromium ? gpuArgs : [] });
+const ctx = await browser.newContext({ ...D[1], locale: 'lv-LV' });
+const page = await ctx.newPage();
+const errs = [];
+page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) errs.push(m.type() + ': ' + m.text().slice(0, 300)); });
+page.on('pageerror', (e) => errs.push('pageerror: ' + e.message + '\n' + (e.stack || '').split('\n').slice(0, 4).join('\n')));
+await page.goto(base + url);
+await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 240000 });
+console.log('ready', await page.evaluate(() => document.body.dataset.error || 'ok'));
+const shot = async (n) => { await page.waitForTimeout(500); await page.screenshot({ path: `scripts/out/tram2-${n}.png` }); };
+if (script) { const fn = new Function('page', 'shot', 'return (async()=>{' + fs.readFileSync(script, 'utf8') + '})()'); await fn(page, shot); }
+await page.waitForTimeout(600);
+await page.screenshot({ path: `scripts/out/tram2-${shotName}.png` });
+console.log(errs.slice(0, 12).join('\n') || 'no errors');
+await browser.close();

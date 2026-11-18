@@ -334,6 +334,142 @@ async function main() {
     console.log(`autoplay run ${k + 1}: placed ${me.rank}/8 score ${Math.round(me.score)}; top: ${res.lb.slice(0, 3).map((r) => r.name + ':' + Math.round(r.score)).join(' ')}`);
   }
 
+  // ---- COMBOS + POWER-UPS (solo) -------------------------------------------------------------------------------------------------
+  {
+    console.log('  --- combos + power-ups ---');
+    await open('bots=0&puseed=424242');
+    await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    // a chain: points are multiplied, the SIZE follows the unmultiplied mass
+    const ch = await G(() => {
+      const g = window.__life.game;
+      let lastC = 0, steps = new Set();
+      for (let i = 0; i < 80 && g.player.combo.count < 30; i++) { g.autoplay(1); steps.add(g.player.combo.mult); lastC = g.player.combo.count; }
+      const p = g.player, C = window.__game.state;
+      const want = 2.2 * Math.pow(1 + p.mass / 16, 0.44);
+      return { count: p.combo.count, mult: p.combo.mult, score: p.score, mass: p.mass, r: p.targetRadius, want, steps: [...steps], best: p.combo.best };
+    });
+    check('a chain of quick swallows builds the multiplier (x1.2 ... x2+)', ch.best >= 25 && ch.steps.some((m) => m >= 1.2), JSON.stringify({ best: ch.best, steps: ch.steps }));
+    check('points are multiplied: score > mass', ch.score > ch.mass * 1.15, `score ${Math.round(ch.score)} mass ${Math.round(ch.mass)}`);
+    check('radius follows the growth formula of the MASS, not the points', Math.abs(ch.r - ch.want) < 0.05, `r ${ch.r.toFixed(3)} want ${ch.want.toFixed(3)} (points would give ${(2.2 * Math.pow(1 + ch.score / 16, 0.44)).toFixed(3)})`);
+    const hot = await G(() => { const g = window.__life.game; g.player.combo.hit(g.playT, 40, g.player.radius); g._v.set(g.player.x, 0, g.player.z); g.pop.sum = 50; g.pop.n = 1; g.pop.hot = true; g._flushPopup(1); return !!document.querySelector('#popups .pop.hot'); });
+    check('+N popups of multiplied points are the warmer .hot class', hot);
+    const chip = await G(() => { const g = window.__life.game; g.player.combo.count = 30; g.player.combo.mult = 2; g.player.combo.until = g.playT + 1; g._overlay(0.3); const c = document.getElementById('combo-chip'); return { shown: !c.hidden, text: c.textContent }; });
+    check('combo chip shows count and multiplier', chip.shown && /30/.test(chip.text) && /×2/.test(chip.text), JSON.stringify(chip));
+    // expiry
+    const ex = await G(() => { const g = window.__life.game; g.player.control = { mode: 'none', x: 0, z: 0 }; g.autopilot = true; const c0 = g.player.combo.count; g.step(0.8); const mid = g.player.combo.count; g.step(3); const lost = g.player.combo.count; g.autopilot = false; return { c0, mid, lost }; });
+    check('the combo expires when no swallow lands within the window (~1.6 s)', ex.c0 >= 20 && ex.mid >= 20 && ex.lost === 0, JSON.stringify(ex));
+    // ---- power-ups: schedule, determinism
+    const pu1 = await G(() => window.__game.powerups.map((r) => [r[0], r[1], Math.round(r[2]), Math.round(r[3])]));
+    await open('bots=0&puseed=424242'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const pu2 = await G(() => window.__game.powerups.map((r) => [r[0], r[1], Math.round(r[2]), Math.round(r[3])]));
+    await open('bots=0&puseed=777'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const pu3 = await G(() => window.__game.powerups.map((r) => [r[0], r[1], Math.round(r[2]), Math.round(r[3])]));
+    const slotsWant = await G(() => { const b = window.__life.world.bounds; return Math.max(6, Math.round(Math.sqrt((b.maxX - b.minX) * (b.maxZ - b.minZ)) / 250)); });
+    check('power-ups spawn: max(6, sqrt(area)/250) of them, all four types', pu1.length === slotsWant && new Set(pu1.map((r) => r[1])).size === 4, `${pu1.length} (want ${slotsWant}), types ${[...new Set(pu1.map((r) => r[1]))].join()}`);
+    check('same seed -> the same pickups (places and types); another seed -> another layout', JSON.stringify(pu1) === JSON.stringify(pu2) && JSON.stringify(pu1) !== JSON.stringify(pu3));
+    const objs = await G(async () => { const m = await (await fetch('/data/placements.json')).json(); return { n: window.__life.world.objects.length, want: m.maps[window.__life.world.data.meta.slug || 'centrs']?.objects ?? null }; });
+    check('pickups are not objects: the placement object count is unchanged', objs.want == null || objs.n === objs.want || (await G(() => window.__game.isSample)), JSON.stringify(objs));
+    // respawn schedule: a taken pickup reappears 20-30 s later, somewhere else (a candidate point, never the same place)
+    const rs = await G(() => {
+      const g = window.__life.game, f = g.field, s0 = f.slots[0], x0 = s0.x, z0 = s0.z;
+      g.player.x = s0.x; g.player.z = s0.z; g.step(0.2);
+      const taken = f.slots[0].state === 'wait', t0 = g.playT, at = f.slots[0].at - t0;
+      g.autopilot = true; g.player.control = { mode: 'none', x: 0, z: 0 };
+      g.step(35);
+      return { taken, delay: at, again: f.slots[0].state === 'on', moved: Math.hypot(f.slots[0].x - x0, f.slots[0].z - z0) };
+    });
+    check('a collected pickup respawns 20-30 s later at another place', rs.taken && rs.delay >= 19.5 && rs.delay <= 30.5 && rs.again && rs.moved > 100, JSON.stringify(rs));
+    // ---- each effect works and expires
+    await open('bots=0&puseed=424242'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const spd = await G(() => {
+      const g = window.__life.game, p = g.player; g.autopilot = true; g.field.slots.forEach((s) => { s.state = 'wait'; s.at = 1e9; });
+      // speed scales with the hole's size (and the hole grows while it eats on the way): normalise each run by the unboosted speed of that moment
+      const run = () => { const x0 = p.x, z0 = p.z, u0 = p.speed / p.boost; p.control = { mode: 'target', x: p.x + 400, z: p.z }; g.step(1.2); const d = Math.hypot(p.x - x0, p.z - z0), u1 = p.speed / p.boost; p.control = { mode: 'none', x: 0, z: 0 }; g.step(1.2); return d / ((u0 + u1) / 2); };
+      const base = run(); window.__game.givePowerup('speed'); const fast = run(); const left = p.fx.speed;
+      g.step(7); const after = run();
+      return { base, fast, left, after, fx: p.fx.speed, boost: p.boost, r: p.radius };
+    });
+    check('Ātrums: ~1.5x speed while it lasts, expires after ~6 s', spd.fast / spd.base > 1.3 && spd.fast / spd.base < 1.85 && spd.after / spd.base < 1.15 && spd.after / spd.base > 0.85 && spd.fx === 0 && spd.boost === 1, JSON.stringify(spd));
+    const mag = await G(() => {
+      const g = window.__life.game, p = g.player, w = g.world; g.autopilot = true; g.field.slots.forEach((s) => { s.state = 'wait'; s.at = 1e9; });
+      const pick = () => { const [sx, sz] = g.spawn; let best = null, bd = 1e9; for (const o of w.objects) if (o.state === 0 && !o.mover && !o.isBuilding && o.fit < 0.5) { const d = Math.hypot(o.x - sx, o.z - sz); if (d < bd) { bd = d; best = o; } } return best; };   // (nearest to the start: works on every map)
+      const o1 = pick(); if (!o1) return { err: 'no object' };
+      p.setRadius(2.2); p.x = o1.x + 3.3; p.z = o1.z; p.vx = p.vz = 0; p.control = { mode: 'none', x: 0, z: 0 }; // 1.5 radii away: outside the mouth (0.92 r)
+      g.step(1.5); const stay = o1.state === 0;
+      window.__game.givePowerup('magnet'); const t0 = performance.now(); g.step(1.5); const eaten = o1.state !== 0;
+      return { stay, eaten, left: p.fx.magnet };
+    });
+    check('Magnēts: an object 1.5 radii away stays put without it, is pulled in and swallowed with it', mag.stay && mag.eaten, JSON.stringify(mag));
+    const dbl = await G(() => {
+      const g = window.__life.game, p = g.player, fake = { value: 5, isBuilding: false, fit: 0.4 };
+      p.combo.drop(); window.__game.givePowerup('double');
+      const a1 = p.award(fake, g.playT);                         // first swallow: combo x1 -> x2 from Dubultpunkti
+      p.combo.count = 100; p.combo.mult = 3; p.combo.until = g.playT + 1;
+      const a2 = p.award(fake, g.playT);                         // x3 combo x2 = 6 -> capped at 5
+      g.autopilot = true; g.step(13);
+      return { r1: a1.pts / a1.mass, r2: a2.pts / a2.mass, fx: p.fx.double };
+    });
+    check('Dubultpunkti: x2 points; with a x3 combo the combined multiplier is capped at x5; expires after ~12 s', Math.abs(dbl.r1 - 2) < 0.05 && Math.abs(dbl.r2 - 5) < 0.2 && dbl.fx === 0, JSON.stringify(dbl));
+    await open('bots=2&puseed=424242'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const sh = await G(() => {
+      const g = window.__life.game, p = g.player; g.autopilot = true; g.field.slots.forEach((s) => { s.state = 'wait'; s.at = 1e9; });
+      const bot = g.holes[1]; g.bots.brains.forEach((b) => { b.nextThink = 1e9; });
+      p.setRadius(3); bot.setRadius(8); bot.protectT = 0; p.protectT = 0; bot.alive = true;
+      const place = () => { bot.x = p.x; bot.z = p.z; bot.vx = bot.vz = 0; bot.control = { mode: 'none', x: 0, z: 0 }; };
+      window.__game.givePowerup('shield'); place(); p.protectT = 0;
+      g.step(4); const aliveShield = p.alive && !p.dying;
+      g.step(6); place(); g.step(1.5); const gone = p.dying || !p.alive;
+      return { aliveShield, gone, fx: p.fx.shield };
+    });
+    check('Vairogs: a bigger hole cannot swallow the shielded hole; it can after the ~8 s are over', sh.aliveShield && sh.gone, JSON.stringify(sh));
+    // bots collect power-ups too (the same rules)
+    await open('bots=7&puseed=31337&difficulty=hard'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const bp = await G(() => {
+      const g = window.__life.game, p = g.player, b = g.world.bounds; g.autopilot = true;
+      const park = () => { p.alive = false; p.dying = null; p.respawnT = 1e9; p.x = b.maxX + 5000; p.z = b.maxZ + 5000; };
+      for (let t = 0; t < 150 && g.phase === 'playing'; t++) { park(); for (let i = 0; i < 60; i++) { g.update(1 / 60, true); park(); } }
+      const picks = g.bots.holes.map((h) => Object.values(h.picks).reduce((a, c) => a + c, 0));
+      return { picks, total: picks.reduce((a, c) => a + c, 0), withCombo: g.bots.holes.filter((h) => h.score > h.mass * 1.1).length };
+    });
+    check('bots notice and collect power-ups (hard difficulty, 2:30)', bp.total >= 3, JSON.stringify(bp));
+    check('bots get combos by the same rules (their points exceed their mass)', bp.withCombo >= 4, JSON.stringify(bp));
+    // free roam: power-ups on, nothing ranked
+    await open('mode=free&bots=0&puseed=9'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const fr = await G(() => ({ n: window.__game.powerups.length, unranked: window.__game.unranked }));
+    check('free roam: power-ups are on, the round is unranked', fr.n >= 6 && fr.unranked, JSON.stringify(fr));
+    if (!process.env.MAP) {   // (the daily challenge and the album / achievements layer are the centre map's)
+    // the daily challenge: the same schedule for everybody (seed = the day's seed)
+    await open('mode=daily&bots=0'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const d1 = await G(() => ({ seed: window.__game.puSeed, list: window.__game.powerups.map((r) => [r[0], r[1], Math.round(r[2])]) }));
+    await open('mode=daily&bots=0'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const d2 = await G(() => ({ seed: window.__game.puSeed, list: window.__game.powerups.map((r) => [r[0], r[1], Math.round(r[2])]) }));
+    const dseed = await G(() => window.__modes.daily().seed);   // = dailySeed(today), the seed the server hands out too
+    check('daily challenge: the same power-up sequence for everyone (seed = the daily seed)', d1.seed === d2.seed && JSON.stringify(d1.list) === JSON.stringify(d2.list) && d1.list.length >= 6 && d1.seed === dseed, JSON.stringify({ s1: d1.seed, s2: d2.seed, dseed }));
+    }
+    // the trace carries what the server needs
+    await open('bots=0&puseed=424242'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    const tr = await G(() => { const g = window.__life.game; g.autoplay(65); return window.__trace(); });
+    check('trace v2: points, mass, raw value, swallow points, combo and pickup counters per 10 s sample', tr.v === 2 && ['s', 'm', 'r', 'e', 'k', 'w', 'p', 'c'].every((k) => tr[k].length === tr.t.length) && ['magnet', 'speed', 'double', 'shield'].every((k) => tr.u[k].length === tr.t.length) && tr.p[tr.p.length - 1] <= tr.w[tr.w.length - 1] * 5 + 5 && tr.m[tr.m.length - 1] <= tr.s[tr.s.length - 1] + 5, JSON.stringify({ t: tr.t, w: tr.w.slice(-1), p: tr.p.slice(-1), m: tr.m.slice(-1), s: tr.s.slice(-1), c: tr.c.slice(-1) }));
+    if (!process.env.MAP) {
+    // achievements (src/meta/achievements.js): the combo ones and "all four power-ups in one round" unlock through the usual eligibility (a debug round needs __metaAllowDebug)
+    await open('bots=0&puseed=424242'); await G(() => { window.__metaAllowDebug = true; window.__game.start(); window.__game.skipIntro(); });
+    const ach = await G(() => {
+      const g = window.__life.game;
+      for (const sl of g.field.slots.slice()) { if (sl.state !== 'on') continue; window.__game.teleport(sl.x, sl.z); g.step(0.15); }   // touch every pickup of the map (all four types)
+      // the autoplayer needs a 70+ counter for x3; the tiny sample city is sparse, so give it up to 3 x 80 s (the real maps reach it within one chunk)
+      for (let i = 0; i < 3 && window.__game.combo.bestMult < 3; i++) g.autoplay(80);
+      window.__meta.evalAch && window.__meta.evalAch();
+      const st = JSON.parse(localStorage.getItem('bedre.meta.v1') || '{}');
+      return { cb: window.__game.combo, ach: Object.keys(st.ach || {}).filter((k) => /^(combo2|combo3|fullkit)$/.test(k)), picked: [...(window.__life.game.player ? Object.keys(window.__life.game.player.picks).filter((t) => window.__life.game.player.picks[t] > 0) : [])] };
+    });
+    check('achievements: Chain Reaction (x2), Unbroken Chain (x3) and Full Kit (all four power-ups) unlock', ['combo2', 'combo3', 'fullkit'].every((k) => ach.ach.includes(k)), JSON.stringify(ach));
+    }
+    await open('bots=0&puseed=424242'); await G(() => { window.__game.start(); window.__game.skipIntro(); });
+    await G(() => { window.__life.game.autoplay(305); });
+    const rcombo = await G(() => document.getElementById('r-combo').textContent);
+    check('results screen shows the best combo', /\d+ · ×\d/.test(rcombo), rcombo);
+  }
+
   // ---- wheel zoom
   await open('autostart=1');
   await G(() => window.__game.step(1));

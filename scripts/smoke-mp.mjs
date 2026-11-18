@@ -8,6 +8,9 @@ import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Bot, loadTableFile } from './lib/mp-bot.mjs';
+import { speedOf } from '../worker/mp/sim.js';
+import { tcpProxy } from './lib/tcp-proxy.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'scripts', 'out');
@@ -47,13 +50,17 @@ fs.writeFileSync(cfgPath, JSON.stringify({ ...baseCfg, main: '../worker/index.js
 run('npx', ['wrangler', 'deploy', '--dry-run', '--config', cfgPath, '--outdir', bundleDir]);
 fs.writeFileSync(cfgPath, JSON.stringify({ ...baseCfg, main: `./.mp-worker${SUFFIX}/index.js` }));
 run('npx', ['wrangler', 'd1', 'migrations', 'apply', 'bedre-scores', '--local', '--config', cfgPath, '--persist-to', state]);
-const wr = spawn('npx', ['wrangler', 'dev', '--config', cfgPath, '--port', String(PORT), '--persist-to', state,
-  '--var', `MP_ROUND_SECONDS:${ROUND}`, '--var', `MP_LOBBY_SECONDS:${LOBBY}`, '--var', 'MP_RESULTS_SECONDS:25', '--var', 'MP_TEST_CLOSE_SPAWN:1'], { cwd: root, stdio: 'pipe' });
-let wlog = '';
-wr.stdout.on('data', (d) => (wlog += d)); wr.stderr.on('data', (d) => (wlog += d));
-const killAll = () => { try { wr.kill('SIGTERM'); } catch {} };
+let wr = null, wlog = '';
+const startWrangler = async (extraVars = [], round = ROUND) => {
+  wr = spawn('npx', ['wrangler', 'dev', '--config', cfgPath, '--port', String(PORT), '--persist-to', state,
+    '--var', `MP_ROUND_SECONDS:${round}`, '--var', `MP_LOBBY_SECONDS:${LOBBY}`, '--var', 'MP_RESULTS_SECONDS:25', '--var', 'MP_TEST_CLOSE_SPAWN:1', ...extraVars.flatMap((v) => ['--var', v])], { cwd: root, stdio: 'pipe', detached: true });
+  wr.stdout.on('data', (d) => (wlog += d)); wr.stderr.on('data', (d) => (wlog += d));
+  for (let i = 0; i < 120; i++) { try { if ((await fetch(BASE + '/api/mp/status')).ok) return; } catch {} await sleep(500); if (i === 119) { console.error(wlog); throw new Error('wrangler dev not ready'); } }
+};
+const stopWrangler = async () => { try { process.kill(-wr.pid, 'SIGKILL'); } catch {} wr = null; await sleep(1500); };
+const killAll = () => { try { if (wr) process.kill(-wr.pid, 'SIGKILL'); } catch {} };
 process.on('exit', killAll);
-for (let i = 0; i < 120; i++) { try { if ((await fetch(BASE + '/api/mp/status')).ok) break; } catch {} await sleep(500); if (i === 119) { console.error(wlog); throw new Error('wrangler dev not ready'); } }
+await startWrangler();
 
 const errors = [];
 let browser;
@@ -80,6 +87,8 @@ try {
   const until = async (p, fn, arg, timeout = 30000, step = 150) => { const t0 = Date.now(); while (Date.now() - t0 < timeout) { if (await p.evaluate(fn, arg)) return true; await sleep(step); } return false; };
   const shot = async (p, name) => { await p.waitForTimeout(250); await p.screenshot({ path: path.join(out, name) }); };
 
+  const fxOnly = process.argv.includes('--fx-only');   // development: only the combos + power-ups phase
+  if (!fxOnly) {
   // ---- server up, object table agrees ---------------------------------------------------------------------------
   const info = await (await fetch(BASE + '/api/mp/info')).json();
   const hashA = await O(A, () => window.__mpHash());
@@ -294,6 +303,177 @@ try {
     await D.context().close();
   }
 
+  }   // (end of the classic multiplayer phase)
+
+  // ==================================================================================================================================
+  // COMBOS + POWER-UPS online: a second server instance with test variables (MP_TEST_PU: the first pickups sit next to the humans' starts,
+  // MP_TEST_START_MASS: human 0 - the protocol bot that joins first - starts as a big hole). 3 real browsers (one of them behind a 300 ms-each-way
+  // lag proxy) + the protocol bot against the REAL server: same pickups for everybody, one winner per pickup, effects applied by the server,
+  // forged claims rejected, shield vs a bigger hole, a laggy player keeps combos, reconnect in the middle of an effect.
+  // ==================================================================================================================================
+  {
+    console.log('  --- online combos + power-ups ---');
+    await stopWrangler();
+    await startWrangler(['MP_TEST_PU:1', 'MP_TEST_START_MASS:3000', 'MP_BOT_GRACE:300', 'MP_BOT_SKILL:0.2', 'MP_TEST_FX_SCALE:3'], 400);   // (a 6.5 minute round: the steps below take a few minutes)   // (effects last 3x longer here: the browser steps are slower than 6 s)
+    const table = loadTableFile(dist);
+    const proxy = tcpProxy(PORT + 100, PORT); await proxy.listen();   // (no lag while the page loads; the lag starts before it joins)
+    const LAGBASE = `http://localhost:${PORT + 100}`;
+    const mkLag = async (name) => {
+      const ctx = await browser.newContext({ viewport: { width: 900, height: 620 } });
+      const page = await ctx.newPage();
+      page.on('console', (m) => { if (m.type() === 'error') errors.push(`[${name}] console: ${m.text()}`); });
+      page.on('pageerror', (e) => errors.push(`[${name}] pageerror: ${e.message}`));
+      await page.addInitScript((n) => { try { localStorage.setItem('bedre.name', n); localStorage.setItem('bedre.lang', 'en'); } catch {} }, name);
+      await page.goto(`${LAGBASE}/?quality=low`);
+      await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 180000 });
+      return page;
+    };
+    // (named Big...: MP_TEST_START_MASS goes to the human whose name starts with it)
+    const P = new Bot({ base: BASE, name: 'Big' + tag, table }); P.walk = false;
+    const A2 = await mkPage('PuA' + tag), B2 = await mkPage('PuB' + tag), L2 = await mkLag('PuL' + tag);   // (pages first: the 4 s lobby starts with the bot's join)
+    proxy.delay(300, 60);
+    await P.join();                                   // human 0: the first to join gets MP_TEST_START_MASS (a big hole)
+    const room2 = P.room;
+    await Promise.all([A2, B2, L2].map((p) => O(p, () => document.getElementById('play-online').click())));
+    check('p2: three browsers + the bot are in the same lobby', await Promise.all([A2, B2, L2].map((p) => until(p, (r) => window.__online.room === r && window.__online.state === 'lobby', room2, 15000))).then((a) => a.every(Boolean)));
+    check('p2: everybody is playing', (await Promise.all([A2, B2, L2].map((p) => until(p, () => window.__online.state === 'playing', null, 30000)))).every(Boolean) && await P.until(() => P.state === 'playing', 20000));
+    await sleep(500);
+
+    // ---- same power-ups for everyone (server list: browsers + protocol client agree), not part of the objects
+    const lists = await Promise.all([A2, B2, L2].map((p) => O(p, () => window.__online.powerups.slice().sort((a, b) => a[0] - b[0]))));
+    const botList = [...P.pu.values()].map((q) => [q.slot, q.type, q.x, q.z]).sort((a, b) => a[0] - b[0]);
+    const TYPES = ['magnet', 'speed', 'double', 'shield'];
+    const norm = (l) => JSON.stringify(l.map((r) => [r[0], typeof r[1] === 'number' ? TYPES[r[1]] : r[1], Math.round(r[2] * 10) / 10, Math.round(r[3] * 10) / 10]));
+    check('p2: every client sees the same pickups (slots, types, positions) as the server sent', lists.every((l) => norm(l) === norm(lists[0])) && norm(botList) === norm(lists[0]) && lists[0].length >= 6, `${lists[0].length} pickups, types ${[...new Set(lists[0].map((r) => r[1]))].join()}`);
+    check('p2: all four types are present', new Set(lists[0].map((r) => r[1])).size === 4);
+    check('p2: pickups are not objects: the world still has exactly the placement file\'s objects and no pickup id is among the eaten ones', (await O(A2, () => window.__life.world.objects.length)) === table.n && (await O(A2, () => window.__online.eatenIds().every((id) => id < window.__life.world.objects.length))));
+    await shot(A2, 'powerup-online-start.png');
+
+    // ---- the race: A and B both drive to slot 0 (Ātrums); exactly one wins
+    const s0 = lists[0].find((r) => r[0] === 0);
+    await Promise.all([A2, B2].map((p) => O(p, (t) => window.__online.drive(t[2], t[3]), s0)));
+    await Promise.all([A2, B2].map((p) => until(p, () => !window.__online.powerups.some((r) => r[0] === 0), null, 15000, 100)));
+    await sleep(600);
+    const fxA = await O(A2, () => ({ fx: window.__online.fx, picks: window.__online.picks })), fxB = await O(B2, () => ({ fx: window.__online.fx, picks: window.__online.picks }));
+    const winners = [fxA, fxB].filter((f) => f.picks.speed > 0);
+    check('p2: exactly one winner for the contested pickup', winners.length === 1 && fxA.picks.speed + fxB.picks.speed === 1, JSON.stringify([fxA.picks, fxB.picks]));
+    check('p2: the token is gone for every client (the lagged one a little later)', (await Promise.all([A2, B2, L2].map((p) => until(p, () => window.__online.powerups.every((r) => r[0] !== 0), null, 4000, 100)))).every(Boolean));
+    console.log('  [lagged client]', JSON.stringify(await O(L2, () => ({ st: window.__online.state, rtt: Math.round(window.__online.rtt), lastRx: Math.round(window.__online.lastRxAge), snaps: window.__online.stats.snapshots, rec: window.__online.reconnecting, pu: window.__online.powerups.length, log: window.__online.log.slice(-4).map((m) => m.t) }))));
+    const W = fxA.picks.speed ? A2 : B2, Lz = fxA.picks.speed ? B2 : A2, wMe = await O(W, () => window.__online.me);
+    const wfx = await O(W, () => window.__online.fx);
+    check('p2: the server started the effect (Ātrums on the winner: 6 s x3 test scale, none on the loser)', wfx.speed > 6 && wfx.speed <= 18.2 && (await O(Lz, () => window.__online.fx.speed)) === 0, `winner speed fx ${wfx.speed.toFixed(1)} s`);
+    check('p2: the other clients see the effect on the winner (snapshot mask)', await until(L2, (id) => { const r = window.__online.remotes().find((h) => h.id === id); return !!r && r.fx.speed > 0; }, wMe, 3000, 100));
+    await shot(W, 'powerup-online-pickup.png');
+    // reconnect in the middle of the effect: the server still knows it
+    const before = await O(W, () => window.__online.fx.speed);
+    await O(W, () => window.__online.drop());
+    check('p2: reconnect mid-effect: resumes with the effect still running', await until(W, () => !window.__online.reconnecting && window.__online.state === 'playing' && window.__online.log.some((m) => m.t === 'resume'), null, 14000) && (await O(W, () => window.__online.fx.speed)) > 0 && (await O(W, () => window.__online.fx.speed)) <= before + 0.2, `before ${before.toFixed(1)} after ${await O(W, () => window.__online.fx.speed)}`);
+    await Promise.all([A2, B2].map((p) => O(p, () => window.__online.drive(null))));
+
+    // ---- forged claims through the protocol client
+    const farSlot = [...P.pu.values()].find((q) => Math.hypot(q.x - P.x, q.z - P.z) > 60);
+    const q0 = P.seq + 5000;
+    P.send({ t: 'u', q: q0, x: P.x, z: P.z, p: [farSlot.slot, 0, 99] });
+    P.send({ t: 'u', q: q0 + 1, x: P.x, z: P.z, c: [], mult: 99, score: 1e9, fx: [9, 9, 9, 9], combo: 500 });
+    await P.until(() => P.acks.some((a) => a.q === q0), 4000);
+    const ackF = P.acks.find((a) => a.q === q0);
+    check('p2: forged pickup claims (far slot, taken slot, bogus slot) are rejected by the server', ackF && ackF.pb.length === 3 && P.mask === 0 && (P.fx || []).every((v) => v === 0) , JSON.stringify(ackF));
+    const scoreP = P.score;
+    await sleep(500);
+    check('p2: a forged multiplier / score field changes nothing', P.score === scoreP && P.score < 100000 && P.state === 'playing', `score ${P.score}`);
+    P.walk = false; P.state = 'paused';   // (the bot's own 12 Hz position frames stop while the forged ones are sent)
+    const rb0 = P.msgs.filter((m) => m.t === 'rb').length;
+    let ex = P.x; const stepV = speedOf(P.r) * 1.9 / 12;
+    for (let i = 0; i < 70; i++) { ex += stepV; P.send({ t: 'u', q: ++P.seq, x: Math.round(ex * 10) / 10, z: P.z }); await sleep(83); }
+    check('p2: claiming a speed boost without the pickup (1.9x speed) gets rubber-banded', P.msgs.filter((m) => m.t === 'rb').length > rb0);
+    P.state = 'playing';
+
+    // ---- A collects Dubultpunkti + Magnēts (next to its start), swallows a few things with them, then takes the shield; the big hole (human 0, the bot) goes for it
+    const eatSome = async (pg, n, maxFit) => {
+      for (let i = 0; i < n; i++) {
+        const tg = await O(pg, (mf) => { const w = window.__life.world, pl = window.__online.self; let best = null, bd = 1e9; for (const o of w.objects) { if (o.state !== 0 || o.mover || o.fit >= mf) continue; const d = Math.hypot(o.x - pl.x, o.z - pl.z); if (d < 80 && d < bd) { bd = d; best = o; } } return best ? { id: best.id, x: best.x, z: best.z } : null; }, maxFit);
+        if (!tg) break;
+        await O(pg, (t) => window.__online.drive(t.x, t.z), tg);
+        await until(pg, (id) => window.__life.world.objects[id].state !== 0, tg.id, 9000, 80);
+      }
+      await O(pg, () => window.__online.drive(null));
+    };
+    const driveTo = async (pg, type, tmo = 20000) => {
+      const row = (await O(pg, () => window.__online.powerups)).filter((r) => (typeof r[1] === 'number' ? TYPES[r[1]] : r[1]) === type);
+      const pl = await O(pg, () => window.__online.self);
+      row.sort((a, b2) => Math.hypot(a[2] - pl.x, a[3] - pl.z) - Math.hypot(b2[2] - pl.x, b2[3] - pl.z));
+      row.sort((a, b2) => Math.hypot(a[2] - pl.x, a[3] - pl.z) - Math.hypot(b2[2] - pl.x, b2[3] - pl.z));
+      if (!row.length) { console.log('  [driveTo]', type, 'no such pickup'); return false; }
+      await O(pg, (t) => window.__online.drive(t[2], t[3]), row[0]);
+      const ok = await until(pg, (ty) => window.__online.fx[ty] > 0, type, tmo, 100);
+      if (!ok) console.log('  [driveTo]', type, 'timed out; target', JSON.stringify(row[0]), 'now', JSON.stringify(await O(pg, () => ({ ...window.__online.self, fx: window.__online.fx }))));
+      await O(pg, () => window.__online.drive(null));
+      return ok;
+    };
+    await until(A2, () => window.__online.self.alive && !window.__online.self.dying, null, 9000, 100);
+    // the big hole (protocol bot) waits ~30 m from A: close enough to be on top of it within a second once A has the shield, too far to reach it before
+    { const ap = await O(A2, () => window.__online.self), bp = await O(B2, () => window.__online.self);
+      let dx = bp.x - ap.x, dz = bp.z - ap.z; const dl = Math.hypot(dx, dz) || 1; dx /= dl; dz /= dl;   // 30 m from A on the side of B: far from the pickups next to A (they sit on its other sides)
+      // the waiting spot must also be away from EVERY pickup (the layout depends on the room seed: a shield 10 m from the waiting hole made A drive into it and get eaten)
+      const pus = await O(A2, () => window.__online.powerups);
+      let gx = ap.x + dx * 30, gz = ap.z + dz * 30, best = -1;
+      for (let k = 0; k < 12; k++) {        // 12 spots 30 m around A: take the one furthest from every pickup (the waiting hole must not sit next to a pickup A drives to)
+        const ang = k * Math.PI / 6, cx = ap.x + (dx * Math.cos(ang) - dz * Math.sin(ang)) * 30, cz = ap.z + (dx * Math.sin(ang) + dz * Math.cos(ang)) * 30;
+        const dmin = Math.min(1e9, ...pus.map((r) => Math.hypot(r[2] - cx, r[3] - cz)));
+        if (dmin > best + (k === 0 ? 0 : 8)) { best = dmin; gx = cx; gz = cz; }
+      }
+      console.log('  [P before]', JSON.stringify({ x: P.x, z: P.z, r: P.r, st: P.st, state: P.state, goal: [gx, gz] }));
+      P.goal = { x: gx, z: gz }; P.walk = true; await P.until(() => Math.hypot(P.x - gx, P.z - gz) < 3, 30000); console.log('  [P after]', JSON.stringify({ x: P.x, z: P.z, rb: P.msgs.filter((m) => m.t === 'rb').length })); P.walk = false; P.goal = null; }
+    const gotD = await driveTo(A2, 'double'), gotM = await driveTo(A2, 'magnet');
+    check('p2: A collects Dubultpunkti and Magnēts (server effects, 12 s / 8 s x3, both running at once)', gotD && gotM && (await O(A2, () => window.__online.fx.double > 8 && window.__online.fx.magnet > 6)), JSON.stringify(await O(A2, () => window.__online.fx)));
+    console.log('  [lagged client 2]', JSON.stringify(await O(L2, () => ({ st: window.__online.state, rtt: Math.round(window.__online.rtt), lastRx: Math.round(window.__online.lastRxAge), snaps: window.__online.stats.snapshots, rec: window.__online.reconnecting, remotes: window.__online.remotes().map((h) => [h.id, h.fx.double, h.fx.magnet]) }))));
+    check('p2: the others see both effects on A (snapshot mask)', await until(L2, (id) => { const r = window.__online.remotes().find((h) => h.id === id); return !!r && r.fx.double > 0 && r.fx.magnet > 0; }, await O(A2, () => window.__online.me), 3000, 100));
+    const pts0 = await O(A2, () => ({ s: window.__online.serverScore, m: window.__online.serverMass }));
+    await eatSome(A2, 4, 1.2);
+    await sleep(500);
+    const pts1 = await O(A2, () => ({ s: window.__online.serverScore, m: window.__online.serverMass, c: window.__online.combo.best }));
+    check('p2: with Dubultpunkti the server counts double points (points gained >= 1.9 x mass gained; the size follows the mass)', pts1.m > pts0.m && (pts1.s - pts0.s) >= 1.9 * (pts1.m - pts0.m), JSON.stringify([pts0, pts1]));
+    const gotShield = await driveTo(A2, 'shield');
+    check('p2: A collects the shield (server effect, ~8 s)', gotShield, JSON.stringify(await O(A2, () => window.__online.fx)));
+    await shot(A2, 'powerup-online-badges.png');
+    const aPos = await O(A2, () => window.__online.self), shLeft = await O(A2, () => window.__online.fx.shield);
+    const kills0 = P.kills.length, aId = await O(A2, () => window.__online.me);   // the kill feed holds every kill of the room (server bots hunt each other too): only a kill of A counts
+    P.walk = true; P.goal = { x: aPos.x, z: aPos.z };
+    const chase = setInterval(() => { P.goal = { x: aPos.x, z: aPos.z }; }, 400);
+    const onTop = await P.until(() => Math.hypot(P.x - aPos.x, P.z - aPos.z) < 6, 12000);
+    await sleep(900);
+    const aliveShield = await O(A2, () => window.__online.self.alive && !window.__online.self.dying && window.__online.fx.shield > 0);
+    check('p2: a much bigger hole sits on the shielded A and cannot swallow it', onTop && aliveShield && !P.kills.slice(kills0).some((x) => x.k[1] === aId), `on top ${onTop}, shield left ${shLeft.toFixed(1)} s, kills of A ${P.kills.slice(kills0).filter((x) => x.k[1] === aId).length} (room kills meanwhile ${P.kills.length - kills0}), P at (${P.x.toFixed(0)}, ${P.z.toFixed(0)}) r ${P.r.toFixed(1)} st ${P.st} state ${P.state}, A at (${aPos.x.toFixed(0)}, ${aPos.z.toFixed(0)})`);
+    await shot(A2, 'powerup-online-shield.png');
+    const swallowed = await until(A2, () => window.__online.self.dying || !window.__online.self.alive, null, 40000, 150);
+    clearInterval(chase); P.walk = false; P.goal = null;
+    check('p2: ...and swallows it once the shield has run out', swallowed);
+    await until(A2, () => window.__online.self.alive && !window.__online.self.dying, null, 9000, 150);
+
+    // ---- combos online: a greedy chain on A (direct) and on L (300 ms each way): the SERVER's combo follows
+    const chainRun = (p, ms) => O(p, (ms) => new Promise((resolve) => {
+      const o = window.__online, w = window.__life.world, t0 = performance.now();
+      let maxC = 0, maxCm = 1, seen = new Set(), best = 0, rbs = 0;
+      const iv = setInterval(() => {
+        for (const m of o.log) { if (m.t === 'a' && !seen.has(m.q)) { seen.add(m.q); maxC = Math.max(maxC, m.c || 0); maxCm = Math.max(maxCm, m.cm || 1); } if (m.t === 'rb' && !seen.has('rb' + m.at)) { seen.add('rb' + m.at); rbs++; } }
+        best = Math.max(best, o.combo.best);
+        const pl = o.self; let tgt = null, bs = 0;
+        w.query(pl.x, pl.z, Math.max(20, pl.radius * 8), (ob, d) => { if (ob.state !== 0 || ob.mover || ob.fit >= pl.radius * 0.9) return; const sc = ob.value / (d + pl.radius + 3); if (sc > bs) { bs = sc; tgt = ob; } });
+        if (tgt) o.drive(tgt.x, tgt.z);
+        if (performance.now() - t0 > ms) { clearInterval(iv); o.drive(null); resolve({ maxC, maxCm, acks: [...seen].filter((x) => typeof x === 'number').length, rbs, rtt: Math.round(o.rtt), pos: [Math.round(o.self.x), Math.round(o.self.z)], alive: o.self.alive, pending: o.pending, lastRx: Math.round(o.lastRxAge), best: Math.max(best, o.combo.best), local: o.combo.best, score: o.self.score, mass: o.self.mass, serverMass: o.serverMass }); }
+      }, 120);
+    }), ms);
+    const [cA, cL] = await Promise.all([chainRun(A2, 16000), chainRun(L2, 16000)]);
+    console.log('  [chain] direct', JSON.stringify(cA), ' lagged', JSON.stringify(cL));
+    check('p2: direct client: the server-side combo follows (>= 80% of the local counter) and has a multiplier', cA.best >= 8 && cA.maxC >= cA.best * 0.8 && cA.maxCm >= 1.2, JSON.stringify(cA));
+    check('p2: 300 ms-each-way client keeps its combo (server counter >= 80% of the local one, multiplier reached)', cL.best >= 8 && cL.maxC >= cL.best * 0.8 && cL.maxCm >= 1.2, JSON.stringify(cL));
+    check('p2: score > mass for both (points are multiplied, the size follows the mass)', cA.score > cA.mass && cL.score > cL.mass, `${cA.score}/${cA.mass} ${cL.score}/${cL.mass}`);
+    await shot(L2, 'powerup-online-combo.png');
+
+    P.close(); proxy.close();
+    for (const pg of [A2, B2, L2]) { try { await O(pg, () => window.__online.leave()); } catch {} await pg.context().close(); }
+  }
+
   const real = errors.filter((e) => !/favicon|Failed to load resource.*(404|410|503)|WebSocket connection .* failed|net::ERR/.test(e));
   check('no console / page errors', real.length === 0, real.slice(0, 4).join(' | '));
   if (errors.length !== real.length) console.log(`  (ignored ${errors.length - real.length} expected network messages)`);
@@ -303,6 +483,7 @@ try {
   console.error(wlog.slice(-2500));
 } finally {
   console.log(wlog.split('\n').filter((l) => !/\] (GET|POST) \//.test(l) && /error|Error|mp /i.test(l)).slice(-12).join('\n'));
+  if (process.env.MP_DEBUG) console.log(wlog.split('\n').filter((l) => /mp dbg/.test(l)).slice(0, 25).join('\n'));
   try { await browser?.close(); } catch {}
   killAll();
 }

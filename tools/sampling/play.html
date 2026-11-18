@@ -1,0 +1,37 @@
+<!doctype html><meta charset=utf-8><title>sampling-play</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/examples/":"/three/examples/"}}</script>
+<style>html,body{margin:0;background:#9cc3e6;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style><canvas id="c"></canvas>
+<script type="module">
+// The game's own world (src/world.js with the sampling copy of buildings.js, see server.mjs) at sampling level ?level=0..3, with the tram scene pieces (tram mode) or the hole game's follow camera (top mode).
+// ?level=  ?mode=tram|top   window.__p.tram(s, 'chase'|'cab') / window.__p.top(x, z, radius)
+import * as THREE from 'three';
+import { bootStreetWorld } from '/src/proto/shared/street-world.js'; import { buildTrack } from '/src/proto/tram/track.js'; import { makeRun } from '/src/proto/tram/sim.js'; import { buildRails, Stops } from '/src/proto/tram/scene.js';
+import { TramModel } from '/src/proto/tram/tramModel.js'; import { buildWires, SignalHeads, buildSpeedBoards } from '/src/proto/tram/furniture.js'; import { planHazards } from '/src/proto/tram/hazards.js'; import { Env } from '/src/proto/tram/env.js';
+import { FollowCamera } from '/src/camera.js'; import { HoleViews } from '/src/holeView.js';
+const Q = new URLSearchParams(location.search), LEVEL = +(Q.get('level') || 0);
+const gate = (b) => { b = { ...b }; const q = b.q || [3, 3, 3]; if (q[0] < 2) { delete b.w; delete b.w2; delete b.w2r; } if (q[2] < 2) { delete b.r; delete b.rc; } if (q[1] < 2) for (const k of ['fh', 'sp', 'ww', 'wh', 'wy', 'gh', 'gk', 'gs', 'co', 'sc', 'pil', 'nF', 'trim', 'ref']) delete b[k]; return b; }; // confidence gate = what the game would ship
+if (LEVEL > 0) { const P = await (await fetch('/sdata/' + (Q.get('params') || 'params-centrs.json'))).json(); globalThis.__SAMP = { level: LEVEL, params: new Map(P.buildings.map((b) => [b.id, gate(b)])) }; } else globalThis.__SAMP = { level: 0, params: new Map() };
+const canvas = document.getElementById('c'); const S = await bootStreetWorld({ canvas, params: new URLSearchParams({ map: 'centrs' }) });
+const env = new Env(S); env.apply('day');
+const route = await (await fetch('/src/proto/tram/routes/centrs-3.json')).json(); const track = buildTrack(route);
+const hazards = planHazards(track, S.data.roads, track.stops); buildRails(S.scene, track); buildWires(S.scene, track, S.world, { others: [] }); const heads = new SignalHeads(S.scene, track, hazards.signals); buildSpeedBoards(S.scene, track);
+const [ra, rz] = route.runs.short; const plan = makeRun(track, ra, rz); new Stops(S.scene, track, plan.stops); heads.update();
+const tram = new TramModel(S.scene, { line: '11', dest: 'Centrs' }); tram.setNight(false);
+const camera = new THREE.PerspectiveCamera(48, 16 / 9, 0.5, 1100); const hv = new HoleViews(S.scene); const fc = new FollowCamera(16 / 9); S.scene.fog && (S.scene.fog.near = 260, S.scene.fog.far = 900);
+const _p = {}, _q = {}; const NOSE = 3.78, LEN = 25.2; let mode = 'tram';
+function frame(time) { S.world.update(0.016, time); S.world.setViewDistance(mode === 'top' ? fc.dist : 640); }
+window.__p = { S, track, ready: true, items: S.world.buildingItems,
+  size(w, h) { S.renderer.setPixelRatio(1); S.renderer.setSize(w, h, false); camera.aspect = w / h; fc.resize(w / h, false); },
+  tram(s, view) { mode = 'tram'; if (S.scene.fog) { S.scene.fog.near = 260; S.scene.fog.far = 900; } hv.update([]); tram.group.visible = view === 'chase'; tram.place(track, s, 0, 1);
+    if (view === 'chase') { track.at(s - (LEN - NOSE) - 12, _p); const rx = -Math.sin(_p.yaw), rz2 = Math.cos(_p.yaw); camera.fov = 48; camera.position.set(_p.x + rx * 1.3, 7.0, _p.z + rz2 * 1.3); track.at(s + NOSE + 32 + 9 * 1.2, _q); camera.lookAt(_q.x, 0.2, _q.z); }
+    else { track.at(s + NOSE - 0.9, _p); const rx = -Math.sin(_p.yaw), rz2 = Math.cos(_p.yaw); camera.fov = 70; camera.position.set(_p.x - rx * 0.45, 2.4, _p.z - rz2 * 0.45); track.at(s + NOSE + 60, _q); camera.lookAt(_q.x, 1.9 - 0.75, _q.z); }
+    camera.updateProjectionMatrix(); const f = track.at(s + 12, _q); const ah = track.at(s + 38, {}); for (let i = 0; i < 3; i++) { frame(i); S.tick(camera, f.x, f.z, 1 + i, { detailDist: 30, shadowDist: 150, detailX: ah.x, detailZ: ah.z }); S.renderer.render(S.scene, camera); } },
+  top(x, z, radius) { mode = 'top'; tram.group.visible = false; if (S.scene.fog) { S.scene.fog.near = 1e5; S.scene.fog.far = 2e5; } const hole = { x, z, radius, vx: 0, vz: 0, alive: true, color: new THREE.Color(0xffb020), protectT: 0 }; hv.update([hole]); fc.snap(hole); const cam = fc.camera; camera.copy(cam); camera.aspect = fc.camera.aspect;
+    for (let i = 0; i < 3; i++) { frame(i); S.tick(cam, fc.focus.x, fc.focus.z, 1 + i, { detailDist: fc.dist, shadowDist: fc.dist, detailX: fc.focus.x, detailZ: fc.focus.z }); S.renderer.render(S.scene, cam); } return { dist: fc.dist }; },
+  building(o) { mode = 'bld'; tram.group.visible = false; hv.update([]); const fov = 32; camera.fov = fov; camera.aspect = o.aspect || 1.4; camera.near = 0.5; camera.far = 600; camera.updateProjectionMatrix(); const bm = S.world.buildingMesh; for (const it of S.world.buildingItems) bm.setVisibleAt(it.batchId, it.id === o.id);
+    const dist = Math.max(o.len / camera.aspect, o.h * 1.1) / (2 * Math.tan(fov * Math.PI / 360)) * 0.8 + 2; camera.position.set(o.mx + o.nx * dist, Math.min(o.h * 0.5, 14), o.mz + o.nz * dist); camera.lookAt(o.mx, Math.min(o.h * 0.5, 14), o.mz);
+    for (let i = 0; i < 3; i++) { frame(i); S.tick(camera, o.mx, o.mz, 1 + i, { detailDist: 30, shadowDist: 150, detailX: o.mx, detailZ: o.mz }); S.renderer.render(S.scene, camera); } },
+  pose() { const c = fc.camera; return { x: c.position.x, y: c.position.y, z: c.position.z, lx: fc._look.x, ly: 0, lz: fc._look.z, fov: c.fov, near: c.near, far: c.far }; },
+  info() { const i = S.renderer.info; return { calls: i.render.calls, tris: i.render.triangles, buildings: S.world.buildingItems.length, sampled: S.world.buildingItems.filter((b) => b.sampled).length }; } };
+document.title = 'done';
+</script>

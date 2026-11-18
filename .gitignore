@@ -24,3 +24,7 @@ scripts/.worker-eng*
 scripts/tmp-*/
 scripts/.src-base/
 scripts/.bt/
+scripts/.qa*
+scripts/.rs-*
+scripts/.dist-*/
+scripts/.dbg.mjs

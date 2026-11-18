@@ -12,6 +12,7 @@ import { makeDefs, evaluate, renderAchievements, achName } from './achievements.
 import { drawRecapMap, drawSpark, areaRows } from './recap.js';
 import { renderCard, shareCard, copyLink, SITE } from './share.js';
 import { getMode } from '../modes.js';
+import { initRetention } from './retention.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
@@ -59,6 +60,7 @@ export async function initMeta({ game, world }) {
 
   const churchIds = new Set(album.entries.filter((e) => e.type === 'church' && oldTown && (areaAt(e.x, e.z) || {}).id === oldTown.id).map((e) => e.id));
   const R = {};
+  let ret = null;   // streak / weekly goals / rewards (src/meta/retention.js), created once the panel + start-screen button exist
   const resetRound = () => {
     Object.assign(R, {
       kinds: {}, buildings: 0, kills: 0, deaths: 0, bigBot: false, firstBuildingT: null, areas: new Set(), banks: new Set(), churches: new Set(),
@@ -259,11 +261,12 @@ export async function initMeta({ game, world }) {
     };
     list(mt('recapNewAlbum'), R.newAlbum.map((id) => lname(album.entries.find((e) => e.id === id))));
     list(mt('recapNewAch'), R.newAch.map((id) => achName(defs.find((d) => d.id === id))));
+    if (ret) ret.recapExtra(ach);
     if (!ach.children.length) ach.append(el('p', 'rc-empty', t('rtNone')));
     const open2 = el('div', 'linkrow'); const pb = el('button', 'link', '★ ' + mt('myProgress')); pb.type = 'button'; pb.addEventListener('click', () => open());
     open2.append(pb); ach.append(open2);
     achPane.append(ach);
-    const n = R.newAlbum.length + R.newAch.length;
+    const n = R.newAlbum.length + R.newAch.length + (ret ? ret.recapCount() : 0);
     const badge = $('rt-badge'); if (badge) { badge.textContent = String(n); badge.hidden = !n; }
     const sb = el('button', 'btn alt', '⤴ ' + mt('share')); sb.type = 'button'; sb.id = 'meta-share';
     const cb = el('button', 'btn alt', mt('copyLink')); cb.type = 'button'; cb.id = 'meta-copy';
@@ -297,7 +300,7 @@ export async function initMeta({ game, world }) {
     cardCanvas = cardCanvas || document.createElement('canvas');
     return renderCard(cardCanvas, recapData(), {
       name: game.player.name, score: Math.floor(res.score), rankText: placeText(res.rank, res.total),
-      sizeText: `Ø ${(res.radius * 2).toFixed(1)} m`, biggest: res.biggest ? (res.biggest.name || kindName(res.biggest.kind)) : '—', pctMe: fmtPct(R.pctMe),
+      sizeText: `Ø ${(res.radius * 2).toFixed(1)} m`, biggest: res.biggest ? (res.biggest.name || kindName(res.biggest.kind)) : '—', pctMe: fmtPct(R.pctMe), extra: ret ? ret.cardExtra() : '',
     });
   }
 
@@ -316,6 +319,7 @@ export async function initMeta({ game, world }) {
       if (res && res.score > (best.score || 0)) best.score = res.score;
     }
     drawPct(); evalAch(); save();
+    if (ret) ret.onRoundEnd(res);   // streak + weekly goals commit (eligible rounds only), before the recap lists them
     buildRecap();
   });
   bus.on('introStart', () => { clearToasts(); for (const id of ['rt-map', 'rt-ach', 'r-share']) { const e = $(id); if (e) e.replaceChildren(); } const bd = $('rt-badge'); if (bd) bd.hidden = true; recapInfo = null; });
@@ -326,23 +330,25 @@ export async function initMeta({ game, world }) {
   const tabs = el('div', 'mp-tabs'); tabs.setAttribute('role', 'tablist');
   const tbA = el('button', '', ''); tbA.type = 'button'; tbA.dataset.tab = 'album'; tbA.setAttribute('role', 'tab');
   const tbB = el('button', '', ''); tbB.type = 'button'; tbB.dataset.tab = 'ach'; tbB.setAttribute('role', 'tab');
-  tabs.append(tbA, tbB);
+  const tbC = el('button', '', ''); tbC.type = 'button'; tbC.dataset.tab = 'week'; tbC.setAttribute('role', 'tab');
+  tabs.append(tbA, tbB, tbC);
   const body = el('div', 'mp-body'); body.id = 'mp-body';
   const close = el('button', 'btn small', ''); close.type = 'button'; close.id = 'mp-close';
   inner.append(h2, tabs, body, close); panel.append(inner); document.body.appendChild(panel);
   let tab = 'album';
   function renderTab() {
     h2.textContent = mt('progTitle'); close.textContent = mt('close');
-    tbA.textContent = mt('tabAlbum'); tbB.textContent = mt('tabAch');
-    tbA.setAttribute('aria-selected', String(tab === 'album')); tbB.setAttribute('aria-selected', String(tab === 'ach'));
+    tbA.textContent = mt('tabAlbum'); tbB.textContent = mt('tabAch'); tbC.textContent = mt('tabWeek');
+    tbA.setAttribute('aria-selected', String(tab === 'album')); tbB.setAttribute('aria-selected', String(tab === 'ach')); tbC.setAttribute('aria-selected', String(tab === 'week'));
     const top = body.scrollTop;
-    if (tab === 'album') renderAlbum(body, album); else renderAchievements(body, defs);
+    if (tab === 'album') renderAlbum(body, album); else if (tab === 'week' && ret) ret.renderWeek(body); else renderAchievements(body, defs);
     body.scrollTop = top;
   }
   const open = (which) => { if (which) tab = which; renderTab(); panel.classList.remove('hidden'); close.focus(); };
   const shut = () => panel.classList.add('hidden');
   tbA.addEventListener('click', () => { tab = 'album'; renderTab(); });
   tbB.addEventListener('click', () => { tab = 'ach'; renderTab(); });
+  tbC.addEventListener('click', () => { tab = 'week'; renderTab(); });
   close.addEventListener('click', shut);
   panel.addEventListener('pointerdown', (e) => { if (e.target === panel) shut(); });
   window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.classList.contains('hidden')) { shut(); e.stopPropagation(); } }, true);
@@ -357,13 +363,16 @@ export async function initMeta({ game, world }) {
   }
   const lab = () => { for (const b of btns) b.textContent = '★ ' + mt('myProgress'); };
   lab(); onLang(lab);
+  const eligibleNow = () => realRound() && !debugRound();
+  ret = initRetention({ game, world, album, areaAt, toast, openPanel: open, eligibleNow, eligibleEnd: eligibleNow });
 
   const api = {
-    album, defs, R, areas, total, areaTotal, open, close: shut, store: load, toast, buildRecap, makeCard, evalAch,
+    ret, album, defs, R, areas, total, areaTotal, open, close: shut, store: load, toast, buildRecap, makeCard, evalAch,
     get pct() { return { all: R.pctAll, me: R.pctMe }; },
     collectedCount: () => collectedCount(album),
     areaOfPlayer: () => (areaAt(game.player.x, game.player.z) || {}).id || null,
   };
   window.__meta = api;
+  window.__retention = ret;
   return api;
 }

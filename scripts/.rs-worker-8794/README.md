@@ -1,1 +1,1 @@
-This folder contains the built output assets for the worker "bedre-rs-test" generated at 2026-11-17T04:34:51.897Z.
+This folder contains the built output assets for the worker "bedre-rs-test" generated at 2026-11-18T09:48:06.562Z.

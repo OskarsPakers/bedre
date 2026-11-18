@@ -227,6 +227,10 @@ async function roomsStage() {
       check('same room, 2 humans', rA.room === rB && rA.n === 2, `room ${rA.room}`);
       check('both playing', (await until(A, () => window.__online.state === 'playing', null, 25000)) && (await until(B, () => window.__online.state === 'playing', null, 25000)));
       const meA = await O(A, () => window.__online.me), meB = await O(B, () => window.__online.me);
+      // power-ups are server state: both engines show the very same pickups (slot, type, position), and a pickup claimed by one engine is gone on the other
+      const puOf = (p) => O(p, () => window.__online.powerups.map((r) => [r[0], r[1], Math.round(r[2] * 10) / 10, Math.round(r[3] * 10) / 10]).sort((a, b) => a[0] - b[0]));
+      const puA = await puOf(A), puB = await puOf(B);
+      check(`power-ups: the same pickups (slots, types, positions) on chromium and ${other}`, puA.length >= 6 && JSON.stringify(puA) === JSON.stringify(puB) && new Set(puA.map((r) => r[1])).size >= 3, `${puA.length} pickups`);
       const pickTarget = (p) => O(p, () => {
         const wd = window.__life.world, pl = window.__online.self;
         let best = null, bd = 1e9;

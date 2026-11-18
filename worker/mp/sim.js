@@ -1,3 +1,6 @@
+// Scoring (COMBOS + POWER-UPS): every hole has `mass` (the unmultiplied swallowed value: the ONLY input of the radius) and `score` (points = mass x combo
+// multiplier x Dubultpunkti, capped; what the ranking and the leaderboard use). Combos are computed HERE from the times at which claims were accepted
+// (see handleClaims): the client's multiplier is never trusted. Pickups: worker/mp/powerups.js.
 // Authoritative room simulation (pure JS, no Cloudflare APIs: driven by the Durable Object and by scripts/test-mp-sim.mjs).
 //
 // What is authoritative here: the clock, every hole's score + radius, which objects are eaten, hole-vs-hole kills and respawns,
@@ -10,7 +13,10 @@
 import { CFG } from '../../src/config.js';
 import { radiusAt } from '../../src/rules.js';
 import { mulberry32 } from '../../src/rng.js';
-import { F_MOVER } from './table.js';
+import { F_MOVER, F_BUILDING, F_LANDMARK } from './table.js';
+import { Combo, COMBO, comboWeight, totalMult } from '../../src/combo.js';
+import { makeField, makeFx, fxOn, fxMask, fxRemain, speedFactor, reachFactor, doubleMul, grant, pickRadius, PU, PU_TYPES, PU_ORDER } from './powerups.js';
+import { magnetFactor } from '../../src/powerups.js';
 
 const GROWTH_K = 16;
 const D = CFG.duel;
@@ -92,7 +98,8 @@ class StaticIndex {
 function makeHole({ id, slot, name, bot, token }) {
   return {
     id, slot, name, bot: !!bot, token: token || null,
-    x: 0, z: 0, vx: 0, vz: 0, score: 0, r: H.startRadius, eaten: 0, kills: 0, deaths: 0, biggest: 0,
+    x: 0, z: 0, vx: 0, vz: 0, score: 0, mass: 0, r: H.startRadius, eaten: 0, kills: 0, deaths: 0, biggest: 0,
+    combo: new Combo(), comboScale: 1, fxUntil: makeFx(), picks: { magnet: 0, speed: 0, double: 0, shield: 0 }, rtt: 0, lastClaimMs: 0, lastClaimNow: 0, puBudget: 0,
     state: 0, dyingEnd: 0, respawnAt: 0, protectUntil: 0, by: -1,
     connected: !bot, discAt: 0, lastPosAt: 0, budget: 0, claimBudget: 0, moverBudget: 0, claimT: 0,
     violations: 0, rejected: 0, tx: 0, tz: 0, speedMul: 1, brain: null, dead: false,
@@ -114,7 +121,8 @@ export class RoomSim {
     this.phase = 'lobby';           // lobby | intro | playing | ended
     this.startAt = this.playAt = this.endAt = 0;
     this.lastTick = 0;
-    this.ev = { e: [], k: [], r: [], d: [] };
+    this.ev = { e: [], k: [], r: [], d: [], ps: [], pp: [], px: [] };
+    this.field = null;              // PowerupField (created at start())
     this.maxSpawnDens = 0;
     this.eatenList = [];            // ids in eating order (for reconnect sync)
     this.left = [];                 // humans whose hole was removed after the grace period: kept for the final ranking (not for play)
@@ -148,7 +156,7 @@ export class RoomSim {
     const h = this.byId.get(id);
     if (!h || h.bot) return;
     this.removeHole(id);
-    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r });
+    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
   }
 
   // ---- round start ----------------------------------------------------------------------------------------------
@@ -163,6 +171,7 @@ export class RoomSim {
       const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true });
       h.speedMul = Math.min(1.04, CFG.bots.speedMin + (CFG.bots.speedMax - CFG.bots.speedMin) * this.rng());
       h.brain = new BotBrain(h, this.rng, i, nBots, this.cfg.botSkill ?? 1);
+      h.comboScale = this.cfg.botComboScale ?? 1;
       h.speedMul *= h.brain.speedScale;
       this.holes.push(h); this.byId.set(h.id, h);
     }
@@ -187,7 +196,32 @@ export class RoomSim {
     const order = [...shuffle(this.holes.filter((h) => !h.bot)), ...shuffle(this.holes.filter((h) => h.bot))];
     order.forEach((h, i) => { const p = placed[i % placed.length]; h.x = p.x; h.z = p.z; h.tx = p.x; h.tz = p.z; });
     for (const h of this.holes) { h.lastMsgAt = now; h.lastPosAt = this.playAt; h.budget = 0; h.claimBudget = this.cfg.claimBurst; h.moverBudget = this.cfg.moverPointsBurst; }
+    // power-ups: seeded by the room's rng (a fresh layout every round; the schedule itself is a pure function of the seed, src/powerups.js)
+    this.puSeed = (this.rng() * 4294967296) >>> 0;
+    this.field = makeField(this.table, this.puSeed);
+    this.puAt = this.playAt;
+    for (const e of this.field.tick(0)) this._puEvent(e);   // the first batch is announced by start / resume (list()), not as events
+    this.ev.ps.length = 0;
+    if (this.cfg.testPowerups && humans.length) this._testPowerups(humans);
+    if (this.cfg.testStartMass && humans.length) { const q = humans.find((h) => h.name.startsWith('Big')) || humans[0]; q.mass = q.score = this.cfg.testStartMass; q.r = radiusOf(q.mass); }
   }
+
+  /** TEST ONLY (MP_TEST_PU=1): the humans are found by name (scripts/smoke-mp.mjs: 'PuA', 'PuB', 'Big...'). Slot 0 (speed) halfway between A and B (a race); slots 1 (shield) / 2 (magnet) / 3 (double) 8-9 m from A, on the side away from B (so the race never crosses them). */
+  _testPowerups(humans) {
+    const by = (p, i) => humans.find((h) => h.name.startsWith(p)) || humans[Math.min(i, humans.length - 1)];
+    const h1 = by('PuA', 1), h2 = by('PuB', 2), sl = this.field.slots;
+    let dx = h1.x - h2.x, dz = h1.z - h2.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+    const put = (i, type, x, z) => { Object.assign(sl[i], { type, x, z, state: 'on', until: 1e9 }); };
+    put(0, 'speed', (h1.x + h2.x) / 2, (h1.z + h2.z) / 2);
+    put(1, 'shield', h1.x + dx * 8, h1.z + dz * 8); put(2, 'magnet', h1.x - dz * 9, h1.z + dx * 9); put(3, 'double', h1.x + dz * 9, h1.z - dx * 9);
+  }
+
+  _puEvent(e) {
+    if (e.k === 'spawn') this.ev.ps.push([e.slot, PU_ORDER[e.type], round1(e.x), round1(e.z)]);
+    else this.ev.px.push(e.slot);
+  }
+  /** Active pickups [slot, typeIdx, x, z] (start / resume frames). */
+  puList() { return this.field ? this.field.list().map(([s, t, x, z]) => [s, PU_ORDER[t], round1(x), round1(z)]) : []; }
 
   /**
    * Start points for the humans of one room, EQUALLY rich: find the richest density level T at which n points >= sep apart still exist,
@@ -255,7 +289,7 @@ export class RoomSim {
   /** Respawn point: plenty of food for the new (smaller) size, far from the leaders and from every other hole. */
   pickRespawn(h) {
     const sp = this.table.spawn;
-    const r = Math.max(H.startRadius, radiusOf(h.score));
+    const r = Math.max(H.startRadius, radiusOf(h.mass));
     const others = this.holes.filter((o) => o !== h && o.state === 0);
     const leaders = others.slice().sort((a, b) => b.score - a.score).slice(0, 3);
     let best = null, bs = -Infinity;
@@ -281,7 +315,7 @@ export class RoomSim {
     const c = this.cfg, b = this.table.bounds;
     const dt = Math.min(2, Math.max(0, (now - h.lastPosAt) / 1000));
     h.lastPosAt = now;
-    const vmax = speedOf(h.r) * c.speedTol;
+    const vmax = speedOf(h.r) * c.speedTol * speedFactor(h, now);   // Ātrums raises the allowed speed while it runs
     h.budget = Math.min(h.budget + vmax * dt, vmax * c.burstSeconds + c.posSlack);
     x = Math.min(b.maxX, Math.max(b.minX, x)); z = Math.min(b.maxZ, Math.max(b.minZ, z));
     const d = Math.hypot(x - h.x, z - h.z);
@@ -295,8 +329,13 @@ export class RoomSim {
     return { x: h.x, z: h.z };
   }
 
-  /** Validate eat claims. statics: [id], movers: [[id,x,z]]. Returns {bad:[ids], ok:n}. */
-  handleClaims(h, statics, movers, now) {
+  /**
+   * Validate eat claims. statics: [id], movers: [[id,x,z]]. Returns {bad:[ids], ok:n}.
+   * `ct` = the client's own timestamp (its estimate of server ms) of the batch: combos use it so network jitter / latency does not break a combo
+   * (a 300 ms player keeps theirs), clamped to [now - allowance, now] where the allowance grows with the RTT the client reports (never trusted beyond 1.0 s)
+   * and never goes backwards. Without `ct` the server's receipt time is used.
+   */
+  handleClaims(h, statics, movers, now, ct) {
     const bad = [];
     const t = this.table, c = this.cfg;
     if (this.phase !== 'playing' || h.state !== 0) {
@@ -308,9 +347,16 @@ export class RoomSim {
     const dtc = Math.min(2, Math.max(0, (now - h.claimT) / 1000)); h.claimT = now;
     h.claimBudget = Math.min(c.claimBurst, h.claimBudget + c.claimRate * dtc);
     h.moverBudget = Math.min(c.moverPointsBurst, h.moverBudget + c.moverPointsRate * dtc);
-    const vmax = speedOf(h.r) * c.speedTol;
-    const reach = h.r * S.reach + vmax * c.reachSlackSeconds + 1.5;
+    const vmax = speedOf(h.r) * c.speedTol * speedFactor(h, now);
+    const reach = h.r * S.reach * reachFactor(h, now) + vmax * c.reachSlackSeconds + 1.5;   // Magnēts widens the reach tolerance
     const maxFit = h.r * S.fitRatio * 1.03;
+    const lag = 450 + Math.min(550, 1.5 * (h.rtt || 0));
+    let tMs = Math.max(h.lastClaimMs, Math.min(now, Math.max(now - lag, Number.isFinite(ct) ? ct : now)));
+    // anti-exploit: the client's timeline may run FASTER than the server's receipt timeline by at most `COMBO.stampJitter` per batch. Without this a
+    // client that fakes its RTT / timestamps could alternate "short gap" (lag back to 0) and "long gap, stamped early" (lag up to the cap) and keep
+    // every combo alive across gaps up to window + cap; with it the extra window is bounded by the jitter allowance (measured in the combo test).
+    if (h.lastClaimNow > 0) tMs = Math.max(tMs, Math.min(now, h.lastClaimMs + (now - h.lastClaimNow) - COMBO.stampJitter * 1000));
+    h.lastClaimMs = tMs; h.lastClaimNow = now;
     let ok = 0;
     const take = (id, isMover, mx, mz) => {
       if (!Number.isInteger(id) || id < 0 || id >= t.n || this.eaten[id]) return false;
@@ -322,7 +368,7 @@ export class RoomSim {
       const px = isMover ? mx : t.x[id], pz = isMover ? mz : t.z[id];
       if (Math.hypot(px - h.x, pz - h.z) > reach) return false;
       if (isMover) { if (h.moverBudget < t.value[id]) return false; h.moverBudget -= t.value[id]; }
-      this.eat(h, id);
+      this.eat(h, id, tMs);
       return true;
     };
     for (const id of statics) { if (take(id, false)) ok++; else bad.push(id); }
@@ -331,13 +377,18 @@ export class RoomSim {
     return { bad, ok };
   }
 
-  eat(h, id) {
+  /** `ms` = the time the swallow counts at (claim time for humans, server time for bots). */
+  eat(h, id, ms) {
     const t = this.table;
     this.eaten[id] = 1;
     this.eatenList.push(id);
     h.eaten++;
-    h.score += t.value[id];
-    h.r = radiusOf(h.score);
+    const mass = t.value[id];
+    const c = h.combo.hit(ms / 1000, comboWeight((t.flags[id] & F_BUILDING) !== 0, t.fit[id], mass) * h.comboScale, h.r, h.bot ? 0 : COMBO.netSlack);
+    const pts = mass * totalMult(c.mult, doubleMul(h, ms));
+    h.mass += mass; h.score += pts;
+    h.rawEaten = (h.rawEaten || 0) + mass; h.swPts = (h.swPts || 0) + pts;
+    h.r = radiusOf(h.mass);
     if (t.fit[id] > h.biggest) h.biggest = t.fit[id];
     this.ev.e.push([id, h.id]);
     if (!(t.flags[id] & F_MOVER)) {
@@ -355,7 +406,7 @@ export class RoomSim {
     if (this.phase === 'intro' && now >= this.playAt) { this.phase = 'playing'; this.lastTick = now; for (const h of this.holes) h.lastPosAt = now; }
     if (this.phase !== 'playing') return false;
     const dt = Math.min(0.12, Math.max(0.001, (now - this.lastTick) / 1000));
-    this.lastTick = now;
+    this.lastTick = now; this._now = now;
     const sec = now / 1000;
     for (const h of this.holes.slice()) {
       // a socket that went silent (dead network, frozen / evicted tab: no ping for silentAfterMs) starts the grace period too
@@ -370,9 +421,41 @@ export class RoomSim {
         this.botEat(h);
       }
     }
+    if (this.field) {
+      for (const e of this.field.tick((now - this.playAt) / 1000)) this._puEvent(e);
+      for (const h of this.holes) if (h.bot && h.state === 0) this.botPickup(h, now);
+    }
     this.duels(now);
     if (now >= this.endAt) { this.phase = 'ended'; return false; }
     return true;
+  }
+
+  // ---- power-ups ------------------------------------------------------------------------------------------------------------
+  grantPickup(h, slot, now) {
+    const type = this.field.take(slot, (now - this.playAt) / 1000);
+    if (!type) return null;
+    grant(h, type, now, this.cfg.testFxScale || 1);
+    this.ev.pp.push([slot, h.id, PU_ORDER[type], Math.round(PU[type].dur * 1000 * (this.cfg.testFxScale || 1))]);   // (duration in ms: the collector's badge starts with the server's number)
+    return type;
+  }
+
+  /** A human CLAIMS pickups ([slot..]). Accepted when the slot is live and the hole (server-known position) is within the pickup radius + latency allowance. Returns rejected slots. */
+  handlePickups(h, slots, now) {
+    const bad = [];
+    if (!this.field || this.phase !== 'playing' || h.state !== 0) return slots.slice();
+    const vmax = speedOf(h.r) * this.cfg.speedTol * speedFactor(h, now);
+    const slack = vmax * this.cfg.reachSlackSeconds + 1.5;
+    for (const slot of slots) {
+      const s = Number.isInteger(slot) ? this.field.slots[slot] : null;
+      if (!s || s.state !== 'on' || Math.hypot(s.x - h.x, s.z - h.z) > pickRadius(h.r) + slack) { bad.push(slot); continue; }
+      this.grantPickup(h, slot, now);
+    }
+    return bad;
+  }
+
+  botPickup(h, now) {
+    const slot = this.field.touching(h.x, h.z, h.r);
+    if (slot >= 0) this.grantPickup(h, slot, now);
   }
 
   moveBot(h, dt) {
@@ -389,11 +472,11 @@ export class RoomSim {
   }
 
   botEat(h) {
-    const t = this.table, reach = h.r * S.reach, maxFit = h.r * S.fitRatio;
+    const t = this.table, maxFit = h.r * S.fitRatio, reach = h.r * S.reach * (h.fxUntil.magnet > this._now ? magnetFactor(h.r) : 1);
     const hit = this._hit || (this._hit = []);
     hit.length = 0;
     this.index.query(h.x, h.z, reach, this.eaten, (id) => { if (t.fit[id] < maxFit) hit.push(id); });
-    for (let i = 0; i < hit.length; i++) this.eat(h, hit[i]);
+    for (let i = 0; i < hit.length; i++) this.eat(h, hit[i], this._now);
   }
 
   duels(now) {
@@ -404,6 +487,7 @@ export class RoomSim {
       for (let j = 0; j < hs.length; j++) {
         const b = hs[j];
         if (i === j || b.state !== 0 || now < b.protectUntil) continue;
+        if (b.fxUntil.shield > now) continue;      // Vairogs: bigger holes cannot swallow you
         if (a.r < b.r * D.ratio) continue;
         if (Math.hypot(a.x - b.x, a.z - b.z) < a.r * D.reach) this.kill(a, b, now);
       }
@@ -411,47 +495,51 @@ export class RoomSim {
   }
 
   kill(eater, victim, now) {
-    const gain = victim.score * D.gain;
+    const gain = victim.score * D.gain, massGain = victim.mass * D.gain;   // points follow the points, the size follows the mass
     victim.state = 1; victim.by = eater.id;
     victim.dyingEnd = now + D.dyingTime * 1000;
     victim.respawnAt = victim.dyingEnd + D.respawnDelay * 1000;
     victim.vx = victim.vz = 0;
     victim.deaths++; eater.kills++;
-    eater.score += gain; eater.r = radiusOf(eater.score);
+    eater.score += gain; eater.mass += massGain; eater.r = radiusOf(eater.mass);
     this.ev.k.push([eater.id, victim.id, Math.round(gain)]);
   }
 
   respawn(h, now) {
     const p = this.pickRespawn(h);
-    h.score *= D.keepScore;
-    h.r = radiusOf(h.score);
+    h.score *= D.keepScore; h.mass *= D.keepScore;
+    h.r = radiusOf(h.mass);
+    h.combo.drop(); h.fxUntil = makeFx();
     h.x = p.x; h.z = p.z; h.tx = p.x; h.tz = p.z; h.vx = h.vz = 0;
     h.state = 0; h.by = -1;
     h.protectUntil = now + D.protect * 1000;
     h.lastPosAt = now; h.budget = 0;
     if (h.brain) h.brain.reset(now / 1000);
-    this.ev.r.push([h.id, round1(h.x), round1(h.z), Math.round(h.score)]);
+    this.ev.r.push([h.id, round1(h.x), round1(h.z), Math.round(h.score), Math.round(h.mass)]);
   }
 
   // ---- outgoing ---------------------------------------------------------------------------------------------------------
   snapshot(now) {
     const m = {
       t: 's', T: now,
-      h: this.holes.map((h) => [h.id, round1(h.x), round1(h.z), Math.round(h.r * 100) / 100, Math.round(h.score), h.state]),
+      h: this.holes.map((h) => [h.id, round1(h.x), round1(h.z), Math.round(h.r * 100) / 100, Math.round(h.score), h.state, fxMask(h, now)]),
     };
     const ev = this.ev;
     if (ev.e.length) m.e = ev.e;
     if (ev.k.length) m.k = ev.k;
     if (ev.r.length) m.r = ev.r;
     if (ev.d.length) m.d = ev.d;
-    this.ev = { e: [], k: [], r: [], d: [] };
+    if (ev.ps.length) m.ps = ev.ps;      // pickups spawned [slot, type, x, z]
+    if (ev.pp.length) m.pp = ev.pp;      // collected [slot, hole, type]
+    if (ev.px.length) m.px = ev.px;      // expired [slot]
+    this.ev = { e: [], k: [], r: [], d: [], ps: [], pp: [], px: [] };
     return m;
   }
 
   ranking() {
     return [...this.holes, ...this.left].sort((a, b) => b.score - a.score || a.id - b.id).map((h, i) => ({
       rank: i + 1, id: h.id, name: h.name, slot: h.slot, bot: h.bot, score: Math.round(h.score), eaten: h.eaten,
-      kills: h.kills, deaths: h.deaths, radius: Math.round(h.r * 100) / 100, ...(h.left ? { left: true } : null),
+      kills: h.kills, deaths: h.deaths, radius: Math.round(h.r * 100) / 100, bestCombo: Math.round(h.combo.best), bestMult: h.combo.bestMult, ...(h.left ? { left: true } : null),
     }));
   }
 }
@@ -471,8 +559,10 @@ class BotBrain {
     this.hz = 4;
     // difficulty (MP.botSkill < 1): each bot gets its own level (+-22 % spread) that makes it slower, sloppier and slower to react
     this.speedScale = 1;
+    this.puChance = 0.45;
     if (botSkill < 1) {
       const lvl = Math.min(1, botSkill * (0.78 + 0.44 * rng()));
+      this.puChance = 0.08 + 0.3 * lvl;        // weaker bots notice pickups less often
       this.speedScale = 0.2 + 0.8 * lvl;
       this.noise *= 1.9 - lvl;
       this.react += (1 - lvl) * 0.5;
@@ -489,7 +579,8 @@ class BotBrain {
     this.threatSince = -1; this.roam = null; this.nextRoam = now + 0.5 + this.rng() * 1.5;
     this.lastX = this.h.x; this.lastZ = this.h.z; this.lastCheck = now;
     this.prey = null; this.huntSince = 0; this.preyBan = -1; this.preyBanUntil = 0;
-    this.rate = 1; this.rateScore = this.h.score; this.rateT = now;
+    this.rate = 1; this.rateScore = this.h.mass; this.rateT = now;
+    this.puGoal = -1; this.puUntil = 0; this.puCool = now + 15;
     this.heading = this.rng() * TAU;
   }
 
@@ -502,8 +593,8 @@ class BotBrain {
   think(sim, now) {
     const h = this.h, r = h.r, t = sim.table, b = t.bounds, B = CFG.bots;
     if (now - this.rateT >= 2) {
-      this.rate = this.rate * 0.5 + 0.5 * Math.max(0, h.score - this.rateScore) / (now - this.rateT);
-      this.rateScore = h.score; this.rateT = now;
+      this.rate = this.rate * 0.5 + 0.5 * Math.max(0, h.mass - this.rateScore) / (now - this.rateT);
+      this.rateScore = h.mass; this.rateT = now;
     }
     if (now - this.lastCheck > 1.5) { // stuck: barely moved while chasing a goal
       if (this.goal >= 0 && Math.hypot(h.x - this.lastX, h.z - this.lastZ) < Math.max(0.4, r * 0.3) * 0.5) {
@@ -526,11 +617,12 @@ class BotBrain {
       } else if (r >= o.r * D.ratio * 1.02 && !safe && nowMs >= h.protectUntil && nowMs >= o.protectUntil - 500) {
         if (o.id === this.preyBan && now < this.preyBanUntil) continue;
         if (!o.bot && now < sim.playAt / 1000 + (sim.cfg.botHumanGrace || 0)) continue; // no early dogpile on people: they get a quiet first minute
-        if (o.score < h.score * B.preyMinFrac) continue;
+        if (nowMs < o.fxUntil.shield) continue;                       // Vairogs: cannot be swallowed
+        if (o.mass < h.mass * B.preyMinFrac) continue;
         const gap = d - r * D.reach;
         if (gap > Math.max(18, r * B.huntRange) * (0.5 + this.aggr * 0.7)) continue;
         const catchT = Math.max(0, gap) / Math.max(1.5, speedOf(r) * h.speedMul - 0.75 * speedOf(o.r)) + 0.5;
-        const v = (o.score * D.gain + 3) / catchT;
+        const v = (o.mass * D.gain + 3) / catchT;
         if (v > this.rate * (B.huntGreed - this.aggr) && v > pv) { pv = v; prey = o; }
       }
     }
@@ -553,6 +645,18 @@ class BotBrain {
       else { tx = prey.x + prey.vx * 0.4; tz = prey.z + prey.vz * 0.4; }
     } else this.prey = null;
 
+    if (tx === undefined && sim.field) {
+      // power-ups: notice one nearby and detour for it (same idea as src/bots.js: more often for the stronger bots)
+      const f = sim.field;
+      let pu = null;
+      if (this.puGoal >= 0 && now < this.puUntil) { const q = f.slots[this.puGoal]; if (q && q.state === 'on') pu = q; else { this.puGoal = -1; this.puCool = now + 10; } }
+      else if (this.puGoal >= 0) { this.puGoal = -1; this.puCool = now + 10; }
+      if (!pu && now >= this.puCool) {
+        const cand = f.nearest(h.x, h.z, 40 + r * 1.5);
+        if (cand && this.rng() < this.puChance) { this.puGoal = cand.slot; this.puUntil = now + 4 + cand.d / Math.max(4, speedOf(r) * h.speedMul) * 1.3; pu = cand; }
+      }
+      if (pu) { tx = pu.x; tz = pu.z; }
+    }
     if (tx === undefined) {
       this.roamCheck(sim, now);
       if (this.roam) {
@@ -620,12 +724,14 @@ class BotBrain {
     const c = this.cands; c.length = 0;
     const R = dir ? dir.range : Math.max(26, r * 7) * (0.75 + 0.25 * Math.min(1.2, this.skill));
     const k = r * 1.5 + 4;
+    const lmW = Math.min(1, 0.25 + Math.max(0, nowMs - sim.playAt) / 1000 / 240);   // sights: bots do not seek them early (same rule as the solo bots)
+    const val = (id) => ((t.flags[id] & F_LANDMARK) ? t.value[id] * lmW : t.value[id]);
     let n = 0;
     sim.index.query(h.x, h.z, R, sim.eaten, (id, d) => {
       if (n >= 800 || t.fit[id] >= maxFit || (id === this.banId && now < this.banUntil)) return;
       if (dir && d > 1 && ((t.x[id] - h.x) * dir.dx + (t.z[id] - h.z) * dir.dz) / d < dir.minDot) return;
       for (const o of bigs) if (Math.hypot(t.x[id] - o.x, t.z[id] - o.z) < o.r * (D.reach + 0.6) + 6) return;
-      c.push(id, d, t.value[id] / (d + k)); n++;
+      c.push(id, d, val(id) / (d + k)); n++;
     });
     if (!n) return -1;
     const top = [];
@@ -639,8 +745,8 @@ class BotBrain {
     for (const i of top) {
       const id = c[3 * i], d = c[3 * i + 1];
       let cl = 0;
-      for (let j = 0; j < n; j++) { const p = c[3 * j], dx = t.x[p] - t.x[id], dz = t.z[p] - t.z[id]; if (dx * dx + dz * dz < cr2) cl += t.value[p]; }
-      const sc = (t.value[id] * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
+      for (let j = 0; j < n; j++) { const p = c[3 * j], dx = t.x[p] - t.x[id], dz = t.z[p] - t.z[id]; if (dx * dx + dz * dz < cr2) cl += val(p); }
+      const sc = (val(id) * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
       if (sc > bs) { bs = sc; best = id; }
     }
     return best;

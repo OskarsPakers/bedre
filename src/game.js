@@ -1,7 +1,11 @@
 // Game state machine: round timer, holes, swallow loop, HUD sync, dev hooks.
 import * as THREE from 'three';
 import { CFG, scoreFromRadius, radiusFromScore } from './config.js';
-import { Hole, updateSwallow } from './holes.js';
+import { Hole, updateSwallow, pullObjects, restoreMoved } from './holes.js';
+import { PowerupField, PU, PU_TYPES, puCountFor, pickRadius, candidatesFromSpawn, candidatesFromPoints } from './powerups.js';
+import { comboRound, resetComboRound } from './combo.js';
+import { PowerupView } from './powerupView.js';
+import { modeState } from './modes.js';
 import { HoleViews } from './holeView.js';
 import { FollowCamera } from './camera.js';
 import { Lighting } from './lighting.js';
@@ -38,7 +42,10 @@ export class Game {
     this.phase = 'menu';
     this.timeLeft = this.roundSeconds;
     this.elapsed = 0;
-    this.pop = { sum: 0, x: 0, z: 0, n: 0, t: 0, big: false };
+    this.pop = { sum: 0, x: 0, z: 0, n: 0, t: 0, big: false, hot: false };
+    this.field = null;              // PowerupField of the round (solo / free roam; online: the server's list, src/net/online.js)
+    this.puSeed = 0;
+    this.puView = new PowerupView(scene, world.fx);
     this._v = new THREE.Vector3();
     this.quiet = false;
     this._boardT = 0;
@@ -80,7 +87,7 @@ export class Game {
 
   start() {
     if (this.online) return this.online.onStart(); // multiplayer (src/net): Play again = rejoin the lobby
-    this.world.reset();
+    this.world.reset(); restoreMoved(this.world);
     this.modeUnranked = null;
     bus.emit('modeSetup', this); // src/modes.js: round length, bot count, growth, daily seeds; may set this.modeUnranked
     this.player.name = this.hud.getName(CFG.playerName);
@@ -90,6 +97,7 @@ export class Game {
     this.paused = false; this.hud.showPause(false);
     this.unranked = this.urlUnranked || this.modeUnranked || null;
     this._global = null;
+    this.field = null; this.puView.clear(); this.bots.field = null; resetComboRound();
     this.playT = 0;
     this._roundToken = null;
     this.phase = 'intro';
@@ -147,8 +155,43 @@ export class Game {
     this.hud.showMarkers(false);
     this.hud.go(t('go'));
     this.playT = 0;
+    this._startPowerups();
     this._beginRound();
     bus.emit('roundGo');
+  }
+
+  /** Power-ups of this round: seeded schedule over the placement file's spawn candidates (daily challenge: the daily seed = the same for everybody). */
+  _startPowerups() {
+    let seed = null; this._puSeedFixed = false;
+    try {
+      const qs = new URLSearchParams(location.search);
+      if (qs.get('pu') === '0') { this.markUnranked('pu'); this.field = null; this.bots.field = null; this.puSeed = 0; return; }   // test hook (pacing comparisons): no power-ups, unranked
+      const q = qs.get('puseed'); if (q != null && q !== '') { seed = (+q) >>> 0; this.markUnranked('puseed'); this._puSeedFixed = true; }   // a device-chosen schedule is never ranked
+    } catch { /* no location */ }
+    if (seed == null) { const m = modeState(); seed = m.id === 'daily' && m.daily ? m.daily.seed : (Math.random() * 4294967296) >>> 0; }
+    this._buildField(seed);
+  }
+
+  /** Ranked rounds: the server's round seed (POST /api/rounds) fixes the spawn schedule, so the device cannot pick a favourable one. Swapped in when the answer arrives. */
+  _adoptServerSeed(seed) {
+    if (this._puSeedFixed || !this.field || this.online || !Number.isFinite(+seed)) return;
+    const sd = (+seed) >>> 0;
+    if (sd === this.puSeed) return;
+    this._buildField(sd, this.playT);
+  }
+
+  _buildField(seed, now = 0) {
+    this.puSeed = seed;
+    const tbl = this.world.placements && this.world.placements.table;
+    const cand = tbl && tbl.spawn && tbl.spawn.n > 0 ? candidatesFromSpawn(tbl.spawn) : candidatesFromPoints(this.picker.pts);
+    this.field = new PowerupField({ seed, cand, count: puCountFor(this.world.bounds) });
+    this.bots.field = this.field;
+    this.puView.clear();
+    this._puEvents(this.field.tick(now));
+  }
+
+  _puEvents(evs) {
+    for (const e of evs) { if (e.k === 'spawn') this.puView.spawn(e); else this.puView.remove(e.slot, false); }
   }
 
   /** Timer just started: ask the server for a round id (it validates round age at submit) and its round length. */
@@ -156,6 +199,7 @@ export class Game {
     const token = this._roundToken = {};
     startRound().then((res) => {
       if (!res || token !== this._roundToken) return;
+      if (res.seed != null) this._adoptServerSeed(res.seed);
       const rs = +res.roundSeconds;
       // the server is the source of truth for round length (never overridden by ?time=, which makes the round unranked)
       if (!this.timeOverride && rs > 0 && Math.abs(rs - this.roundSeconds) > 0.01) {
@@ -216,7 +260,7 @@ export class Game {
     const b = p.biggest;
     const biggest = b ? (b.name ? `${b.name}` : kindName(b.kind)) : '—';
     const me = this.rows.find((r) => r.isPlayer);
-    this._res = { score: p.score, eaten: p.eaten, kills: p.kills, deaths: p.deaths, radius: p.radius, level: this._level().level,
+    this._res = { score: p.score, bestCombo: Math.round(p.combo.best), bestMult: p.combo.bestMult, picks: { ...p.picks }, eaten: p.eaten, kills: p.kills, deaths: p.deaths, radius: p.radius, level: this._level().level,
       biggest: b, rank: me.rank, total: this.rows.length, table: this.rows };
     this._showResults();
     this._hudSync();
@@ -230,7 +274,7 @@ export class Game {
       score: r.score, eaten: r.eaten, kills: r.kills, deaths: r.deaths,
       biggest: r.biggest ? (r.biggest.name || kindName(r.biggest.kind)) : '—',
       size: t('finalSize', { d: (r.radius * 2).toFixed(1), lvl: r.level }),
-      rank: r.rank, total: r.total, table: r.table,
+      rank: r.rank, total: r.total, table: r.table, bestCombo: r.bestCombo, bestMult: r.bestMult,
     });
     this._showGlobal();
   }
@@ -291,7 +335,7 @@ export class Game {
     while (i < L.length - 1 && r >= L[i + 1]) i++;
     if (i >= L.length - 1) return { level: L.length, progress: 1 };
     const s0 = scoreFromRadius(L[i]), s1 = scoreFromRadius(L[i + 1]);
-    return { level: i + 1, progress: Math.min(1, Math.max(0, (this.player.score - s0) / (s1 - s0))) };
+    return { level: i + 1, progress: Math.min(1, Math.max(0, (this.player.mass - s0) / (s1 - s0))) };   // (the size bar follows the growth mass, not the multiplied points)
   }
 
   _hudSync() {
@@ -302,12 +346,20 @@ export class Game {
     });
   }
 
-  _onSwallow(hole, o) {
+  _onSwallow(hole, o, res) {
     if (!hole.isPlayer) return;
     const p = this.pop;
     if (p.n === 0) { p.x = o.x; p.z = o.z; p.t = 0; }
-    p.sum += o.value; p.n++;
+    const pts = res ? res.pts : o.value;
+    p.sum += pts; p.n++;
+    if (res && res.mult > 1) p.hot = true;
     if (o.value >= 40) p.big = true;
+    if (res) {
+      const c = hole.combo;
+      if (c.best > comboRound.best) { comboRound.best = c.best; bus.emit('comboBest', c.best); }   // (meta goals: best combo COUNT of the round)
+      if (c.bestMult > comboRound.bestMult) comboRound.bestMult = c.bestMult;
+      bus.emit('combo', { count: c.count, mult: res.mult, step: res.step, hole });
+    }
     if (o.name) this.hud.label(o.name, o.landmark);
     this._ring(hole, o);
   }
@@ -332,8 +384,8 @@ export class Game {
     if (p.t < 0.12) return;
     this._v.set(p.x, 2, p.z).project(this.cam.camera);
     const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
-    this.hud.popup((this._v.x * 0.5 + 0.5) * w, (-this._v.y * 0.5 + 0.5) * h, `+${p.sum}`, p.big || p.sum >= 40);
-    p.sum = 0; p.n = 0; p.big = false;
+    this.hud.popup((this._v.x * 0.5 + 0.5) * w, (-this._v.y * 0.5 + 0.5) * h, `+${Math.round(p.sum)}`, p.big || p.sum >= 40, p.hot);
+    p.sum = 0; p.n = 0; p.big = false; p.hot = false;
   }
 
   /** Advance simulation by dt seconds (no rendering). */
@@ -356,21 +408,42 @@ export class Game {
       if (!this.autopilot) this.player.control = this.player.alive && !this.player.dying ? this.input.getControl(this.cam.camera) : { mode: 'none', x: 0, z: 0 };
       this.bots.update(this.elapsed, this.holes);
     }
+    if (playing && this.field) this._puEvents(this.field.tick(this.playT));
     for (const h of this.holes) {
       if (h.dying) { this._advanceDying(h, dt); continue; }
       if (!h.alive) {
         if (playing) { h.respawnT -= dt; if (h.respawnT <= 0) this._respawn(h); }
         continue;
       }
+      if (playing) { h.fx.tick(dt); h.boost = h.fx.speedMul; }
       h.update(dt, this.world.bounds);
       if (h.protectT > 0) h.protectT = Math.max(0, h.protectT - dt);
-      if (playing) updateSwallow(this.world, h, (hh, o) => this._onSwallow(hh, o));
+      if (playing) {
+        if (h.fx.magnet > 0) pullObjects(this.world, h, dt);
+        updateSwallow(this.world, h, (hh, o, res) => this._onSwallow(hh, o, res), this.playT);
+        if (this.field) this._pickups(h);
+        const lost = h.combo.tick(this.playT);
+        if (lost && h.isPlayer) bus.emit('comboLost', { count: lost, hole: h });
+      }
     }
     if (playing) this._duels();
     this.world.update(dt, this.elapsed);
     this._syncVisuals(dt);
     if (!quiet) { this._flushPopup(dt); this._overlay(dt); this._hudSync(); }
     if (playing && this.timeLeft <= 0) this.end();
+  }
+
+  // ---- power-ups ------------------------------------------------------------------------------------------
+  /** A hole that touches a pickup collects it (any size, bots too). */
+  _pickups(h) {
+    const slot = this.field.touching(h.x, h.z, h.radius);
+    if (slot < 0) return;
+    const type = this.field.take(slot, this.playT);
+    if (!type) return;
+    h.pick(type);
+    this.puView.remove(slot, true, h);
+    bus.emit('powerup', { type, hole: h, slot });
+    if (h.isPlayer) { comboRound.picked.add(type); this.hud.puToast(type, PU[type].dur); bus.emit('powerupPicked', { type }); }
   }
 
   // ---- hole vs hole -------------------------------------------------------------------------------------
@@ -382,6 +455,7 @@ export class Game {
       for (let j = 0; j < hs.length; j++) {
         const b = hs[j];
         if (i === j || !b.alive || b.dying || b.protectT > 0) continue;
+        if (b.fx.shield > 0) continue;                 // Vairogs: bigger holes cannot swallow you
         if (a.radius < b.radius * D.ratio) continue;
         if (Math.hypot(a.x - b.x, a.z - b.z) < a.radius * D.reach) this._eatHole(a, b);
       }
@@ -390,11 +464,11 @@ export class Game {
 
   _eatHole(eater, victim) {
     const D = CFG.duel;
-    const gain = victim.score * D.gain;
+    const massGain = victim.mass * D.gain, gain = victim.score * D.gain;   // size follows the mass, points follow the points
     victim.dying = { by: eater, t: 0, r0: victim.radius, rx: victim.x - eater.x, rz: victim.z - eater.z, spin: (Math.random() < 0.5 ? -1 : 1) * 2.4 };
     victim.vx = victim.vz = 0;
     victim.deaths++; eater.kills++;
-    eater.addScore(gain);
+    eater.addScore(massGain, gain);
     bus.emit('holeEaten', { eater, victim, gain });
     if (victim.isPlayer) bus.emit('playerEaten', { eater, victim });
     const span = (txt, c) => { const e = document.createElement('span'); e.textContent = txt; if (c) e.style.color = c; return e; };
@@ -430,7 +504,7 @@ export class Game {
     const others = this.holes.filter((o) => o !== h && o.alive);
     // the human's keepScore / protect come from the difficulty (easy: 65 % + 4.5 s); bots always play by the classic numbers
     const keep = h.isPlayer ? D.keepScore : D.botKeepScore, protect = h.isPlayer ? D.protect : D.botProtect;
-    const [x, z] = this.picker.spread(others, { samples: 90, minDist: D.minRespawnDist, radius: radiusFromScore(h.score * keep) });
+    const [x, z] = this.picker.spread(others, { samples: 90, minDist: D.minRespawnDist, radius: radiusFromScore(h.mass * keep) });
     h.respawn(x, z, keep, protect);
     h.respawnedAt = this.elapsed;
     bus.emit('respawn', h);
@@ -460,8 +534,14 @@ export class Game {
         visible: vis, leader: o === this.leader, me: o.isPlayer });
     }
     this.hud.updateTags(items);
+    const me = items.find((i) => i.me);
+    if (me && this.phase === 'playing') {   // screen centre + radius of the player's hole (the combo / power-up stack sits above its tag, or below the hole when there is no room)
+      this._v.set(p.x, 0, p.z).project(cam); me.cy = (-this._v.y * 0.5 + 0.5) * h;
+      const q = this._v2 || (this._v2 = new THREE.Vector3()); q.set(p.x + p.radius, 0, p.z).project(cam); me.pr = Math.abs((q.x - this._v.x) * 0.5 * w);
+    }
+    this.hud.updateFx(this.phase === 'playing' && p.alive && !p.dying ? p : null, me, this.playT);
     if (this.phase === 'intro') this.hud.updateMarkers(items, this.holes, this.introFade ?? 1, this.elapsed);
-    this.minimap.draw(this.holes, this.player, cam, this.leader, this.elapsed);
+    this.minimap.draw(this.holes, this.player, cam, this.leader, this.elapsed, this.phase === 'playing' ? this.puView.dots() : null);
   }
 
   /** Hole the camera follows: the player, or whoever swallowed the player while waiting to respawn. */
@@ -482,6 +562,7 @@ export class Game {
     this.world.setViewDistance(this.cam.dist);
     this.light.update(this.cam.focus, this.cam.dist);
     this.holeViews.update(this.holes);
+    this.puView.update(this.holes, dt, this.cam.dist, this.elapsed);
     holeUniforms.uDetail.value = THREE.MathUtils.clamp(1.4 - this.cam.dist / 120, 0, 1);
   }
 
@@ -516,7 +597,7 @@ export class Game {
   setHoleRadius(i, r) { const h = this.holes[i]; h.setRadius(r); h.protectT = 0; if (h === this.player) this.cam.snap(h); }
   holeList() {
     return this.holes.map((h, i) => ({
-      index: i, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, isBot: !h.isPlayer, alive: h.alive,
+      index: i, name: h.name, x: h.x, z: h.z, radius: h.radius, score: h.score, mass: h.mass, combo: h.combo.count, picks: { ...h.picks }, fx: { ...h.fx }, isBot: !h.isPlayer, alive: h.alive,
       dying: !!h.dying, protectT: h.protectT, kills: h.kills, deaths: h.deaths, eaten: h.eaten,
       mode: this.bots.brains.find((b) => b.hole === h)?.mode || null,
     }));
@@ -538,6 +619,8 @@ export class Game {
         const s = o.value / (d + p.radius * 1.5 + 4);
         if (s > bs) { bs = s; best = o; }
       });
+      const pu = this.autoPowerup(p, bs);
+      if (pu) best = pu;
       let threat = null;
       for (const o of this.holes) if (o !== p && o.alive && !o.dying && o.radius >= p.radius * CFG.duel.ratio * 0.92 && Math.hypot(o.x - p.x, o.z - p.z) < o.radius * 3.2 + 14) threat = o;
       if (threat) { const ax = p.x - threat.x, az = p.z - threat.z, l = Math.hypot(ax, az) || 1; p.control = { mode: 'target', x: p.x + (ax / l) * 60, z: p.z + (az / l) * 60 }; }
@@ -550,6 +633,15 @@ export class Game {
     this.autopilot = false;
     this._syncVisuals(0.016);
     this._flushPopup(0.2); this._overlay(0.3); this._hudSync();
+  }
+
+  /** Autoplayer helper: a power-up worth a detour (a strong player grabs the nearby ones) as a fake target { x, z }, or null. `bs` = the best food score. */
+  autoPowerup(p, bs) {
+    if (!this.field) return null;
+    const c = this.field.nearest(p.x, p.z, Math.min(30 + p.radius * 5, 110), (s) => (s.type === 'shield' && p.fx.shield > 0) || p.fx[s.type] > 3);
+    if (!c) return null;
+    const worth = 14 + p.mass * 0.003;         // value-equivalent of a pickup for the greedy score value / (distance + k): near ones are worth a short detour, far ones never
+    return worth / (c.d + p.radius * 1.5 + 4) > bs ? c : null;
   }
 
   nearest(kind, minFit = 0) {
@@ -566,8 +658,13 @@ export class Game {
   api() {
     const g = this;
     return {
-      get state() { return { phase: g.phase, score: g.player.score, timeLeft: g.timeLeft, eaten: g.player.eaten }; },
-      get hole() { return { x: g.player.x, z: g.player.z, radius: g.player.radius, targetRadius: g.player.targetRadius }; },
+      get state() { return { phase: g.phase, score: g.player.score, mass: g.player.mass, timeLeft: g.timeLeft, eaten: g.player.eaten }; },
+      get combo() { const c = g.player.combo; return { count: c.count, mult: c.mult, best: c.best, bestMult: c.bestMult, total: Math.min(5, c.mult * g.player.fx.doubleMul) }; },
+      get fx() { return { ...g.player.fx, picks: { ...g.player.picks } }; },
+      get powerups() { return g.field ? g.field.list() : (g.online ? g.puView.list() : []); },
+      get puSeed() { return g.puSeed; },
+      givePowerup: (type) => { g.markUnranked('givePowerup'); g.player.pick(type); },
+      get hole() { return { x: g.player.x, z: g.player.z, radius: g.player.radius, targetRadius: g.player.targetRadius, mass: g.player.mass }; },
       get counts() { return { ...g.world.counts, falling: g.world.falling.size }; },
       get spawn() { return g.spawn; },
       get isSample() { return !!g.world.data.meta.sample; },

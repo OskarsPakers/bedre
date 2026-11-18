@@ -1,6 +1,91 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
+// ../src/combo.js
+var RULES_VERSION = 2;
+var COMBO = {
+  window: 1.6,
+  // s: a combo survives this long without a swallow ...
+  windowGrow: 0.011,
+  // ... plus this much per metre of hole radius beyond `windowFrom` (targets are further apart for a big hole) ...
+  windowFrom: 8,
+  windowMax: 2.6,
+  // ... up to this
+  // [counter, multiplier]: the multiplier of the highest step reached
+  steps: [[0, 1], [5, 1.2], [12, 1.5], [25, 2], [45, 2.5], [70, 3]],
+  cap: 5,
+  // combo x power-up (Dubultpunkti) never exceeds this
+  maxWeight: 4,
+  // most a single swallow adds to the counter
+  stampJitter: 0.35,
+  // s: most a client's claim timeline may gain on the server's receipt timeline between two claim batches (delivery jitter; bounds what a faked RTT can buy)
+  netSlack: 0.25
+  // s: extra window the SERVER grants for clock-sync error between client timestamps and its own clock (online)
+};
+var COMBO_MAX_MULT = COMBO.steps[COMBO.steps.length - 1][1];
+var comboWindow = /* @__PURE__ */ __name((radius) => Math.min(COMBO.windowMax, COMBO.window + Math.max(0, radius - COMBO.windowFrom) * COMBO.windowGrow), "comboWindow");
+function multFor(count) {
+  let m = 1;
+  for (const [n, v] of COMBO.steps) if (count >= n) m = v;
+  else break;
+  return m;
+}
+__name(multFor, "multFor");
+function comboWeight(isBuilding, fit, value) {
+  if (isBuilding) return fit < 7 ? 2 : fit < 14 ? 3 : 4;
+  return value >= 40 ? 2 : 1;
+}
+__name(comboWeight, "comboWeight");
+var totalMult = /* @__PURE__ */ __name((comboMult, doubleMul2 = 1) => Math.min(COMBO.cap, comboMult * doubleMul2), "totalMult");
+var Combo = class {
+  static {
+    __name(this, "Combo");
+  }
+  constructor() {
+    this.reset();
+  }
+  reset() {
+    this.count = 0;
+    this.mult = 1;
+    this.until = 0;
+    this.best = 0;
+    this.bestMult = 1;
+  }
+  /** Drop the running combo (death / respawn); round records stay. */
+  drop() {
+    this.count = 0;
+    this.mult = 1;
+    this.until = 0;
+  }
+  /** Per-frame: true when the running combo has just run out (returns the lost count, else 0). */
+  tick(now2) {
+    if (this.count > 0 && now2 > this.until) {
+      const lost = this.count;
+      this.drop();
+      return lost;
+    }
+    return 0;
+  }
+  /**
+   * A swallow happened at `now`. Returns { mult, step } (step: the multiplier just stepped up). `slack` = extra window seconds (server).
+   * Order matters: the counter rises first, the multiplier of the NEW counter applies to this swallow.
+   */
+  hit(now2, weight, radius, slack = 0) {
+    if (this.count > 0 && now2 > this.until) this.drop();
+    this.count += weight;
+    const prev = this.mult;
+    this.mult = multFor(this.count);
+    this.until = now2 + comboWindow(radius) + slack;
+    if (this.count > this.best) this.best = this.count;
+    if (this.mult > this.bestMult) this.bestMult = this.mult;
+    return { mult: this.mult, step: this.mult > prev };
+  }
+  /** 0..1 of the running window left (UI ring); 0 when idle. */
+  left(now2, radius) {
+    return this.count > 0 ? Math.max(0, Math.min(1, (this.until - now2) / comboWindow(radius))) : 0;
+  }
+};
+
 // ../src/rules.js
 var START_RADIUS = 2.2;
 var GROWTH_EXP = 0.44;
@@ -96,6 +181,7 @@ var MAPS = [
 var MAP_SLUGS = MAPS.map((m) => m.slug);
 var DEFAULT_MAP = "centrs";
 var isMapSlug = /* @__PURE__ */ __name((s) => typeof s === "string" && MAP_SLUGS.includes(s), "isMapSlug");
+var mapBySlug = /* @__PURE__ */ __name((s) => MAPS.find((m) => m.slug === s) || MAPS[0], "mapBySlug");
 
 // ../worker/lib/util.js
 var json = /* @__PURE__ */ __name((data, status = 200, headers = {}) => new Response(JSON.stringify(data), {
@@ -244,7 +330,7 @@ async function insertScore(env, row) {
   const name = sanitizeName(row.name) || ANON;
   const biggest = row.biggest == null ? null : sanitizeLabel(row.biggest);
   const res = await env.DB.prepare(
-    "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map, difficulty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map, difficulty, rules) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     name,
     row.score,
@@ -262,19 +348,23 @@ async function insertScore(env, row) {
     row.kills ?? null,
     row.deaths ?? null,
     map,
-    DIFFICULTIES.includes(row.difficulty) ? row.difficulty : null
+    DIFFICULTIES.includes(row.difficulty) ? row.difficulty : null,
+    Number.isInteger(row.rules) && row.rules > 0 ? row.rules : RULES_VERSION
   ).run();
   return { id: res.meta.last_row_id, name };
 }
 __name(insertScore, "insertScore");
-async function rankOf(env, { mode, day = null, score, since = 0, map = DEFAULT_MAP }) {
-  const row = mode === "daily" ? await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND score > ?").bind(map, mode, day, score).first() : await env.DB.prepare("SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND score > ? AND created_at >= ?").bind(map, mode, score, since).first();
+var rulesClause = /* @__PURE__ */ __name((archive) => archive ? "(rules IS NULL OR rules < ?)" : "rules >= ?", "rulesClause");
+async function rankOf(env, { mode, day = null, score, since = 0, map = DEFAULT_MAP, archive = false }) {
+  const rc = rulesClause(archive);
+  const row = mode === "daily" ? await env.DB.prepare(`SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND ${rc} AND score > ?`).bind(map, mode, day, RULES_VERSION, score).first() : await env.DB.prepare(`SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND ${rc} AND score > ? AND created_at >= ?`).bind(map, mode, RULES_VERSION, score, since).first();
   return row.n + 1;
 }
 __name(rankOf, "rankOf");
-async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP }) {
+async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP, archive = false }) {
   const cols = "name, score, radius, eaten, rank, biggest, difficulty, created_at AS at";
-  const q = mode === "daily" ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, limit) : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, since, limit);
+  const rc = rulesClause(archive);
+  const q = mode === "daily" ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND ${rc} ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, RULES_VERSION, limit) : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND ${rc} AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, RULES_VERSION, since, limit);
   return (await q.all()).results;
 }
 __name(listScores, "listScores");
@@ -287,36 +377,218 @@ async function purgeStale(env, t = now()) {
 }
 __name(purgeStale, "purgeStale");
 
+// ../src/rng.js
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function() {
+    a = a + 1831565813 >>> 0;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+__name(mulberry32, "mulberry32");
+
+// ../src/powerups.js
+var PU_TYPES = ["magnet", "speed", "double", "shield"];
+var PU = {
+  magnet: { dur: 6, radius: 1.8, far: 1.3, from: 10, to: 90 },
+  // Magnēts: edible objects within radius x hole radius slide towards the hole (x1.8 for a small hole, tapering to x1.3 for a huge one: a magnet near-doubles the swept area of a big hole, which would break the late-game pacing)
+  speed: { dur: 6, mul: 1.5 },
+  // Ātrums
+  double: { dur: 12, mul: 2 },
+  // Dubultpunkti (stacks with the combo, combined cap in src/combo.js)
+  shield: { dur: 8 },
+  // Vairogs: bigger holes cannot swallow you
+  respawn: [20, 30],
+  // s after a pickup before its slot shows up somewhere else
+  life: 75,
+  // s an uncollected pickup stays before it moves on
+  regrow: 6,
+  // s between an expiry and the next spawn of the slot
+  perAxis: 250,
+  // active pickups ~ sqrt(map area) / this ...
+  min: 6,
+  // ... but at least this many
+  minMove: 160
+  // a slot reappears at least this far from where it last was
+};
+var magnetFactor = /* @__PURE__ */ __name((r) => PU.magnet.radius + (PU.magnet.far - PU.magnet.radius) * Math.min(1, Math.max(0, (r - PU.magnet.from) / (PU.magnet.to - PU.magnet.from))), "magnetFactor");
+var PU_WEIGHTS = { magnet: 0.16, speed: 0.26, double: 0.3, shield: 0.28 };
+var PU_ORDER = Object.fromEntries(PU_TYPES.map((t, i) => [t, i]));
+function puCountFor(b) {
+  return Math.max(PU.min, Math.round(Math.sqrt((b.maxX - b.minX) * (b.maxZ - b.minZ)) / PU.perAxis));
+}
+__name(puCountFor, "puCountFor");
+var pickRadius = /* @__PURE__ */ __name((holeRadius) => 1.4 + 0.8 * holeRadius, "pickRadius");
+function candidatesFromSpawn(sp) {
+  const x = new Float64Array(sp.n), z = new Float64Array(sp.n);
+  for (let i = 0; i < sp.n; i++) {
+    x[i] = sp.x[i];
+    z[i] = sp.z[i];
+  }
+  return { n: sp.n, x, z };
+}
+__name(candidatesFromSpawn, "candidatesFromSpawn");
+var PowerupField = class {
+  static {
+    __name(this, "PowerupField");
+  }
+  constructor({ seed, cand, count }) {
+    this.seed = seed >>> 0;
+    this.cand = cand;
+    this.count = count;
+    this.slots = [];
+    for (let s = 0; s < count; s++) {
+      const slot = { id: s, rng: mulberry32(hashSeed(`pu|${this.seed}|${s}`)), n: 0, state: "wait", at: 0, type: null, x: 0, z: 0, until: 0, px: NaN, pz: NaN, delay: 0 };
+      this._roll(slot);
+      this.slots.push(slot);
+    }
+    this.picked = 0;
+  }
+  /** Draw the content of slot's next pickup (fixed number of draws order: place, type, respawn delay). */
+  _roll(slot) {
+    const c = this.cand, s = slot.id, N = this.count || 1;
+    let idx = -1;
+    if (c.n > 0) {
+      const part = c.n >= N ? Math.ceil((c.n - s) / N) : c.n;
+      for (let tries = 0; tries < 8; tries++) {
+        const k = Math.floor(slot.rng() * part);
+        const i = c.n >= N ? s + k * N : k;
+        idx = i;
+        if (!(Math.hypot(c.x[i] - slot.px, c.z[i] - slot.pz) < PU.minMove)) break;
+      }
+    }
+    const r = slot.rng();
+    let acc = 0, pick = PU_TYPES[PU_TYPES.length - 1];
+    for (const ty of PU_TYPES) {
+      acc += PU_WEIGHTS[ty];
+      if (r < acc) {
+        pick = ty;
+        break;
+      }
+    }
+    slot.nextType = slot.n === 0 ? PU_TYPES[s % PU_TYPES.length] : pick;
+    if (slot.n > 0 && slot.nextType === slot.type) slot.nextType = PU_TYPES[(PU_ORDER[slot.nextType] + 1) % PU_TYPES.length];
+    slot.nextDelay = PU.respawn[0] + slot.rng() * (PU.respawn[1] - PU.respawn[0]);
+    slot.nextIdx = idx;
+  }
+  _spawn(slot, now2, out) {
+    const i = slot.nextIdx;
+    slot.type = slot.nextType;
+    slot.delay = slot.nextDelay;
+    slot.x = i >= 0 ? this.cand.x[i] : 0;
+    slot.z = i >= 0 ? this.cand.z[i] : 0;
+    slot.px = slot.x;
+    slot.pz = slot.z;
+    slot.state = "on";
+    slot.until = now2 + PU.life;
+    slot.n++;
+    if (i < 0) {
+      slot.state = "wait";
+      slot.at = now2 + 1e9;
+      return;
+    }
+    this._roll(slot);
+    if (out) out.push({ k: "spawn", slot: slot.id, type: slot.type, x: slot.x, z: slot.z, until: slot.until });
+  }
+  /** Advance to `now` (round seconds). Returns the events since the last call: { k: 'spawn'|'expire', slot, ... }. */
+  tick(now2) {
+    const out = [];
+    for (const s of this.slots) {
+      if (s.state === "on" && now2 >= s.until) {
+        s.state = "wait";
+        s.at = now2 + PU.regrow;
+        out.push({ k: "expire", slot: s.id });
+      }
+      if (s.state === "wait" && now2 >= s.at) this._spawn(s, now2, out);
+    }
+    return out;
+  }
+  /** The pickup of `slot` is collected at `now`. Returns its type, or null if it was not there (already taken / expired). */
+  take(slot, now2) {
+    const s = this.slots[slot];
+    if (!s || s.state !== "on") return null;
+    s.state = "wait";
+    s.at = now2 + s.delay;
+    this.picked++;
+    return s.type;
+  }
+  /** Active pickups as plain rows [slot, type, x, z, untilRound] (what the server sends). */
+  list() {
+    const o = [];
+    for (const s of this.slots) if (s.state === "on") o.push([s.id, s.type, s.x, s.z, s.until]);
+    return o;
+  }
+  /** Slot whose pickup this hole (x, z, r) touches, or -1. `slack` widens the reach (server: latency allowance). */
+  touching(x, z, r, slack = 0) {
+    const R = pickRadius(r) + slack;
+    let best = -1, bd = Infinity;
+    for (const s of this.slots) {
+      if (s.state !== "on") continue;
+      const d = Math.hypot(s.x - x, s.z - z);
+      if (d <= R && d < bd) {
+        bd = d;
+        best = s.id;
+      }
+    }
+    return best;
+  }
+  /** Nearest active pickup within `range` of a point: { slot, x, z, type, d } or null (bots, autoplayers). */
+  nearest(x, z, range, skip = null) {
+    let best = null, bd = range;
+    for (const s of this.slots) {
+      if (s.state !== "on" || skip && skip(s)) continue;
+      const d = Math.hypot(s.x - x, s.z - z);
+      if (d < bd) {
+        bd = d;
+        best = { slot: s.id, x: s.x, z: s.z, type: s.type, d };
+      }
+    }
+    return best;
+  }
+};
+var maxPickups = /* @__PURE__ */ __name((count, seconds) => count * (1 + Math.floor(Math.max(0, seconds) / PU.respawn[0])), "maxPickups");
+
 // ../worker/lib/limits.js
 var LIMITS = {
-  "generated": "2026-11-16",
-  "runs": 1432,
+  "format": 2,
+  "rules": 2,
+  "generated": "2026-11-18",
+  "runs": 2272,
   "bands": [2.2, 3.5, 5.5, 8, 12, 18, 28, 42, 62, 90, 130],
   "maps": {
     "centrs": {
-      "runs": 520,
-      "generated": "2026-11-16",
+      "runs": 784,
+      "generated": "2026-11-18",
       "modes": {
         "classic": {
-          "gain": [142, 208, 321, 1211, 2069, 5084, 8636, 13359, 15928, 20369, 30221],
-          "eaten10": 917,
-          "cap": 242564,
+          "gain": [299, 413, 991, 2816, 6741, 16865, 28703, 59301, 73220, 86970, 87076],
+          "eaten10": 1436,
+          "cap": 734088,
           "maxKills": 40,
-          "killMax": 80353
+          "killMax": 170239,
+          "combo": 13877,
+          "picks": 11
         },
         "quick": {
-          "gain": [218, 327, 978, 978, 2859, 4209, 8216, 14280, 18313, 22146, 25759],
-          "eaten10": 900,
-          "cap": 123020,
+          "gain": [1129, 2337, 10157, 10157, 11510, 24495, 57884, 62502, 65690, 119143, 119143],
+          "eaten10": 1692,
+          "cap": 463835,
           "maxKills": 40,
-          "killMax": 80353
+          "killMax": 170239,
+          "combo": 8917,
+          "picks": 9
         },
         "daily": {
-          "gain": [142, 200, 646, 1542, 1915, 4681, 9431, 12612, 15719, 20003, 26045],
-          "eaten10": 916,
-          "cap": 226854,
+          "gain": [156, 313, 1641, 2594, 5657, 11328, 25470, 47850, 47850, 80687, 80687],
+          "eaten10": 1475,
+          "cap": 707567,
           "maxKills": 40,
-          "killMax": 80353
+          "killMax": 170239,
+          "combo": 13429,
+          "picks": 12
         }
       },
       "value": {
@@ -356,22 +628,26 @@ var LIMITS = {
       "valueOther": 12656
     },
     "agenskalns": {
-      "runs": 304,
-      "generated": "2026-11-16",
+      "runs": 496,
+      "generated": "2026-11-18",
       "modes": {
         "classic": {
-          "gain": [102, 177, 761, 2065, 2624, 5333, 7919, 36615, 36615, 48372, 48372],
-          "eaten10": 1210,
-          "cap": 287667,
+          "gain": [263, 563, 2089, 5937, 8436, 16023, 23376, 118050, 134385, 171859, 171859],
+          "eaten10": 1518,
+          "cap": 949515,
           "maxKills": 40,
-          "killMax": 100754
+          "killMax": 243622,
+          "combo": 16295,
+          "picks": 9
         },
         "quick": {
-          "gain": [143, 215, 1064, 1247, 2701, 8377, 8377, 32025, 34605, 50608, 50608],
-          "eaten10": 1373,
-          "cap": 146073,
+          "gain": [1147, 1721, 2375, 5209, 11827, 13746, 22068, 57285, 99417, 162667, 162667],
+          "eaten10": 1544,
+          "cap": 543970,
           "maxKills": 40,
-          "killMax": 100754
+          "killMax": 243622,
+          "combo": 10157,
+          "picks": 6
         }
       },
       "value": {
@@ -402,22 +678,26 @@ var LIMITS = {
       "valueOther": 37219
     },
     "mezaparks": {
-      "runs": 304,
-      "generated": "2026-11-16",
+      "runs": 496,
+      "generated": "2026-11-18",
       "modes": {
         "classic": {
-          "gain": [199, 299, 493, 1604, 3631, 7954, 7954, 17895, 24778, 24778, 24778],
-          "eaten10": 1060,
-          "cap": 205431,
+          "gain": [459, 756, 1439, 4384, 6737, 30963, 55740, 78394, 81700, 81700, 81700],
+          "eaten10": 1260,
+          "cap": 765260,
           "maxKills": 40,
-          "killMax": 62706
+          "killMax": 152787,
+          "combo": 15541,
+          "picks": 10
         },
         "quick": {
-          "gain": [473, 710, 1065, 1065, 1505, 11435, 11435, 15757, 24835, 29347, 29347],
-          "eaten10": 1570,
-          "cap": 132866,
+          "gain": [773, 1160, 4898, 4898, 6575, 25263, 25263, 58477, 84938, 178262, 178262],
+          "eaten10": 2005,
+          "cap": 466740,
           "maxKills": 40,
-          "killMax": 62706
+          "killMax": 152787,
+          "combo": 8213,
+          "picks": 6
         }
       },
       "value": {
@@ -449,22 +729,26 @@ var LIMITS = {
       "valueOther": 12755
     },
     "purvciems": {
-      "runs": 304,
-      "generated": "2026-11-16",
+      "runs": 496,
+      "generated": "2026-11-18",
       "modes": {
         "classic": {
-          "gain": [113, 142, 447, 1586, 4946, 5555, 18248, 30594, 30857, 35609, 35609],
+          "gain": [125, 319, 1107, 5697, 9393, 17772, 54438, 75438, 97275, 115102, 115102],
           "eaten10": 1085,
-          "cap": 329175,
+          "cap": 891592,
           "maxKills": 40,
-          "killMax": 99828
+          "killMax": 234291,
+          "combo": 11688,
+          "picks": 7
         },
         "quick": {
-          "gain": [201, 302, 1367, 4892, 14599, 15368, 23906, 26020, 38110, 38110, 38110],
-          "eaten10": 1217,
-          "cap": 162460,
+          "gain": [201, 302, 1367, 8108, 17277, 28926, 46167, 73167, 108297, 108297, 177570],
+          "eaten10": 1506,
+          "cap": 757670,
           "maxKills": 40,
-          "killMax": 99828
+          "killMax": 234291,
+          "combo": 8257,
+          "picks": 9
         }
       },
       "value": {
@@ -514,6 +798,7 @@ function validateSubmission(p) {
   if (!m || !L) return { verdict: "reject", reasons: ["mode"] };
   const tr = p.trace;
   if (!tr || typeof tr !== "object") return { verdict: "reject", reasons: ["trace_missing"] };
+  if (tr.v === 2) return validateV2(p, m, ML, L, hard, soft, out);
   const arrs = ["t", "s", "r", "e", "k"];
   if (tr.v !== 1 || !arrs.every((a) => Array.isArray(tr[a]) && tr[a].every(isNum))) return { verdict: "reject", reasons: ["trace_format"] };
   const n = tr.t.length;
@@ -584,6 +869,109 @@ function validateSubmission(p) {
   return out();
 }
 __name(validateSubmission, "validateSubmission");
+var U_KEYS = PU_TYPES;
+var allInts = /* @__PURE__ */ __name((a) => Array.isArray(a) && a.every((v) => Number.isInteger(v) && v >= 0 && v < 1e6), "allInts");
+function validateV2(p, m, ML, L, hard, soft, out) {
+  const tr = p.trace;
+  const arrs = ["t", "s", "m", "r", "e", "k", "w", "p", "c"];
+  if (!arrs.every((a) => Array.isArray(tr[a]) && tr[a].every(isNum))) return { verdict: "reject", reasons: ["trace_format"] };
+  const n = tr.t.length;
+  if (n < 1 || n > TRACE_MAX || !arrs.every((a) => tr[a].length === n)) return { verdict: "reject", reasons: ["trace_format"] };
+  const u = tr.u;
+  if (!u || typeof u !== "object" || !U_KEYS.every((k) => allInts(u[k]) && u[k].length === n)) return { verdict: "reject", reasons: ["trace_format"] };
+  const kinds = tr.kinds && typeof tr.kinds === "object" && !Array.isArray(tr.kinds) ? tr.kinds : null;
+  if (!kinds || Object.keys(kinds).length > 48) return { verdict: "reject", reasons: ["trace_format"] };
+  let kindTotal = 0;
+  for (const [k, v] of Object.entries(kinds)) {
+    if (!KIND_RE.test(k) || !Number.isInteger(v) || v < 0 || v > 1e6) return { verdict: "reject", reasons: ["trace_format"] };
+    kindTotal += v;
+  }
+  const tf = tr.t[n - 1];
+  const sF = tr.s[n - 1], eF = tr.e[n - 1], kF = tr.k[n - 1], mF = tr.m[n - 1], wF = tr.w[n - 1], pF = tr.p[n - 1];
+  if (n !== expectedSamples(tf)) hard.push("time_slots");
+  for (let i = 0; i < n; i++) {
+    if (!arrs.every((a) => tr[a][i] >= 0)) hard.push("negative");
+    if (i > 0 && (tr.t[i] <= tr.t[i - 1] || tr.e[i] < tr.e[i - 1] || tr.k[i] < tr.k[i - 1] || tr.w[i] < tr.w[i - 1] - 1 || tr.p[i] < tr.p[i - 1] - 1 || tr.c[i] < tr.c[i - 1] || U_KEYS.some((k) => u[k][i] < u[k][i - 1]))) hard.push("monotonic");
+    if (i < n - 1 && !(tr.t[i] >= TRACE_STEP * (i + 1) - 0.01 && tr.t[i] <= TRACE_STEP * (i + 1) + 1)) hard.push("time_slots");
+  }
+  if (n > 1 && tf - tr.t[n - 2] > TRACE_STEP + 1.5) hard.push("time_slots");
+  if (m.seconds > 0 && (tf < p.seconds - 2.5 || tf > p.seconds + 3)) hard.push("time_total");
+  if (tf > p.age + 15) hard.push("time_vs_age");
+  if (hard.length) return out();
+  if (Math.abs(sF - p.score) > 1.01 || Math.abs(eF - p.eaten) > 0) hard.push("final_mismatch");
+  if (kindTotal !== eF) hard.push("kinds_sum");
+  if (!Number.isInteger(tr.kills) || tr.kills !== kF || !Number.isInteger(tr.deaths) || tr.deaths < 0) hard.push("kills_format");
+  if (kF > L.maxKills * 2 + 5) hard.push("kills_range");
+  if (p.rank !== null && p.rank !== void 0 && (p.rank < 1 || p.rank > m.holes)) hard.push("rank_range");
+  if (hard.length) return out();
+  if (sF > L.cap * HARD) hard.push("cap_hard");
+  else if (sF > L.cap * SOFT) soft.push("cap_soft");
+  const bounds = mapBySlug(p.map || "centrs").bounds;
+  const slots = puCountFor(bounds);
+  let maxMultSeen = 1;
+  let prev = { s: 0, m: 0, e: 0, k: 0, t: 0, w: 0, p: 0, pick: 0 };
+  for (let i = 0; i < n; i++) {
+    const dt = tr.t[i] - prev.t, stretch = Math.max(1, dt / TRACE_STEP);
+    const band = bandOf(radiusForMode(prev.m, p.mode));
+    const dK = tr.k[i] - prev.k;
+    const base = L.gain[band] * stretch + dK * L.killMax;
+    const gain = tr.s[i] - prev.s;
+    if (gain > base * HARD) {
+      hard.push("gain_hard");
+      break;
+    }
+    if (gain > base * SOFT && !soft.includes("gain_soft")) soft.push("gain_soft");
+    const dE = tr.e[i] - prev.e;
+    if (dE > L.eaten10 * stretch * HARD + 25) {
+      hard.push("eaten_rate");
+      break;
+    }
+    if (dE > L.eaten10 * stretch * SOFT + 25 && !soft.includes("eaten_soft")) soft.push("eaten_soft");
+    const want = radiusForMode(tr.m[i], p.mode);
+    if (Math.abs(tr.r[i] - want) > want * 0.03 + 0.05 && !soft.includes("radius_formula")) soft.push("radius_formula");
+    if (tr.c[i] > COMBO.maxWeight * tr.e[i] + 1) {
+      hard.push("combo_eaten");
+      break;
+    }
+    const dbl = u.double[i] > (i >= 3 ? u.double[i - 3] : 0);
+    const mult = totalMult(multFor(tr.c[i]), dbl ? PU.double.mul : 1);
+    maxMultSeen = Math.max(maxMultSeen, mult);
+    const dW = tr.w[i] - prev.w, dP = tr.p[i] - prev.p;
+    if (dP > dW * mult * 1.02 + 3) {
+      hard.push("points_mult");
+      break;
+    }
+    if (gain > dP + dK * L.killMax + 5) {
+      hard.push("points_jump");
+      break;
+    }
+    const pick = U_KEYS.reduce((a, k) => a + u[k][i], 0);
+    const lim = maxPickups(slots, tr.t[i]);
+    if (pick > lim) {
+      hard.push("powerups_count");
+      break;
+    }
+    if (pick > lim * 0.75 && !soft.includes("powerups_many")) soft.push("powerups_many");
+    if (pick - prev.pick > slots + 1) {
+      hard.push("powerups_burst");
+      break;
+    }
+    prev = { s: tr.s[i], m: tr.m[i], e: tr.e[i], k: tr.k[i], t: tr.t[i], w: tr.w[i], p: tr.p[i], pick };
+  }
+  if (hard.length) return out();
+  if (sF > pF + kF * L.killMax + 5) hard.push("points_mismatch");
+  if (mF > wF + kF * L.killMax + 5) hard.push("mass_mismatch");
+  if (mF > sF + 5) hard.push("mass_gt_points");
+  let maxSum = 0;
+  for (const [k, v] of Object.entries(kinds)) maxSum += v * (Object.hasOwn(ML.value, k) ? ML.value[k][1] : ML.valueOther);
+  if (wF > maxSum * 3 + 100) hard.push("kind_values_hard");
+  else if (wF > maxSum * 1.25 + 25) soft.push("kind_values");
+  if (hard.length) return out();
+  if (isNum(p.radius) && p.radius > radiusForMode(mF, p.mode) * 1.5 + 1) hard.push("radius_hard");
+  else if (isNum(p.radius) && p.radius > radiusForMode(mF, p.mode) * 1.1 + 0.3) soft.push("radius_final");
+  return out();
+}
+__name(validateV2, "validateV2");
 
 // ../worker/lib/turnstile.js
 var SITEVERIFY = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -705,7 +1093,7 @@ async function handleStats(request, env, url) {
 __name(handleStats, "handleStats");
 
 // ../worker/mp/protocol.js
-var PROTOCOL_VERSION = 2;
+var PROTOCOL_VERSION = 3;
 var MP = {
   maxHumans: 12,
   totalHoles: 8,
@@ -737,6 +1125,9 @@ var MP = {
   // ... with this burst
   maxClaimIds: 64,
   maxClaimMovers: 16,
+  maxPickClaims: 6,
+  botComboScale: 0.85,
+  // server bots build their combo counter a little slower (like Easy solo bots)
   // validation tolerances
   speedTol: 1.3,
   // allowed speed = formula * this
@@ -770,7 +1161,13 @@ function mpConfig(env) {
     botHumanGrace: num(e.MP_BOT_GRACE, MP.botHumanGrace, 0, 300),
     removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1e3, 3e5),
     silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3e3, 12e4),
-    testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === "1" || e.MP_TEST_CLOSE_SPAWN === 1
+    testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === "1" || e.MP_TEST_CLOSE_SPAWN === 1,
+    testPowerups: e.MP_TEST_PU === "1" || e.MP_TEST_PU === 1,
+    // tests only: the first pickups appear next to the humans' starts (scripts/smoke-mp.mjs)
+    testFxScale: num(e.MP_TEST_FX_SCALE, 1, 1, 10),
+    // tests only: effects last this many times longer (the browser tests are slower than 6 s)
+    testStartMass: num(e.MP_TEST_START_MASS, 0, 0, 1e5)
+    // tests only: the first human starts with this mass (a big hole for the shield test)
   };
 }
 __name(mpConfig, "mpConfig");
@@ -791,7 +1188,7 @@ function parseClientMessage(text, cfg = MP) {
       if (typeof m.hash !== "string" || m.hash.length > 16) return null;
       return { t: "hello", v: m.v | 0, name: m.name, token: m.token, hash: m.hash };
     case "u": {
-      const out = { t: "u", q: Number.isInteger(m.q) ? m.q : 0, x: null, z: null, c: [], m: [] };
+      const out = { t: "u", q: Number.isInteger(m.q) ? m.q : 0, x: null, z: null, c: [], m: [], p: [], ct: isNum2(m.ct) ? m.ct : null };
       if (m.x !== void 0 || m.z !== void 0) {
         if (!isNum2(m.x) || !isNum2(m.z) || Math.abs(m.x) > 1e5 || Math.abs(m.z) > 1e5) return null;
         out.x = m.x;
@@ -811,10 +1208,17 @@ function parseClientMessage(text, cfg = MP) {
           out.m.push(e);
         }
       }
+      if (m.p !== void 0) {
+        if (!Array.isArray(m.p) || m.p.length > cfg.maxPickClaims) return null;
+        for (const sl of m.p) {
+          if (!Number.isInteger(sl) || sl < 0 || sl > 255) return null;
+          out.p.push(sl);
+        }
+      }
       return out;
     }
     case "ping":
-      return { t: "ping", c: isNum2(m.c) ? m.c : 0 };
+      return { t: "ping", c: isNum2(m.c) ? m.c : 0, r: isNum2(m.r) && m.r >= 0 ? Math.min(m.r, 5e3) : 0 };
     case "bye":
       return { t: "bye" };
     default:
@@ -848,6 +1252,8 @@ var RateLimiter = class {
 // ../worker/mp/table.js
 var TABLE_MAGIC = 844123970;
 var F_MOVER = 1;
+var F_BUILDING = 2;
+var F_LANDMARK = 4;
 var MOVER_STRIDE = 12;
 var pad4 = /* @__PURE__ */ __name((n) => n + 3 & ~3, "pad4");
 function hashBytes(u8) {
@@ -995,6 +1401,8 @@ var CFG = {
     buildingMin: 4,
     landmarkMul: 2.5
   },
+  sightFit: { heightFrac: 0.34, max: 26 },
+  // landmarks / tier A sights: fit >= 0.34 x height (<= 26 m): the Freedom Monument (42 m) needs a hole of ~15 m
   buildingFit: { boxWeight: 0.5, areaWeight: 0.5 },
   // blend of half-long-side and sqrt(A/pi)
   camera: {
@@ -1214,19 +1622,31 @@ CFG.radio = {
     { id: "lr2", name: "Latvijas Radio 2", url: "https://lsm.eu.cdns-redge.media/livehls/o2/lsm-live/live/audio/lr2_radio/live.livx/playlist.m3u8?renditions", type: "hls", link: "https://lr2.lsm.lv", linkLabel: "lr2.lsm.lv" }
   ]
 };
+CFG.features = { combo: true, powerups: true };
 
-// ../src/rng.js
-function mulberry32(seed) {
-  let a = seed >>> 0;
-  return function() {
-    a = a + 1831565813 >>> 0;
-    let t = a;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
+// ../worker/mp/powerups.js
+var FX_GRACE_MS = { speed: 900, magnet: 700, double: 400, shield: 0 };
+var makeFx = /* @__PURE__ */ __name(() => ({ magnet: 0, speed: 0, double: 0, shield: 0 }), "makeFx");
+function makeField(table, seed) {
+  return new PowerupField({ seed, cand: candidatesFromSpawn(table.spawn), count: puCountFor(table.bounds) });
 }
-__name(mulberry32, "mulberry32");
+__name(makeField, "makeField");
+var fxOn = /* @__PURE__ */ __name((h, type, ms) => h.fxUntil[type] + FX_GRACE_MS[type] > ms, "fxOn");
+function fxMask(h, ms) {
+  let m = 0;
+  for (const t of PU_TYPES) if (h.fxUntil[t] > ms) m |= 1 << PU_ORDER[t];
+  return m;
+}
+__name(fxMask, "fxMask");
+var fxRemain = /* @__PURE__ */ __name((h, ms) => PU_TYPES.map((t) => Math.max(0, Math.round(h.fxUntil[t] - ms))), "fxRemain");
+var speedFactor = /* @__PURE__ */ __name((h, ms) => fxOn(h, "speed", ms) ? PU.speed.mul : 1, "speedFactor");
+var reachFactor = /* @__PURE__ */ __name((h, ms) => fxOn(h, "magnet", ms) ? magnetFactor(h.r) : 1, "reachFactor");
+var doubleMul = /* @__PURE__ */ __name((h, ms) => h.fxUntil.double + FX_GRACE_MS.double > ms ? PU.double.mul : 1, "doubleMul");
+function grant(h, type, ms, scale = 1) {
+  h.fxUntil[type] = ms + PU[type].dur * 1e3 * scale;
+  h.picks[type]++;
+}
+__name(grant, "grant");
 
 // ../worker/mp/sim.js
 var GROWTH_K = 16;
@@ -1338,11 +1758,20 @@ function makeHole({ id, slot, name, bot, token }) {
     vx: 0,
     vz: 0,
     score: 0,
+    mass: 0,
     r: H.startRadius,
     eaten: 0,
     kills: 0,
     deaths: 0,
     biggest: 0,
+    combo: new Combo(),
+    comboScale: 1,
+    fxUntil: makeFx(),
+    picks: { magnet: 0, speed: 0, double: 0, shield: 0 },
+    rtt: 0,
+    lastClaimMs: 0,
+    lastClaimNow: 0,
+    puBudget: 0,
     state: 0,
     dyingEnd: 0,
     respawnAt: 0,
@@ -1383,7 +1812,8 @@ var RoomSim = class {
     this.phase = "lobby";
     this.startAt = this.playAt = this.endAt = 0;
     this.lastTick = 0;
-    this.ev = { e: [], k: [], r: [], d: [] };
+    this.ev = { e: [], k: [], r: [], d: [], ps: [], pp: [], px: [] };
+    this.field = null;
     this.maxSpawnDens = 0;
     this.eatenList = [];
     this.left = [];
@@ -1418,7 +1848,7 @@ var RoomSim = class {
     const h = this.byId.get(id);
     if (!h || h.bot) return;
     this.removeHole(id);
-    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r });
+    this.left.push({ id: h.id, name: h.name, slot: h.slot, token: h.token, bot: false, left: true, score: h.score, eaten: h.eaten, kills: h.kills, deaths: h.deaths, r: h.r, combo: h.combo });
   }
   // ---- round start ----------------------------------------------------------------------------------------------
   start(now2, introMs, roundMs) {
@@ -1437,6 +1867,7 @@ var RoomSim = class {
       const h = makeHole({ id: this.nextId++, slot: this.freeSlot(), name: pool[i % pool.length], bot: true });
       h.speedMul = Math.min(1.04, CFG.bots.speedMin + (CFG.bots.speedMax - CFG.bots.speedMin) * this.rng());
       h.brain = new BotBrain(h, this.rng, i, nBots, this.cfg.botSkill ?? 1);
+      h.comboScale = this.cfg.botComboScale ?? 1;
       h.speedMul *= h.brain.speedScale;
       this.holes.push(h);
       this.byId.set(h.id, h);
@@ -1483,6 +1914,41 @@ var RoomSim = class {
       h.claimBudget = this.cfg.claimBurst;
       h.moverBudget = this.cfg.moverPointsBurst;
     }
+    this.puSeed = this.rng() * 4294967296 >>> 0;
+    this.field = makeField(this.table, this.puSeed);
+    this.puAt = this.playAt;
+    for (const e of this.field.tick(0)) this._puEvent(e);
+    this.ev.ps.length = 0;
+    if (this.cfg.testPowerups && humans.length) this._testPowerups(humans);
+    if (this.cfg.testStartMass && humans.length) {
+      const q = humans.find((h) => h.name.startsWith("Big")) || humans[0];
+      q.mass = q.score = this.cfg.testStartMass;
+      q.r = radiusOf(q.mass);
+    }
+  }
+  /** TEST ONLY (MP_TEST_PU=1): the humans are found by name (scripts/smoke-mp.mjs: 'PuA', 'PuB', 'Big...'). Slot 0 (speed) halfway between A and B (a race); slots 1 (shield) / 2 (magnet) / 3 (double) 8-9 m from A, on the side away from B (so the race never crosses them). */
+  _testPowerups(humans) {
+    const by = /* @__PURE__ */ __name((p, i) => humans.find((h) => h.name.startsWith(p)) || humans[Math.min(i, humans.length - 1)], "by");
+    const h1 = by("PuA", 1), h2 = by("PuB", 2), sl = this.field.slots;
+    let dx = h1.x - h2.x, dz = h1.z - h2.z;
+    const l = Math.hypot(dx, dz) || 1;
+    dx /= l;
+    dz /= l;
+    const put = /* @__PURE__ */ __name((i, type, x, z) => {
+      Object.assign(sl[i], { type, x, z, state: "on", until: 1e9 });
+    }, "put");
+    put(0, "speed", (h1.x + h2.x) / 2, (h1.z + h2.z) / 2);
+    put(1, "shield", h1.x + dx * 8, h1.z + dz * 8);
+    put(2, "magnet", h1.x - dz * 9, h1.z + dx * 9);
+    put(3, "double", h1.x + dz * 9, h1.z - dx * 9);
+  }
+  _puEvent(e) {
+    if (e.k === "spawn") this.ev.ps.push([e.slot, PU_ORDER[e.type], round1(e.x), round1(e.z)]);
+    else this.ev.px.push(e.slot);
+  }
+  /** Active pickups [slot, typeIdx, x, z] (start / resume frames). */
+  puList() {
+    return this.field ? this.field.list().map(([s, t, x, z]) => [s, PU_ORDER[t], round1(x), round1(z)]) : [];
   }
   /**
    * Start points for the humans of one room, EQUALLY rich: find the richest density level T at which n points >= sep apart still exist,
@@ -1567,7 +2033,7 @@ var RoomSim = class {
   /** Respawn point: plenty of food for the new (smaller) size, far from the leaders and from every other hole. */
   pickRespawn(h) {
     const sp = this.table.spawn;
-    const r = Math.max(H.startRadius, radiusOf(h.score));
+    const r = Math.max(H.startRadius, radiusOf(h.mass));
     const others = this.holes.filter((o) => o !== h && o.state === 0);
     const leaders = others.slice().sort((a, b) => b.score - a.score).slice(0, 3);
     let best = null, bs = -Infinity;
@@ -1597,7 +2063,7 @@ var RoomSim = class {
     const c = this.cfg, b = this.table.bounds;
     const dt = Math.min(2, Math.max(0, (now2 - h.lastPosAt) / 1e3));
     h.lastPosAt = now2;
-    const vmax = speedOf(h.r) * c.speedTol;
+    const vmax = speedOf(h.r) * c.speedTol * speedFactor(h, now2);
     h.budget = Math.min(h.budget + vmax * dt, vmax * c.burstSeconds + c.posSlack);
     x = Math.min(b.maxX, Math.max(b.minX, x));
     z = Math.min(b.maxZ, Math.max(b.minZ, z));
@@ -1615,8 +2081,13 @@ var RoomSim = class {
     h.violations++;
     return { x: h.x, z: h.z };
   }
-  /** Validate eat claims. statics: [id], movers: [[id,x,z]]. Returns {bad:[ids], ok:n}. */
-  handleClaims(h, statics, movers, now2) {
+  /**
+   * Validate eat claims. statics: [id], movers: [[id,x,z]]. Returns {bad:[ids], ok:n}.
+   * `ct` = the client's own timestamp (its estimate of server ms) of the batch: combos use it so network jitter / latency does not break a combo
+   * (a 300 ms player keeps theirs), clamped to [now - allowance, now] where the allowance grows with the RTT the client reports (never trusted beyond 1.0 s)
+   * and never goes backwards. Without `ct` the server's receipt time is used.
+   */
+  handleClaims(h, statics, movers, now2, ct) {
     const bad = [];
     const t = this.table, c = this.cfg;
     if (this.phase !== "playing" || h.state !== 0) {
@@ -1628,9 +2099,14 @@ var RoomSim = class {
     h.claimT = now2;
     h.claimBudget = Math.min(c.claimBurst, h.claimBudget + c.claimRate * dtc);
     h.moverBudget = Math.min(c.moverPointsBurst, h.moverBudget + c.moverPointsRate * dtc);
-    const vmax = speedOf(h.r) * c.speedTol;
-    const reach = h.r * S.reach + vmax * c.reachSlackSeconds + 1.5;
+    const vmax = speedOf(h.r) * c.speedTol * speedFactor(h, now2);
+    const reach = h.r * S.reach * reachFactor(h, now2) + vmax * c.reachSlackSeconds + 1.5;
     const maxFit = h.r * S.fitRatio * 1.03;
+    const lag = 450 + Math.min(550, 1.5 * (h.rtt || 0));
+    let tMs = Math.max(h.lastClaimMs, Math.min(now2, Math.max(now2 - lag, Number.isFinite(ct) ? ct : now2)));
+    if (h.lastClaimNow > 0) tMs = Math.max(tMs, Math.min(now2, h.lastClaimMs + (now2 - h.lastClaimNow) - COMBO.stampJitter * 1e3));
+    h.lastClaimMs = tMs;
+    h.lastClaimNow = now2;
     let ok = 0;
     const take = /* @__PURE__ */ __name((id, isMover, mx, mz) => {
       if (!Number.isInteger(id) || id < 0 || id >= t.n || this.eaten[id]) return false;
@@ -1645,7 +2121,7 @@ var RoomSim = class {
         if (h.moverBudget < t.value[id]) return false;
         h.moverBudget -= t.value[id];
       }
-      this.eat(h, id);
+      this.eat(h, id, tMs);
       return true;
     }, "take");
     for (const id of statics) {
@@ -1659,13 +2135,20 @@ var RoomSim = class {
     h.rejected += bad.length;
     return { bad, ok };
   }
-  eat(h, id) {
+  /** `ms` = the time the swallow counts at (claim time for humans, server time for bots). */
+  eat(h, id, ms) {
     const t = this.table;
     this.eaten[id] = 1;
     this.eatenList.push(id);
     h.eaten++;
-    h.score += t.value[id];
-    h.r = radiusOf(h.score);
+    const mass = t.value[id];
+    const c = h.combo.hit(ms / 1e3, comboWeight((t.flags[id] & F_BUILDING) !== 0, t.fit[id], mass) * h.comboScale, h.r, h.bot ? 0 : COMBO.netSlack);
+    const pts = mass * totalMult(c.mult, doubleMul(h, ms));
+    h.mass += mass;
+    h.score += pts;
+    h.rawEaten = (h.rawEaten || 0) + mass;
+    h.swPts = (h.swPts || 0) + pts;
+    h.r = radiusOf(h.mass);
     if (t.fit[id] > h.biggest) h.biggest = t.fit[id];
     this.ev.e.push([id, h.id]);
     if (!(t.flags[id] & F_MOVER)) {
@@ -1687,6 +2170,7 @@ var RoomSim = class {
     if (this.phase !== "playing") return false;
     const dt = Math.min(0.12, Math.max(1e-3, (now2 - this.lastTick) / 1e3));
     this.lastTick = now2;
+    this._now = now2;
     const sec = now2 / 1e3;
     for (const h of this.holes.slice()) {
       if (!h.bot && h.connected && h.lastMsgAt && now2 - h.lastMsgAt > this.cfg.silentAfterMs) {
@@ -1712,12 +2196,44 @@ var RoomSim = class {
         this.botEat(h);
       }
     }
+    if (this.field) {
+      for (const e of this.field.tick((now2 - this.playAt) / 1e3)) this._puEvent(e);
+      for (const h of this.holes) if (h.bot && h.state === 0) this.botPickup(h, now2);
+    }
     this.duels(now2);
     if (now2 >= this.endAt) {
       this.phase = "ended";
       return false;
     }
     return true;
+  }
+  // ---- power-ups ------------------------------------------------------------------------------------------------------------
+  grantPickup(h, slot, now2) {
+    const type = this.field.take(slot, (now2 - this.playAt) / 1e3);
+    if (!type) return null;
+    grant(h, type, now2, this.cfg.testFxScale || 1);
+    this.ev.pp.push([slot, h.id, PU_ORDER[type], Math.round(PU[type].dur * 1e3 * (this.cfg.testFxScale || 1))]);
+    return type;
+  }
+  /** A human CLAIMS pickups ([slot..]). Accepted when the slot is live and the hole (server-known position) is within the pickup radius + latency allowance. Returns rejected slots. */
+  handlePickups(h, slots, now2) {
+    const bad = [];
+    if (!this.field || this.phase !== "playing" || h.state !== 0) return slots.slice();
+    const vmax = speedOf(h.r) * this.cfg.speedTol * speedFactor(h, now2);
+    const slack = vmax * this.cfg.reachSlackSeconds + 1.5;
+    for (const slot of slots) {
+      const s = Number.isInteger(slot) ? this.field.slots[slot] : null;
+      if (!s || s.state !== "on" || Math.hypot(s.x - h.x, s.z - h.z) > pickRadius(h.r) + slack) {
+        bad.push(slot);
+        continue;
+      }
+      this.grantPickup(h, slot, now2);
+    }
+    return bad;
+  }
+  botPickup(h, now2) {
+    const slot = this.field.touching(h.x, h.z, h.r);
+    if (slot >= 0) this.grantPickup(h, slot, now2);
   }
   moveBot(h, dt) {
     const dx0 = h.tx - h.x, dz0 = h.tz - h.z, l = Math.hypot(dx0, dz0);
@@ -1737,13 +2253,13 @@ var RoomSim = class {
     h.z = Math.min(b.maxZ, Math.max(b.minZ, h.z + h.vz * dt));
   }
   botEat(h) {
-    const t = this.table, reach = h.r * S.reach, maxFit = h.r * S.fitRatio;
+    const t = this.table, maxFit = h.r * S.fitRatio, reach = h.r * S.reach * (h.fxUntil.magnet > this._now ? magnetFactor(h.r) : 1);
     const hit = this._hit || (this._hit = []);
     hit.length = 0;
     this.index.query(h.x, h.z, reach, this.eaten, (id) => {
       if (t.fit[id] < maxFit) hit.push(id);
     });
-    for (let i = 0; i < hit.length; i++) this.eat(h, hit[i]);
+    for (let i = 0; i < hit.length; i++) this.eat(h, hit[i], this._now);
   }
   duels(now2) {
     const hs = this.holes;
@@ -1753,13 +2269,14 @@ var RoomSim = class {
       for (let j = 0; j < hs.length; j++) {
         const b = hs[j];
         if (i === j || b.state !== 0 || now2 < b.protectUntil) continue;
+        if (b.fxUntil.shield > now2) continue;
         if (a.r < b.r * D.ratio) continue;
         if (Math.hypot(a.x - b.x, a.z - b.z) < a.r * D.reach) this.kill(a, b, now2);
       }
     }
   }
   kill(eater, victim, now2) {
-    const gain = victim.score * D.gain;
+    const gain = victim.score * D.gain, massGain = victim.mass * D.gain;
     victim.state = 1;
     victim.by = eater.id;
     victim.dyingEnd = now2 + D.dyingTime * 1e3;
@@ -1768,13 +2285,17 @@ var RoomSim = class {
     victim.deaths++;
     eater.kills++;
     eater.score += gain;
-    eater.r = radiusOf(eater.score);
+    eater.mass += massGain;
+    eater.r = radiusOf(eater.mass);
     this.ev.k.push([eater.id, victim.id, Math.round(gain)]);
   }
   respawn(h, now2) {
     const p = this.pickRespawn(h);
     h.score *= D.keepScore;
-    h.r = radiusOf(h.score);
+    h.mass *= D.keepScore;
+    h.r = radiusOf(h.mass);
+    h.combo.drop();
+    h.fxUntil = makeFx();
     h.x = p.x;
     h.z = p.z;
     h.tx = p.x;
@@ -1786,21 +2307,24 @@ var RoomSim = class {
     h.lastPosAt = now2;
     h.budget = 0;
     if (h.brain) h.brain.reset(now2 / 1e3);
-    this.ev.r.push([h.id, round1(h.x), round1(h.z), Math.round(h.score)]);
+    this.ev.r.push([h.id, round1(h.x), round1(h.z), Math.round(h.score), Math.round(h.mass)]);
   }
   // ---- outgoing ---------------------------------------------------------------------------------------------------------
   snapshot(now2) {
     const m = {
       t: "s",
       T: now2,
-      h: this.holes.map((h) => [h.id, round1(h.x), round1(h.z), Math.round(h.r * 100) / 100, Math.round(h.score), h.state])
+      h: this.holes.map((h) => [h.id, round1(h.x), round1(h.z), Math.round(h.r * 100) / 100, Math.round(h.score), h.state, fxMask(h, now2)])
     };
     const ev = this.ev;
     if (ev.e.length) m.e = ev.e;
     if (ev.k.length) m.k = ev.k;
     if (ev.r.length) m.r = ev.r;
     if (ev.d.length) m.d = ev.d;
-    this.ev = { e: [], k: [], r: [], d: [] };
+    if (ev.ps.length) m.ps = ev.ps;
+    if (ev.pp.length) m.pp = ev.pp;
+    if (ev.px.length) m.px = ev.px;
+    this.ev = { e: [], k: [], r: [], d: [], ps: [], pp: [], px: [] };
     return m;
   }
   ranking() {
@@ -1815,6 +2339,8 @@ var RoomSim = class {
       kills: h.kills,
       deaths: h.deaths,
       radius: Math.round(h.r * 100) / 100,
+      bestCombo: Math.round(h.combo.best),
+      bestMult: h.combo.bestMult,
       ...h.left ? { left: true } : null
     }));
   }
@@ -1835,8 +2361,10 @@ var BotBrain = class {
     this.noise = B.aimNoise * (0.6 + rng() * 0.8) * 0.4;
     this.hz = 4;
     this.speedScale = 1;
+    this.puChance = 0.45;
     if (botSkill < 1) {
       const lvl = Math.min(1, botSkill * (0.78 + 0.44 * rng()));
+      this.puChance = 0.08 + 0.3 * lvl;
       this.speedScale = 0.2 + 0.8 * lvl;
       this.noise *= 1.9 - lvl;
       this.react += (1 - lvl) * 0.5;
@@ -1864,8 +2392,11 @@ var BotBrain = class {
     this.preyBan = -1;
     this.preyBanUntil = 0;
     this.rate = 1;
-    this.rateScore = this.h.score;
+    this.rateScore = this.h.mass;
     this.rateT = now2;
+    this.puGoal = -1;
+    this.puUntil = 0;
+    this.puCool = now2 + 15;
     this.heading = this.rng() * TAU;
   }
   maybeThink(sim, now2) {
@@ -1876,8 +2407,8 @@ var BotBrain = class {
   think(sim, now2) {
     const h = this.h, r = h.r, t = sim.table, b = t.bounds, B = CFG.bots;
     if (now2 - this.rateT >= 2) {
-      this.rate = this.rate * 0.5 + 0.5 * Math.max(0, h.score - this.rateScore) / (now2 - this.rateT);
-      this.rateScore = h.score;
+      this.rate = this.rate * 0.5 + 0.5 * Math.max(0, h.mass - this.rateScore) / (now2 - this.rateT);
+      this.rateScore = h.mass;
       this.rateT = now2;
     }
     if (now2 - this.lastCheck > 1.5) {
@@ -1914,11 +2445,12 @@ var BotBrain = class {
       } else if (r >= o.r * D.ratio * 1.02 && !safe && nowMs >= h.protectUntil && nowMs >= o.protectUntil - 500) {
         if (o.id === this.preyBan && now2 < this.preyBanUntil) continue;
         if (!o.bot && now2 < sim.playAt / 1e3 + (sim.cfg.botHumanGrace || 0)) continue;
-        if (o.score < h.score * B.preyMinFrac) continue;
+        if (nowMs < o.fxUntil.shield) continue;
+        if (o.mass < h.mass * B.preyMinFrac) continue;
         const gap = d - r * D.reach;
         if (gap > Math.max(18, r * B.huntRange) * (0.5 + this.aggr * 0.7)) continue;
         const catchT = Math.max(0, gap) / Math.max(1.5, speedOf(r) * h.speedMul - 0.75 * speedOf(o.r)) + 0.5;
-        const v = (o.score * D.gain + 3) / catchT;
+        const v = (o.mass * D.gain + 3) / catchT;
         if (v > this.rate * (B.huntGreed - this.aggr) && v > pv) {
           pv = v;
           prey = o;
@@ -1962,6 +2494,33 @@ var BotBrain = class {
         tz = prey.z + prey.vz * 0.4;
       }
     } else this.prey = null;
+    if (tx === void 0 && sim.field) {
+      const f = sim.field;
+      let pu = null;
+      if (this.puGoal >= 0 && now2 < this.puUntil) {
+        const q = f.slots[this.puGoal];
+        if (q && q.state === "on") pu = q;
+        else {
+          this.puGoal = -1;
+          this.puCool = now2 + 10;
+        }
+      } else if (this.puGoal >= 0) {
+        this.puGoal = -1;
+        this.puCool = now2 + 10;
+      }
+      if (!pu && now2 >= this.puCool) {
+        const cand = f.nearest(h.x, h.z, 40 + r * 1.5);
+        if (cand && this.rng() < this.puChance) {
+          this.puGoal = cand.slot;
+          this.puUntil = now2 + 4 + cand.d / Math.max(4, speedOf(r) * h.speedMul) * 1.3;
+          pu = cand;
+        }
+      }
+      if (pu) {
+        tx = pu.x;
+        tz = pu.z;
+      }
+    }
     if (tx === void 0) {
       this.roamCheck(sim, now2);
       if (this.roam) {
@@ -2047,12 +2606,14 @@ var BotBrain = class {
     c.length = 0;
     const R = dir ? dir.range : Math.max(26, r * 7) * (0.75 + 0.25 * Math.min(1.2, this.skill));
     const k = r * 1.5 + 4;
+    const lmW = Math.min(1, 0.25 + Math.max(0, nowMs - sim.playAt) / 1e3 / 240);
+    const val = /* @__PURE__ */ __name((id) => t.flags[id] & F_LANDMARK ? t.value[id] * lmW : t.value[id], "val");
     let n = 0;
     sim.index.query(h.x, h.z, R, sim.eaten, (id, d) => {
       if (n >= 800 || t.fit[id] >= maxFit || id === this.banId && now2 < this.banUntil) return;
       if (dir && d > 1 && ((t.x[id] - h.x) * dir.dx + (t.z[id] - h.z) * dir.dz) / d < dir.minDot) return;
       for (const o of bigs) if (Math.hypot(t.x[id] - o.x, t.z[id] - o.z) < o.r * (D.reach + 0.6) + 6) return;
-      c.push(id, d, t.value[id] / (d + k));
+      c.push(id, d, val(id) / (d + k));
       n++;
     });
     if (!n) return -1;
@@ -2074,9 +2635,9 @@ var BotBrain = class {
       let cl = 0;
       for (let j = 0; j < n; j++) {
         const p = c[3 * j], dx = t.x[p] - t.x[id], dz = t.z[p] - t.z[id];
-        if (dx * dx + dz * dz < cr2) cl += t.value[p];
+        if (dx * dx + dz * dz < cr2) cl += val(p);
       }
-      const sc = (t.value[id] * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
+      const sc = (val(id) * 0.5 + cl * 0.5) / (d + k) * (0.92 + this.rng() * 0.16);
       if (sc > bs) {
         bs = sc;
         best = id;
@@ -2188,7 +2749,11 @@ var MpRoom = class {
       if (hh) hh.lastMsgAt = now2;
     }
     try {
-      if (m.t === "ping") return send(ws, { t: "pong", c: m.c, s: now2 });
+      if (m.t === "ping") {
+        const hh = this.sim && this.meta.phase !== "lobby" && this.sim.byId.get(this.att(ws).pid);
+        if (hh && m.r > 0) hh.rtt = hh.rtt ? hh.rtt * 0.6 + m.r * 0.4 : m.r;
+        return send(ws, { t: "pong", c: m.c, s: now2 });
+      }
       if (m.t === "hello") return await this.onHello(ws, m, now2);
       const a = this.att(ws);
       if (a.pid < 0) return;
@@ -2395,13 +2960,14 @@ var MpRoom = class {
       playAt: s.playAt,
       endAt: s.endAt,
       hash: s.table.hash,
-      holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round12(o.x), z: round12(o.z) }))
+      holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round12(o.x), z: round12(o.z) })),
+      pu: s.puList()
     };
   }
   resumeMsg(h, now2) {
     const m = this.startMsg(h, now2, "resume");
     m.eaten = this.sim.eatenList;
-    m.me = { x: round12(h.x), z: round12(h.z), score: Math.round(h.score), state: h.state };
+    m.me = { x: round12(h.x), z: round12(h.z), score: Math.round(h.score), mass: Math.round(h.mass * 10) / 10, state: h.state, fx: fxRemain(h, now2), combo: Math.round(h.combo.count), best: Math.round(h.combo.best) };
     m.snap = this.sim.snapshot(now2);
     return m;
   }
@@ -2472,7 +3038,7 @@ var MpRoom = class {
       if (!humans.has(r.id)) continue;
       const score = Math.min(MAX_SCORE, Math.max(0, r.score));
       try {
-        await insertScore(this.env, { mode: "online", name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.name, createdAt: t });
+        await insertScore(this.env, { mode: "online", name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.name, createdAt: t, rules: RULES_VERSION });
       } catch (e) {
         ok = false;
         console.error("score insert", e && e.message);
@@ -2500,9 +3066,11 @@ var MpRoom = class {
         send(ws, { t: "rb", x: rb.x, z: rb.z });
       }
     }
-    if (m.c.length || m.m.length) {
-      const res = sim.handleClaims(h, m.c, m.m, now2);
-      send(ws, { t: "a", q: m.q, s: Math.round(h.score), b: res.bad });
+    if (m.c.length || m.m.length || m.p.length) {
+      const pb = m.p.length ? sim.handlePickups(h, m.p, now2) : [];
+      const res = m.c.length || m.m.length ? sim.handleClaims(h, m.c, m.m, now2, m.ct) : { bad: [] };
+      const c = h.combo;
+      send(ws, { t: "a", q: m.q, s: Math.round(h.score), m: Math.round(h.mass * 10) / 10, c: Math.round(c.count), cm: c.mult, fx: fxRemain(h, now2), b: res.bad, pb });
     }
   }
   async cleanup() {
@@ -2682,7 +3250,7 @@ var MAX_EXTRA_AGE_S = 600;
 var MAX_SCORE2 = 1e7;
 var MAX_RADIUS = 5e3;
 var MAX_EATEN = 1e6;
-var MAX_BODY_BYTES = 8192;
+var MAX_BODY_BYTES = 12288;
 var MAX_ROUNDS_PER_HOUR = 30;
 var SUBMIT_CAP_PER_DAY = { classic: 60, quick: 120, daily: 5 };
 var DAILY_GRACE_S = 120;
@@ -2782,6 +3350,7 @@ async function submitScore(request, env) {
   console.log(JSON.stringify({ ev: "score_check", mode: round.mode, map: round.map, verdict: check.verdict, reasons: check.reasons }));
   if (check.verdict === "reject") return err(422, "score failed plausibility checks", { reasons: check.reasons });
   const tr = body.trace;
+  const rules = tr && tr.v === 2 ? RULES_VERSION : 1;
   const { id, name: stored } = await insertScore(env, {
     mode: round.mode,
     map: round.map,
@@ -2799,14 +3368,16 @@ async function submitScore(request, env) {
     roundId: body.roundId,
     kills: tr.kills,
     deaths: tr.deaths,
-    createdAt: t
+    createdAt: t,
+    rules
   });
   const dayStart = t - t % 86400;
   let rAll, rToday;
-  if (round.mode === "daily") rAll = rToday = await rankOf(env, { mode: "daily", map: round.map, day: round.day, score });
-  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, map: round.map, score }), rankOf(env, { mode: round.mode, map: round.map, score, since: dayStart })]);
+  const archive = rules < RULES_VERSION;
+  if (round.mode === "daily") rAll = rToday = await rankOf(env, { mode: "daily", map: round.map, day: round.day, score, archive });
+  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, map: round.map, score, archive }), rankOf(env, { mode: round.mode, map: round.map, score, since: dayStart, archive })]);
   await purgeStale(env, t);
-  const out = { ok: true, id, name: stored, mode: round.mode, map: round.map, rankAllTime: rAll, rankToday: rToday };
+  const out = { ok: true, id, name: stored, mode: round.mode, map: round.map, rankAllTime: rAll, rankToday: rToday, rules };
   if (round.day) out.day = round.day;
   return json(out, 201);
 }
@@ -2829,8 +3400,9 @@ async function getScores(url, env) {
     if (!isDayString(day)) return err(400, "invalid day");
   }
   const since = period === "day" ? t - t % 86400 : period === "week" ? t - 7 * 86400 : 0;
-  const scores = await listScores(env, { mode, map, day, since, limit });
-  const out = { mode, map, period, scores };
+  const archive = ["1", "true"].includes(url.searchParams.get("archive") || "");
+  const scores = await listScores(env, { mode, map, day, since, limit, archive });
+  const out = { mode, map, period, scores, rules: archive ? "archive" : RULES_VERSION };
   if (day) out.day = day;
   return json(out, 200, { "cache-control": "public, max-age=15" });
 }

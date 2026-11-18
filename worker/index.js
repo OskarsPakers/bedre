@@ -3,12 +3,14 @@
 //
 //   POST /api/rounds   {mode, map?, day?}  -> {roundId, roundSeconds, mode, map, day?, seed, turnstileSiteKey?}   (map = slug, default 'centrs')
 //   POST /api/scores   {roundId,map?,difficulty?,name,score,eaten,radius,rank,biggest,trace[,turnstile]} -> {ok,id,name,mode,map,rankAllTime,rankToday}
-//   GET  /api/scores   ?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=YYYY-MM-DD][&limit=20]
+//   GET  /api/scores   ?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=YYYY-MM-DD][&limit=20][&archive=1]
+//                      (default: only rows of the CURRENT scoring rules, combos + power-ups; archive=1 = the older generations, e.g. the pre-combo boards)
 //   POST /api/e        cookieless analytics beacon {d:{key:n}}           (worker/lib/analytics.js)
 //   GET  /api/stats    ?days=30 aggregated counters                      (public, or bearer STATS_KEY)
 //
 // Anti-cheat = plausibility + friction (worker/lib/validate.js), NOT proof: the game runs in the browser.
 // See README "Anti-cheat" for the model and what stays bypassable.
+import { RULES_VERSION } from '../src/combo.js';
 import { MODES, CLIENT_MODES, BOARD_MODES, DIFFICULTIES, dailySeed, rigaDay, isDayString, shiftDay } from '../src/rules.js';
 import { MAP_SLUGS, DEFAULT_MAP, isMapSlug } from '../tools/maps.mjs';
 import { json, err, now, readJson, sameOrigin, intIn, ipHashOf } from './lib/util.js';
@@ -25,7 +27,7 @@ const MAX_EXTRA_AGE_S = 600;           // ...and no later than round length + 10
 const MAX_SCORE = 10_000_000;          // generous sanity limits
 const MAX_RADIUS = 5000;
 const MAX_EATEN = 1_000_000;
-const MAX_BODY_BYTES = 8192;           // body incl. the progress trace (~1.5 KB for 5:00)
+const MAX_BODY_BYTES = 12288;          // body incl. the progress trace (v2: ~3 KB for 5:00)
 const MAX_ROUNDS_PER_HOUR = 30;        // per (hashed) IP
 const SUBMIT_CAP_PER_DAY = { classic: 60, quick: 120, daily: 5 };   // ranked submissions per (hashed) IP per UTC day
 const DAILY_GRACE_S = 120;             // a daily round begun just after Riga midnight may still belong to yesterday
@@ -132,17 +134,19 @@ async function submitScore(request, env) {
   if (check.verdict === 'reject') return err(422, 'score failed plausibility checks', { reasons: check.reasons });
 
   const tr = body.trace;
+  const rules = tr && tr.v === 2 ? RULES_VERSION : 1;   // a stale tab (old client) still sends the v1 trace: its score is a pre-combo score and belongs to the archive
   const { id, name: stored } = await insertScore(env, {
     mode: round.mode, map: round.map, day: round.day, name, score, eaten, radius, rank, biggest,
     difficulty: round.mode === 'daily' ? 'normal' : (typeof body.difficulty === 'string' ? body.difficulty : null), suspect: check.verdict === 'suspect' ? 1 : 0, flags: check.reasons.join(',') || null,
-    trace: JSON.stringify(tr), roundId: body.roundId, kills: tr.kills, deaths: tr.deaths, createdAt: t,
+    trace: JSON.stringify(tr), roundId: body.roundId, kills: tr.kills, deaths: tr.deaths, createdAt: t, rules,
   });
   const dayStart = t - (t % 86400);
   let rAll, rToday;
-  if (round.mode === 'daily') rAll = rToday = await rankOf(env, { mode: 'daily', map: round.map, day: round.day, score });
-  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, map: round.map, score }), rankOf(env, { mode: round.mode, map: round.map, score, since: dayStart })]);
+  const archive = rules < RULES_VERSION;
+  if (round.mode === 'daily') rAll = rToday = await rankOf(env, { mode: 'daily', map: round.map, day: round.day, score, archive });
+  else [rAll, rToday] = await Promise.all([rankOf(env, { mode: round.mode, map: round.map, score, archive }), rankOf(env, { mode: round.mode, map: round.map, score, since: dayStart, archive })]);
   await purgeStale(env, t);
-  const out = { ok: true, id, name: stored, mode: round.mode, map: round.map, rankAllTime: rAll, rankToday: rToday };
+  const out = { ok: true, id, name: stored, mode: round.mode, map: round.map, rankAllTime: rAll, rankToday: rToday, rules };
   if (round.day) out.day = round.day;
   return json(out, 201);
 }
@@ -165,8 +169,9 @@ async function getScores(url, env) {
     if (!isDayString(day)) return err(400, 'invalid day');
   }
   const since = period === 'day' ? t - (t % 86400) : period === 'week' ? t - 7 * 86400 : 0;
-  const scores = await listScores(env, { mode, map, day, since, limit });
-  const out = { mode, map, period, scores };
+  const archive = ['1', 'true'].includes(url.searchParams.get('archive') || '');
+  const scores = await listScores(env, { mode, map, day, since, limit, archive });
+  const out = { mode, map, period, scores, rules: archive ? 'archive' : RULES_VERSION };
   if (day) out.day = day;
   return json(out, 200, { 'cache-control': 'public, max-age=15' });
 }

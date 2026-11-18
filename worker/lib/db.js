@@ -1,6 +1,7 @@
 // D1 helpers for scores / rounds. `insertScore` is the ONE place that writes the scores table: the multiplayer
 // server (worker/mp/**) imports it to record finished online matches.
 import { BOARD_MODES, DIFFICULTIES } from '../../src/rules.js';
+import { RULES_VERSION } from '../../src/combo.js';
 import { isMapSlug, DEFAULT_MAP } from '../../tools/maps.mjs';
 import { now } from './util.js';
 import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
@@ -22,6 +23,7 @@ import { sanitizeName, sanitizeLabel, ANON } from './moderation.js';
  *   day       'YYYY-MM-DD' (Riga day), daily mode only
  *   suspect   1 hides the row from public boards (default 0)
  *   flags     comma separated reason codes, trace  JSON string, roundId  optional forensics
+ *   rules     scoring rules version (default RULES_VERSION = 2: combos + power-ups; rows without it are the archive, rules 1)
  *   createdAt unix seconds (default now)
  * @returns {Promise<{id:number, name:string}>}
  */
@@ -33,29 +35,38 @@ export async function insertScore(env, row) {
   const name = sanitizeName(row.name) || ANON;
   const biggest = row.biggest == null ? null : sanitizeLabel(row.biggest);
   const res = await env.DB.prepare(
-    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map, difficulty) ' +
-    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO scores (name, score, eaten, radius, rank, biggest, created_at, mode, day, suspect, flags, trace, round_id, kills, deaths, map, difficulty, rules) ' +
+    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).bind(
     name, row.score, row.eaten ?? 0, row.radius ?? 0, row.rank ?? null, biggest, row.createdAt ?? now(), row.mode,
     row.mode === 'daily' ? row.day ?? null : null, row.suspect ? 1 : 0, row.flags ?? null, row.trace ?? null,
     row.roundId ?? null, row.kills ?? null, row.deaths ?? null, map, DIFFICULTIES.includes(row.difficulty) ? row.difficulty : null,
+    Number.isInteger(row.rules) && row.rules > 0 ? row.rules : RULES_VERSION,
   ).run();
   return { id: res.meta.last_row_id, name };
 }
 
-/** 1-based rank of `score` among the visible (non-suspect) rows of a board (one board per map x mode). */
-export async function rankOf(env, { mode, day = null, score, since = 0, map = DEFAULT_MAP }) {
+/**
+ * SQL condition for the scoring-rules generation of a board: the CURRENT rules (default) or the archive (every older generation; rows from before the
+ * column existed have NULL). Scores of different rules are not comparable, so a board never mixes them.
+ */
+export const rulesClause = (archive) => (archive ? '(rules IS NULL OR rules < ?)' : 'rules >= ?');
+
+/** 1-based rank of `score` among the visible (non-suspect) rows of a board (one board per map x mode x rules generation). */
+export async function rankOf(env, { mode, day = null, score, since = 0, map = DEFAULT_MAP, archive = false }) {
+  const rc = rulesClause(archive);
   const row = mode === 'daily'
-    ? await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND score > ?').bind(map, mode, day, score).first()
-    : await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND score > ? AND created_at >= ?').bind(map, mode, score, since).first();
+    ? await env.DB.prepare(`SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND ${rc} AND score > ?`).bind(map, mode, day, RULES_VERSION, score).first()
+    : await env.DB.prepare(`SELECT COUNT(*) AS n FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND ${rc} AND score > ? AND created_at >= ?`).bind(map, mode, RULES_VERSION, score, since).first();
   return row.n + 1;
 }
 
-export async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP }) {
+export async function listScores(env, { mode, day = null, since = 0, limit = 20, map = DEFAULT_MAP, archive = false }) {
   const cols = 'name, score, radius, eaten, rank, biggest, difficulty, created_at AS at';
+  const rc = rulesClause(archive);
   const q = mode === 'daily'
-    ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, limit)
-    : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, since, limit);
+    ? env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND day = ? AND suspect = 0 AND ${rc} ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, day, RULES_VERSION, limit)
+    : env.DB.prepare(`SELECT ${cols} FROM scores WHERE map = ? AND mode = ? AND suspect = 0 AND ${rc} AND created_at >= ? ORDER BY score DESC, created_at ASC LIMIT ?`).bind(map, mode, RULES_VERSION, since, limit);
   return (await q.all()).results;
 }
 

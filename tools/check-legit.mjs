@@ -59,7 +59,14 @@ const tamper = {
   'score 1e6 with legit-looking trace': (r) => ({ t: structuredClone(r.trace), score: 1e6 }),
   'jump +30000 in the middle': (r) => { const t = structuredClone(r.trace); const m = Math.floor(t.s.length / 2); for (let i = m; i < t.s.length; i++) t.s[i] += 30000; return { t, score: t.s[t.s.length - 1] }; },
   'eaten count inflated': (r) => { const t = structuredClone(r.trace); t.e = t.e.map((e, i) => e + i * 400); return { t, score: r.final.score }; },
-  'time compressed (fewer samples)': (r) => { const t = structuredClone(r.trace); for (const k of ['t', 's', 'r', 'e', 'k']) t[k] = t[k].filter((_, i) => i % 2); return { t, score: r.final.score }; },
+  'time compressed (fewer samples)': (r) => { const t = structuredClone(r.trace); for (const k of ['t', 's', 'm', 'r', 'e', 'k', 'w', 'p', 'c']) t[k] = t[k].filter((_, i) => i % 2); for (const k of Object.keys(t.u)) t.u[k] = t.u[k].filter((_, i) => i % 2); return { t, score: r.final.score }; },
+  // scoring rules 2 (combos + power-ups): consistency attacks
+  'inflated multiplier (points x4, raw value unchanged)': (r) => { const t = structuredClone(r.trace); const f = 4; t.s = t.s.map((s) => Math.round(s * f)); t.p = t.p.map((s) => Math.round(s * f)); return { t, score: t.s[t.s.length - 1] }; },
+  'inflated multiplier (only the points of one interval)': (r) => { const t = structuredClone(r.trace); const m = Math.floor(t.p.length / 2); for (let i = m; i < t.p.length; i++) { t.p[i] += 40000; t.s[i] += 40000; } return { t, score: t.s[t.s.length - 1] }; },
+  'impossible power-up count': (r) => { const t = structuredClone(r.trace); t.u.speed = t.u.speed.map((v, i) => v + 400 * (i + 1)); return { t, score: r.final.score }; },
+  'power-up burst in one interval': (r) => { const t = structuredClone(r.trace); const m = Math.floor(t.u.double.length / 2); for (let i = m; i < t.u.double.length; i++) t.u.double[i] += 60; return { t, score: r.final.score }; },
+  'combo longer than eaten': (r) => { const t = structuredClone(r.trace); t.c = t.c.map((c, i) => c + 5000 + i); return { t, score: r.final.score }; },
+  'radius follows points, not mass': (r) => { const t = structuredClone(r.trace); t.m = t.m.map((m) => Math.round(m * 6)); return { t, score: r.final.score }; },
 };
 let missed = 0, total = 0;
 for (const [label, f] of Object.entries(tamper)) {
@@ -67,6 +74,7 @@ for (const [label, f] of Object.entries(tamper)) {
   for (const r of runs.filter((x) => x.mode === 'classic' && x.map === 'centrs').slice(0, 6)) {
     const { t, score } = f(r);
     if (label.includes('final score x4') || label.includes('only final')) { t.kinds = r.trace.kinds; }
+    t.u = t.u || r.trace.u;
     const v = validateSubmission({ mode: 'classic', map: 'centrs', seconds: 300, age: 305, score, eaten: t.e[t.e.length - 1], radius: r.final.radius, rank: 1, trace: { ...t, kills: r.trace.kills, deaths: r.trace.deaths } });
     total++; if (v.verdict === 'ok') { missed++; bad.push(score); }
   }

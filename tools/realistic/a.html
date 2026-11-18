@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><title>realistic-a</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.30/"></script>
+<style>html,body,#v{margin:0;padding:0;width:100%;height:100%;background:#889;overflow:hidden}</style></head>
+<body><div id="v"></div><script>
+// Approach A: ArcGIS SceneView on the GeoRiga web scene, camera at tram viewpoints. window.__goto({lon,lat,up,lx..}) ; no UI.
+require(["esri/WebScene","esri/views/SceneView","esri/Camera","esri/geometry/Point","esri/layers/GraphicsLayer","esri/Graphic"],(WebScene,SceneView,Camera,Point,GraphicsLayer,Graphic)=>{
+  const q=new URLSearchParams(location.search);
+  const scene=new WebScene({portalItem:{id:"0f550060386a435da391357ccf89d269"}});
+  const view=new SceneView({container:"v",map:scene,ui:{components:[]},popup:{autoOpenEnabled:false},
+    environment:{lighting:{type:"sun",date:new Date(q.get("date")||"2024-06-21T08:30:00Z"),directShadowsEnabled:false,ambientOcclusionEnabled:false},atmosphereEnabled:true,starsEnabled:false,atmosphere:{quality:"high"}},qualityProfile:"high"});
+  window.__view=view;
+  window.__nodeReqs=[];
+  view.when(async()=>{
+    view.constraints.clipDistance={near:0.3,far:6000,mode:"manual"};
+    window.__ready=true;});
+  const gz=async(lon,lat)=>{try{const r=await scene.ground.queryElevation(new Point({longitude:lon,latitude:lat,spatialReference:{wkid:4326}}));return r.geometry.z;}catch(e){return NaN;}};
+  window.__ground=gz;
+  // Approach B: the game's tram as a glTF ObjectSymbol3DLayer. o: lon,lat,heading (compass deg), hOff (heading correction), lift
+  const gl=new GraphicsLayer({elevationInfo:{mode:"absolute-height"}}); scene.add(gl);
+  window.__tram=async(o)=>{gl.removeAll(); if(!o) return; const g=await gz(o.lon,o.lat);
+    gl.add(new Graphic({geometry:new Point({longitude:o.lon,latitude:o.lat,z:g+(o.lift??0.1),spatialReference:{wkid:4326}}),
+      symbol:{type:"point-3d",symbolLayers:[{type:"object",resource:{href:location.origin+"/cache/tram.glb"},anchor:"bottom",heading:(o.heading+(o.hOff||0)+360)%360,tilt:o.tilt||0,roll:o.roll||0}]}}));};
+  // o: lon,lat (camera), up (m above ground at camera), tlon,tlat,tup (target; up above ground there), fovV (vertical deg), settle (ms), gOffset
+  window.__goto=async(o)=>{
+    const g0=await gz(o.lon,o.lat), g1=await gz(o.tlon,o.tlat);
+    const off=o.gOffset||0, cz=g0+off+o.up, tz=g1+off+o.tup;
+    const R=111320, dN=(o.tlat-o.lat)*R, dE=(o.tlon-o.lon)*R*Math.cos(o.lat*Math.PI/180), dist=Math.hypot(dE,dN);
+    const heading=(Math.atan2(dE,dN)*180/Math.PI+360)%360, pitch=Math.atan2(tz-cz,dist)*180/Math.PI;
+    const asp=innerWidth/innerHeight, tv=Math.tan(o.fovV*Math.PI/360), th=tv*asp, fovD=2*Math.atan(Math.hypot(tv,th))*180/Math.PI;
+    view.camera=new Camera({position:{longitude:o.lon,latitude:o.lat,z:cz,spatialReference:{wkid:4326}},heading,tilt:90+pitch,fov:fovD});
+    await new Promise(r=>setTimeout(r,800));
+    await new Promise(res=>{const t0=Date.now();let calm=0;const iv=setInterval(()=>{if(!view.updating){calm++;}else calm=0;if(calm>=3||Date.now()-t0>(o.timeout||40000)){clearInterval(iv);res();}},400);});
+    await new Promise(r=>setTimeout(r,o.settle||2500));
+    return {g0,g1,cz,heading,pitch,fovD,updating:view.updating};
+  };
+});
+</script></body></html>

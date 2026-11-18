@@ -1,18 +1,26 @@
 // Top scores panel (Today / This week / All time) + About popover. Names are untrusted: textContent only.
 import { fetchScores, lastSubmission } from './scores.js';
-import { t, fmt, onLang, getLang } from './i18n.js';
+import { t, fmt, onLang, getLang, extendStrings } from './i18n.js';
 import { getMode, twistName } from './modes.js';
 import { dailyInfo, todayRiga } from './daily.js';
 import { shiftDay } from './rules.js';
 import { MAPS, activeSlug } from './maps.js';
 
 const $ = (id) => document.getElementById(id);
+extendStrings({
+  tsArchive: 'Arhīvs', tsArchiveNote: 'Vecie rezultāti pirms kombo un pastiprinājumiem: tie nav salīdzināmi ar pašreizējiem.',
+  tsNewRules: 'Tabulas sākas no jauna: kombo un pastiprinājumi maina punktus.',
+}, {
+  tsArchive: 'Archive', tsArchiveNote: 'Old scores from before combos and power-ups: not comparable with the current ones.',
+  tsNewRules: 'Boards restarted: combos and power-ups change the points.',
+});
 
 export function initScoresUi() {
   const panel = $('scores'), about = $('about'), body = $('ts-body'), msg = $('ts-msg'), table = $('ts-table');
   const tabs = [...panel.querySelectorAll('[data-period]')];
   let period = 'day', seq = 0, state = 'loading', rows = [];
   let smode = 'classic', smap = 'centrs', dayPick = 0; // board mode + map; daily: 0 = today, -1 = yesterday
+  let archive = false;                                 // false = the current scoring rules (combos + power-ups), true = the older boards (kept in the database)
 
   // mode switch (+ daily day switch and the day's twist), built here so the markup stays in one place
   const tabsEl = panel.querySelector('.tabs');
@@ -35,7 +43,13 @@ export function initScoresUi() {
   const labelMaps = () => { for (const b of mapRow.children) { const m = MAPS.find((x) => x.slug === b.dataset.smap); b.textContent = getLang() === 'lv' ? m.lv : m.en; } mapNote.textContent = t('tsCentreOnly'); };
   const dayRow = mkRow('ts-days', [[0, 'tabDay'], [-1, 'tabYesterday']], 'dpick', (v) => { dayPick = +v; load(); });
   const twistEl = document.createElement('p'); twistEl.className = 'ts-twist';
+  // Archive toggle: boards show only the current scoring rules; the pre-combo rows stay in the table and show up here
+  const arcBtn = document.createElement('button'); arcBtn.type = 'button'; arcBtn.id = 'ts-archive'; arcBtn.className = 'ts-arch'; arcBtn.setAttribute('aria-pressed', 'false');
+  const arcNote = document.createElement('p'); arcNote.className = 'ts-note ts-arcnote';
+  const labelArc = () => { arcBtn.textContent = t('tsArchive'); arcNote.textContent = archive ? t('tsArchiveNote') : t('tsNewRules'); arcBtn.setAttribute('aria-pressed', String(archive)); };
+  arcBtn.addEventListener('click', () => { archive = !archive; load(); });
   tabsEl.before(modeRow, mapRow, mapNote); tabsEl.after(dayRow, twistEl); labelMaps();
+  $('ts-table').parentElement.before(arcNote); modeRow.append(arcBtn); labelArc();
   const boardDay = () => shiftDay(todayRiga(), dayPick);
 
   const hasPanelOpen = () => !panel.classList.contains('hidden') || !about.classList.contains('hidden');
@@ -72,7 +86,8 @@ export function initScoresUi() {
     const my = ++seq;
     state = 'loading'; rows = []; render();
     for (const b of tabs) b.setAttribute('aria-selected', String(b.dataset.period === period));
-    for (const b of modeRow.children) b.setAttribute('aria-selected', String(b.dataset.smode === smode));
+    for (const b of modeRow.children) if (b.dataset.smode) b.setAttribute('aria-selected', String(b.dataset.smode === smode));
+    labelArc();
     for (const b of dayRow.children) b.setAttribute('aria-selected', String(+b.dataset.dpick === dayPick));
     const centreOnly = smode === 'daily' || smode === 'online';
     if (centreOnly) smap = 'centrs';
@@ -81,7 +96,7 @@ export function initScoresUi() {
     const daily = smode === 'daily';
     tabsEl.style.display = daily ? 'none' : ''; dayRow.style.display = daily ? '' : 'none'; twistEl.style.display = daily ? '' : 'none';
     if (daily) twistEl.textContent = `${t('tsDaily', { day: boardDay() })} · ${t('tsTwist', { twist: twistName(dailyInfo(boardDay()).twist) })}`;
-    const list = await fetchScores(period, 20, daily ? { mode: smode, map: smap, day: boardDay() } : { mode: smode, map: smap });
+    const list = await fetchScores(period, 20, daily ? { mode: smode, map: smap, day: boardDay(), archive } : { mode: smode, map: smap, archive });
     if (my !== seq) return;
     if (list === null) state = 'offline';
     else if (!list.length) state = 'empty';
@@ -94,7 +109,7 @@ export function initScoresUi() {
     const m = lastSubmission ? lastSubmission.mode : getMode();
     smode = ['classic', 'quick', 'daily', 'online'].includes(m) ? m : 'classic';
     smap = lastSubmission && lastSubmission.map ? lastSubmission.map : activeSlug();
-    dayPick = 0;
+    dayPick = 0; archive = false;
     load();
   }
   function closeScores() { panel.classList.add('hidden'); seq++; }
@@ -111,7 +126,8 @@ export function initScoresUi() {
     if (e.key === 'Escape' && hasPanelOpen()) { closeScores(); closeAbout(); e.stopPropagation(); }
   }, true);
   onLang(() => {
-    for (const b of [...modeRow.children, ...dayRow.children]) b.textContent = t(b.dataset.i18n);
+    for (const b of [...modeRow.children, ...dayRow.children]) if (b.dataset.i18n) b.textContent = t(b.dataset.i18n);
+    labelArc();
     labelMaps(); mapRow.setAttribute('aria-label', t('tsMapAria'));
     if (!panel.classList.contains('hidden')) load();
   });

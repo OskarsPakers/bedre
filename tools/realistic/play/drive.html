@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Riga reality mesh: tram drive (private local experiment)</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script>
+<style>html,body{margin:0;height:100%;background:#8fbbe8;overflow:hidden;font:14px -apple-system,Helvetica,sans-serif;color:#fff}canvas{display:block}
+#hud{position:fixed;left:14px;top:12px;text-shadow:0 1px 3px #000,0 0 8px #000a;line-height:1.35;pointer-events:none}#spd{font-size:44px;font-weight:700}#lim{opacity:.85}
+#msg{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font-size:26px;text-shadow:0 2px 6px #000;text-align:center;pointer-events:none}
+#dbg{position:fixed;right:12px;bottom:10px;font:11px ui-monospace,Menlo,monospace;text-align:right;text-shadow:0 1px 2px #000;opacity:.9;pointer-events:none}
+#keys{position:fixed;left:14px;bottom:26px;max-width:70%;font-size:12px;opacity:.85;text-shadow:0 1px 3px #000}#lev{position:fixed;left:14px;top:134px;width:120px;height:8px;background:#0006;border-radius:4px}#lev i{display:block;height:100%;background:#fff;border-radius:4px}</style></head>
+<body><div id="hud"><div id="spd">0</div><div id="lim"></div><div id="stop"></div><div id="door"></div></div><div id="lev"><i></i></div><div id="msg"></div><div id="stream" style="display:none;position:fixed;left:50%;bottom:8px;transform:translateX(-50%);font:12px ui-monospace,Menlo,monospace;background:#000a;padding:3px 10px;border-radius:5px"></div><div id="dbg"></div>
+<div id="keys">W/Up power &nbsp; S/Down brake &nbsp; Space emergency &nbsp; E doors &nbsp; B bell &nbsp; C camera (chase / cab / orbit: drag mouse, wheel) &nbsp; T autopilot &nbsp; F fog &nbsp; [ ] nudge track sideways &nbsp; I streaming info &nbsp; X wait-for-sharp &nbsp; G hide HUD</div>
+<script type="module" src="drive.js"></script></body></html>

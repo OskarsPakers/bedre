@@ -564,6 +564,11 @@ export function buildBuildings(data) {
     if (A && (!it.name || isAddressName(it.name))) it.name = A.lv;
   }
 
+  // a sight needs a hole proportionate to its real size: fit from the footprint AND the height (a 40 m landmark is not a 6 m kiosk with a nice texture)
+  for (const it of items) {
+    if (it.landmark || (it.sight && it.sight[3] && TIER_A_BY_KEY.has(it.sight[3]))) it.fit = Math.max(it.fit, Math.min(CFG.sightFit.heightFrac * it.h, CFG.sightFit.max));
+  }
+
   const OTHERS = SIGHTS ? items.filter((it) => !it.sight) : []; // ordinary buildings: the neighbours a tier B sight must differ from (src/sights.js neighbourRef)
 
   span('bld-landmarks-sights', tb2);

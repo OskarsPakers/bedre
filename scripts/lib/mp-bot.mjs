@@ -31,7 +31,7 @@ export class Bot {
     ws.onmessage = (ev) => this.onMsg(JSON.parse(ev.data));
     ws.onclose = () => { this.closed = true; clearInterval(this.timer); };
     this.send({ t: 'hello', v: PROTOCOL_VERSION, name: this.name, token: this.token, hash: this.table.hash });
-    this.pingT = setInterval(() => this.send({ t: 'ping', c: performance.now() }), 2500);
+    this.pingT = setInterval(() => this.send({ t: 'ping', c: performance.now(), r: 0 }), 2500);
     return room;
   }
   send(m) { try { if (this.ws.readyState === 1) this.ws.send(JSON.stringify(m)); } catch { /* */ } }
@@ -44,6 +44,7 @@ export class Bot {
         for (const h of m.holes) { this.holes.set(h.id, { ...h, r: 2.2, score: 0 }); if (h.id === m.you) { this.x = h.x; this.z = h.z; } }
         if (m.eaten) for (const id of m.eaten) this.eaten.add(id);
         this.start = m;
+        this.pu = new Map((m.pu || []).map(([slot, type, x, z]) => [slot, { slot, type, x, z }])); this.pickups = [];
         if (!this.timer) this.timer = setInterval(() => this.tick(), 80);
         break;
       case 's':
@@ -53,8 +54,12 @@ export class Bot {
         if (m.k) for (const k of m.k) this.kills.push({ k, at: Date.now() });
         if (m.r) for (const r of m.r) { this.resp.push({ r, at: Date.now() }); if (r[0] === this.me) { this.x = r[1]; this.z = r[2]; } }
         if (m.d) for (const id of m.d) this.holes.delete(id);
+        if (m.ps) for (const [slot, type, x, z] of m.ps) this.pu.set(slot, { slot, type, x, z });
+        if (m.px) for (const slot of m.px) this.pu.delete(slot);
+        if (m.pp) for (const [slot, hole, type] of m.pp) { this.pu.delete(slot); this.pickups.push({ slot, hole, type, at: Date.now() }); }
+        if (m.h) for (const row of m.h) if (row[0] === this.me) this.mask = row[6] || 0;
         break;
-      case 'a': this.acks.push(m); this.score = m.s; break;
+      case 'a': this.acks.push(m); this.score = m.s; this.mass = m.m; this.combo = { c: m.c, cm: m.cm }; this.fx = m.fx; break;
       case 'rb': this.x = m.x; this.z = m.z; break;
       case 'end': this.state = 'ended'; this.final = m.rank; break;
       case 'err': this.errCode = m.code; break;

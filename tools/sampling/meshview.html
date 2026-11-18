@@ -1,0 +1,15 @@
+<!doctype html><meta charset=utf-8><title>meshview</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/examples/":"/three/examples/"}}</script>
+<style>html,body{margin:0;background:#9cc3e6;overflow:hidden}canvas{display:block}</style>
+<script type="module">
+// Real reality-mesh render (unlit textured, cached corridor) from an arbitrary camera. window.__v.view({x,y,z,lx,ly,lz,fov}) ; ?layer=name to show one layer only
+import * as THREE from 'three'; import { loadCorridor } from '/mesh.js';
+const Q = new URLSearchParams(location.search); const L = Q.get('layer');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setPixelRatio(devicePixelRatio); renderer.setSize(innerWidth, innerHeight); renderer.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x8fbbe8); const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.3, 3000);
+const mk = (tex) => { if (tex) { tex.colorSpace = THREE.SRGBColorSpace; } return new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, color: tex ? 0xffffff : 0x888888 }); };
+const m = await loadCorridor('centrs-3', { makeMaterial: mk, nodeFilter: L ? (n) => n.layer === L : null }); scene.add(m.group);
+window.__v = { stats: m.stats, ready: true, resize(w, h) { renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); },
+  view(o) { camera.fov = o.fov || 48; camera.near = o.near || 0.3; camera.far = o.far || 3000; camera.aspect = renderer.domElement.width / renderer.domElement.height; camera.updateProjectionMatrix(); camera.position.set(o.x, o.y, o.z); camera.up.set(0, 1, 0); if (o.up) camera.up.set(...o.up); camera.lookAt(o.lx, o.ly, o.lz); renderer.render(scene, camera); } };
+document.title = 'done';
+</script>

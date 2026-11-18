@@ -26,6 +26,8 @@ const VPS = [
   { name: 'iPhone14PM-land', eng: 'webkit', dev: 'iPhone 14 Pro Max landscape', touch: true },
   { name: 'Pixel5', eng: 'chromium', dev: 'Pixel 5', touch: true },
   { name: 'Pixel5-land', eng: 'chromium', dev: 'Pixel 5 landscape', touch: true },
+  { name: 'd1920x1080', eng: 'chromium', size: [1920, 1080], touch: false },
+  { name: 'd1600x900', eng: 'chromium', size: [1600, 900], touch: false },
   { name: 'd1280x720', eng: 'chromium', size: [1280, 720], touch: false },
   { name: 'd1024x600', eng: 'chromium', size: [1024, 600], touch: false },
   { name: 'd853x480', eng: 'chromium', size: [853, 480], touch: false },
@@ -82,6 +84,15 @@ for (const vp of VPS) {
     });
     await sleep(500);
     await A('play');
+    // the phone layout's compact leaderboard chip must never show next to the full leaderboard (wide layouts)
+    if (!vp.touch && vp.size[0] > 900) {
+      const chip = await page.evaluate(() => { const c = document.getElementById('board-chip'), r = c && c.getBoundingClientRect(); return { shown: !!c && getComputedStyle(c).display !== 'none' && r.width > 0, listShown: getComputedStyle(document.getElementById('board-list')).display !== 'none' }; });
+      report(`${vp.name}/${lang}/no-compact-chip`, chip.shown || !chip.listShown ? [{ kind: 'chip', msg: JSON.stringify(chip) }] : []);
+    }
+    // combo chip + the four power-up badges + the pickup toast, all at once: none of them may touch a HUD card, the hole or a banner lane
+    await page.evaluate(() => { const g = window.__life.game, p = g.player; p.combo.count = 80; p.combo.mult = 3; p.combo.until = g.playT + 5; for (const t of ['magnet', 'speed', 'double', 'shield']) p.pick(t); g.hud.puToast('magnet', 8); g._overlay(0.3); });
+    await sleep(120);
+    await A('play-fx');
     await page.evaluate(() => { const g = window.__life.game; g.player.score = 1200; });
     await page.evaluate(() => window.__life.game.end());
     await sleep(700);

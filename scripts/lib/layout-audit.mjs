@@ -69,7 +69,7 @@ export function auditLayout(opts) {
   }
   // --- HUD pieces vs each other + text overflowing its own pill
   if (hudOn && !panels.length) {
-    const parts = [...document.querySelectorAll('#card-score, #card-time, #board, #minimap-box, #sizebox, #meta-pct, #feed > *, #hud-btns > button, #end-free, #mp-net, #swallowed:not(.hidden)')].filter(vis);
+    const parts = [...document.querySelectorAll('#card-score, #card-time, #board, #minimap-box, #sizebox, #meta-pct, #feed > *, #hud-btns > button, #end-free, #mp-net, #swallowed:not(.hidden), #fx-hud .combo-chip, #fx-hud .fx-badges, #fx-hud .fx-toast')].filter(vis);   // (+ the combo chip / power-up badges / pickup toast that float above the hole)
     for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
       if (parts[i].contains(parts[j]) || parts[j].contains(parts[i])) continue;
       if (hit(rect(parts[i]), rect(parts[j]), 1)) out.push({ kind: 'hud-vs-hud', msg: `${name(parts[i])} overlaps ${name(parts[j])}` });
@@ -85,9 +85,23 @@ export function auditLayout(opts) {
     g._v.set(g.player.x, 0, g.player.z).project(g.cam.camera);
     const hx = (g._v.x * 0.5 + 0.5) * vw, hy = (-g._v.y * 0.5 + 0.5) * vh, hr = Math.max(28, 0.5 * Math.min(vw, vh) * 0.12);
     const hole = { l: hx - hr, r: hx + hr, t: hy - hr, b: hy + hr };
-    for (const el of document.querySelectorAll('#meta-toasts > *, #meta-area, .lab, #daily-intro')) {
+    for (const el of document.querySelectorAll('#meta-toasts > *, #meta-area, .lab, #daily-intro')) {   // (the combo chip is checked separately below: it must not cover the hole either)
       if (!vis(el)) continue;
       if (hit(rect(el), hole, 0)) out.push({ kind: 'toast', msg: `${name(el)} over the hole at ${Math.round(hx)},${Math.round(hy)}` });
+    }
+  }
+  // --- the combo chip / badges / toast never sit on the player's hole or on the banner lanes (toasts, area banner, daily intro)
+  if (g && g.phase === 'playing') {
+    const fx = [...document.querySelectorAll('#fx-hud .combo-chip, #fx-hud .fx-badges, #fx-hud .fx-toast')].filter(vis);
+    if (fx.length) {
+      g._v.set(g.player.x, 0, g.player.z).project(g.cam.camera);
+      const q = g._v.clone(); q.set(g.player.x + g.player.radius, 0, g.player.z).project(g.cam.camera);
+      const hx = (g._v.x * 0.5 + 0.5) * vw, hy = (-g._v.y * 0.5 + 0.5) * vh, hr = Math.abs((q.x - g._v.x) * 0.5 * vw) * 0.8;
+      const hole = { l: hx - hr, r: hx + hr, t: hy - hr, b: hy + hr };
+      for (const el of fx) {
+        if (hit(rect(el), hole, 2)) out.push({ kind: 'fx-vs-hole', msg: `${name(el)} over the hole` });
+        for (const lane of document.querySelectorAll('#meta-toasts > *, #meta-area, .lab, #daily-intro')) if (vis(lane) && hit(rect(el), rect(lane), 1)) out.push({ kind: 'fx-vs-lane', msg: `${name(el)} over ${name(lane)}` });
+      }
     }
   }
   // --- results panel on small phones

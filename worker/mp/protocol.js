@@ -5,22 +5,28 @@
 //
 //  client -> server
 //    {t:'hello', v, name, token, hash}            first frame (name sanitised server-side; hash = object-table hash)
-//    {t:'u', q, x, z, c:[id..], m:[[id,x,z]..]}   ~12 Hz: hole position + eat claims (static ids, mover [id, x, z] triples)
-//    {t:'ping', c}                                clock sync / RTT   ->  {t:'pong', c, s}
+//    {t:'u', q, x, z, c:[id..], m:[[id,x,z]..], p:[slot..], ct}   ~12 Hz: hole position + eat claims (static ids, mover [id, x, z] triples)
+//                                                 + power-up pickup claims (slots of the pickups the hole is touching) + `ct`, the client's estimate of the SERVER
+//                                                 clock (ms) when the batch was flushed: combos use it so latency / jitter cannot break a combo (clamped, see sim.js handleClaims)
+//    {t:'ping', c, r}                             clock sync / RTT (r = the client's smoothed RTT in ms, only widens the combo clock allowance, capped)  ->  {t:'pong', c, s}
 //    {t:'bye'}                                    leave
 //
 //  server -> client
 //    {t:'lobby', room, you, players:[{id,name,slot}], startsAt, max, s, hash}   lobby state (startsAt = server ms or null)
-//    {t:'start', ...}      round layout: every hole's start position, startAt/playAt/endAt (server ms), `you`
-//    {t:'s', T, h:[[id,x,z,r,score,state]..], e:[[obj,hole]..], k:[[eater,victim,gain]..], r:[[id,x,z,score]..]}   ~10 Hz snapshot
-//    {t:'a', q, s, b:[id..]}                      ack of claim batch q: authoritative score + rejected ids
+//    {t:'start', ..., pu:[[slot,type,x,z]..]}   round layout: every hole's start position, startAt/playAt/endAt (server ms), `you`, the live pickups
+//    {t:'s', T, h:[[id,x,z,r,score,state,fxMask]..], e:[[obj,hole]..], k:[[eater,victim,gain]..], r:[[id,x,z,score,mass]..],
+//            ps:[[slot,type,x,z]..], pp:[[slot,hole,type,ms]..], px:[slot..]}   ~10 Hz snapshot. score = POINTS (ranking), r = radius (size follows the mass),
+//            fxMask = bit per active effect (bit i = PU_TYPES[i]: magnet, speed, double, shield), ps = pickups spawned, pp = collected (first valid claim wins; ms = how long the effect lasts), px = expired
+//    {t:'a', q, s, m, c, cm, fx:[ms x4], b:[id..], pb:[slot..]}   ack of claim batch q: authoritative points `s`, growth mass `m`, combo counter `c` + multiplier `cm`,
+//                                                 remaining ms of the four effects (PU_TYPES order), rejected eat ids `b`, rejected pickup slots `pb`
 //    {t:'rb', x, z}                               rubber-band: position update rejected (speed), snap back
 //    {t:'sync', eaten:[id..], ...}                after a reconnect: everything eaten so far
-//    {t:'end', rank:[...], saved}                 final ranking (server authoritative)
+//    {t:'end', rank:[{rank,id,name,slot,bot,score,eaten,kills,deaths,radius,bestCombo,bestMult}..], saved}   final ranking (server authoritative; score = points)
 //    {t:'err', code}                              version | started | full | room | gone | ratelimit | name | left (grace period over)
 //    {t:'left', you, ended}                       resume of a human that already left the arena (round over: followed by 'end')
 
-export const PROTOCOL_VERSION = 2;   // 2: handshake id = hash of the placement file bytes (was: hash over the client's float-built world)
+export const PROTOCOL_VERSION = 3;   // 2: handshake id = hash of the placement file bytes (was: hash over the client's float-built world)
+                                     // 3: scoring rules 2: combos + power-ups (score = points, new `mass`; ack / snapshot / start / resume carry the new fields)
 
 export const MP = {
   maxHumans: 12,
@@ -42,6 +48,8 @@ export const MP = {
   msgBurst: 80,              // ... with this burst
   maxClaimIds: 64,
   maxClaimMovers: 16,
+  maxPickClaims: 6,
+  botComboScale: 0.85,       // server bots build their combo counter a little slower (like Easy solo bots)
   // validation tolerances
   speedTol: 1.3,             // allowed speed = formula * this
   burstSeconds: 1.5,         // distance budget may accumulate this many seconds of speed
@@ -69,6 +77,9 @@ export function mpConfig(env) {
     removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1000, 300000),
     silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3000, 120000),
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === '1' || e.MP_TEST_CLOSE_SPAWN === 1,
+    testPowerups: e.MP_TEST_PU === '1' || e.MP_TEST_PU === 1,                 // tests only: the first pickups appear next to the humans' starts (scripts/smoke-mp.mjs)
+    testFxScale: num(e.MP_TEST_FX_SCALE, 1, 1, 10),                            // tests only: effects last this many times longer (the browser tests are slower than 6 s)
+    testStartMass: num(e.MP_TEST_START_MASS, 0, 0, 100000),                    // tests only: the first human starts with this mass (a big hole for the shield test)
   };
 }
 
@@ -90,7 +101,7 @@ export function parseClientMessage(text, cfg = MP) {
       if (typeof m.hash !== 'string' || m.hash.length > 16) return null;
       return { t: 'hello', v: m.v | 0, name: m.name, token: m.token, hash: m.hash };
     case 'u': {
-      const out = { t: 'u', q: Number.isInteger(m.q) ? m.q : 0, x: null, z: null, c: [], m: [] };
+      const out = { t: 'u', q: Number.isInteger(m.q) ? m.q : 0, x: null, z: null, c: [], m: [], p: [], ct: isNum(m.ct) ? m.ct : null };
       if (m.x !== undefined || m.z !== undefined) {
         if (!isNum(m.x) || !isNum(m.z) || Math.abs(m.x) > 1e5 || Math.abs(m.z) > 1e5) return null;
         out.x = m.x; out.z = m.z;
@@ -106,9 +117,13 @@ export function parseClientMessage(text, cfg = MP) {
           out.m.push(e);
         }
       }
+      if (m.p !== undefined) {
+        if (!Array.isArray(m.p) || m.p.length > cfg.maxPickClaims) return null;
+        for (const sl of m.p) { if (!Number.isInteger(sl) || sl < 0 || sl > 255) return null; out.p.push(sl); }
+      }
       return out;
     }
-    case 'ping': return { t: 'ping', c: isNum(m.c) ? m.c : 0 };
+    case 'ping': return { t: 'ping', c: isNum(m.c) ? m.c : 0, r: isNum(m.r) && m.r >= 0 ? Math.min(m.r, 5000) : 0 };
     case 'bye': return { t: 'bye' };
     default: return null;
   }

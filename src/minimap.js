@@ -1,6 +1,7 @@
 // Minimap: static city map pre-rendered once from the data (water, parks, roads, building mass),
 // plus live dots for every hole (sized by radius), the player highlighted, and the visible camera area.
 import * as THREE from 'three';
+import { PU_COLOR } from './powerupView.js';
 
 const BG = '#e9e1cf', WATER = '#6f98b5', PARK = '#a9c78a', WOOD = '#8fb676', ROAD = '#fbf8ef', ROADM = '#ffffff', BLD = '#c4b79c', RAIL = '#cfc7b6', SQUARE = '#f3eee2';
 
@@ -80,7 +81,7 @@ export class Minimap {
     return [camera.position.x + this._dir.x * t, camera.position.z + this._dir.z * t];
   }
 
-  draw(holes, player, camera, leader, now) {
+  draw(holes, player, camera, leader, now, pickups = null) {
     if (now - this._last < 1 / 20) return;
     this._last = now;
     if (!this.size || Math.abs(this.canvas.clientWidth * Math.min(2, window.devicePixelRatio || 1) - this.size) > 2) this.resizeToCss();
@@ -111,6 +112,11 @@ export class Minimap {
       }
       g.globalAlpha = 1;
     };
+    if (pickups) for (const p of pickups) {   // power-up dots: the token's colour with a white ring
+      const [x, y] = this._toMap(p.x, p.z), u = S / 160, r = 3.6 * u;
+      g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fillStyle = PU_COLOR[p.type]; g.fill();
+      g.lineWidth = 1.6 * u; g.strokeStyle = '#fff'; g.stroke();
+    }
     for (const h of holes) if (h.alive && h !== player) dot(h, false);
     if (player.alive) dot(player, true);
   }

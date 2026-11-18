@@ -81,6 +81,7 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
             if (s > bs) { bs = s; best = o; }
           });
           goal = best;
+          { const c = g.field && g.field.nearest(p.x, p.z, 16 + p.radius * 0.7); if (c && (!goal || Math.hypot(goal.x - p.x, goal.z - p.z) > c.d * 1.4) && Math.random() < 0.5) goal = { ...c, state: 0 }; }   // the casual player only notices close pickups (nearer than what it was heading for)
         }
         let threat = null;
         for (const o of g.holes) if (o !== p && o.alive && !o.dying && o.radius >= p.radius * C.duel.ratio * 0.92 && Math.hypot(o.x - p.x, o.z - p.z) < o.radius * 3.2 + 14) threat = o;
@@ -109,6 +110,7 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
           const s = (o.value * 0.4 + cl * 0.6) / (d + p.radius * 1.2 + 3);
           if (s > bs) { bs = s; best = o; }
         }
+        { const pu = g.autoPowerup(p, bs); if (pu) best = pu; }   // a strong player grabs power-ups on the way
         let threat = null;
         for (const o of g.holes) if (o !== p && o.alive && !o.dying && o.radius >= p.radius * C.duel.ratio * 0.92 && Math.hypot(o.x - p.x, o.z - p.z) < o.radius * 3.2 + 14) threat = o;
         if (threat) { const ax = p.x - threat.x, az = p.z - threat.z, l = Math.hypot(ax, az) || 1; p.control = { mode: 'target', x: p.x + (ax / l) * 60, z: p.z + (az / l) * 60 }; }
@@ -124,7 +126,7 @@ export async function simRound(page, { mode, day = null, strategy = 'greedy', se
     const me = g.rows.find((r) => r.isPlayer);
     const out = {
       mode, day: day || null, trace: window.__trace(),
-      final: { score: Math.round(p.score), eaten: p.eaten, radius: Math.round(p.radius * 100) / 100, rank: me.rank, kills: p.kills, deaths: p.deaths, phase: g.phase },
+      final: { score: Math.round(p.score), mass: Math.round(p.mass), bestCombo: Math.round(p.combo.best), picks: { ...p.picks }, eaten: p.eaten, radius: Math.round(p.radius * 100) / 100, rank: me.rank, kills: p.kills, deaths: p.deaths, phase: g.phase },
       killGains, botScores: g.bots.holes.map((h) => Math.round(h.score)), difficulty: window.__CFG.difficulty, botCount: g.bots.holes.length, twist: mode === 'daily' ? window.__modes.daily().twist.id : null,
     };
     if (collectValues) {

@@ -426,7 +426,7 @@ Object.assign(PROP_DEFS, {
   bin: { cls: 'bin', make: bin, fit: 0.35, h: 1.0, value: CFG.value.bin, tint: false },
   kiosk: { cls: 'kiosk', make: kiosk, fit: 1.9, h: 2.7, value: CFG.value.kiosk, tint: true },
   monument: { cls: 'monument', make: monument, fit: 4.2, h: 20, value: CFG.value.monument, tint: false },
-  freedom: { cls: 'monument', make: freedom, fit: 6.2, h: 42, value: CFG.value.freedom, tint: false },
+  freedom: { cls: 'monument', make: freedom, fit: 14.5, h: 42, value: CFG.value.freedom, tint: false },
   platformroof: { cls: 'monument', make: platformroof, fit: 11, h: 10, value: CFG.value.platformroof, tint: false },
 });
 

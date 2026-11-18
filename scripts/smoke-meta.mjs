@@ -1,5 +1,6 @@
-// Meta features smoke test (album, achievements, % meter, area banner, recap, share card, PWA, radio). PORT=5188 GPU=1 node scripts/smoke-meta.mjs
-import { chromium } from 'playwright';
+// Meta features smoke test (album, achievements, % meter, area banner, recap, share card, PWA, radio, daily streak, weekly goals, rewards). PORT=5188 GPU=1 node scripts/smoke-meta.mjs
+import { chromium, webkit, devices } from 'playwright';
+import { runRetention, retentionShots } from './lib/retention-checks.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -196,7 +197,8 @@ async function main() {
     return { scope: reg.scope, active: !!reg.active, ctl: !!navigator.serviceWorker.controller };
   });
   check('service worker registers under ?sw=1 and controls the page', swState.active && swState.ctl, JSON.stringify(swState));
-  await sleep(2500);
+  // the page hands the played map's data URLs to the worker 3 s after load (src/meta/pwa.js): wait until they are cached (real behaviour, not a fixed sleep)
+  await sp.evaluate(async () => { for (let i = 0; i < 60; i++) { try { if ((await (await caches.open('bedre-data-v1')).keys()).length >= 4) return; } catch {} await new Promise((r) => setTimeout(r, 500)); } });
   const caches1 = await sp.evaluate(async () => {
     await fetch('/api/rounds').catch(() => {});
     const names = await caches.keys(); const all = {};
@@ -204,13 +206,13 @@ async function main() {
     return all;
   });
   const keys = Object.values(caches1).flat();
-  check('SW precached shell + assets + data, never /api', keys.includes('/') && keys.some((k) => k.startsWith('/assets/') && k.endsWith('.js')) && keys.includes('/data/riga.json') && !keys.some((k) => k.startsWith('/api')), `${keys.length} entries in ${Object.keys(caches1).join(',')}`);
+  check('SW precached the shell + assets (map data is cached lazily), never /api', keys.includes('/') && keys.some((k) => k.startsWith('/assets/') && k.endsWith('.js')) && !keys.some((k) => k.startsWith('/api')), `${keys.length} entries in ${Object.keys(caches1).join(',')}`);
   await ctx.setOffline(true);
   await sp.goto(`${base}/?sw=1&autostart=1&intro=0`);
   let offlineOk = true;
   try { await sp.waitForFunction(() => document.body.dataset.ready === '1' && window.__game, null, { timeout: 90000 }); } catch { offlineOk = false; }
   const offlineInfo = offlineOk ? await sp.evaluate(() => ({ phase: window.__game.state.phase, sample: window.__game.isSample })) : null;
-  check('app shell + map data load fully offline', offlineOk && offlineInfo.phase !== 'menu' && !offlineInfo.sample, JSON.stringify(offlineInfo));
+  check('app shell + the played map\'s data (cached after the first play) load fully offline', offlineOk && offlineInfo.phase !== 'menu' && !offlineInfo.sample, JSON.stringify(offlineInfo));
   await ctx.setOffline(false);
   // update flow: a changed sw.js (new build id) installs, replaces the shell cache, and shows the reload toast
   // simulate a second deploy: the served sw.js changes (new build id)
@@ -224,6 +226,11 @@ async function main() {
   fs.writeFileSync(swFile, swOrig);
   await sp.evaluate(async () => { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); for (const k of await caches.keys()) await caches.delete(k); });
   await sp.close();
+
+  // ---- retention: daily streak, weekly goals, rewards (scripts/lib/retention-checks.mjs) --------------------------------------------
+  const renv = { chromium, webkit, devices, base, out, check, errors };
+  await runRetention(renv);
+  await retentionShots(renv);
 
   check('no console errors', errors.length === 0, errors.slice(0, 5).join(' | '));
   await browser.close();

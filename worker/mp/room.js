@@ -6,6 +6,8 @@ import { sanitizeName } from '../lib/moderation.js';
 import { insertScore } from '../lib/db.js';
 import { parseTable, inflateIfGzip } from './table.js';
 import { RoomSim } from './sim.js';
+import { fxRemain } from './powerups.js';
+import { RULES_VERSION } from '../../src/combo.js';
 
 const MAX_SOCKETS = 40;
 const MAX_SCORE = 10_000_000;
@@ -78,7 +80,11 @@ export class MpRoom {
     if (!m) return;
     if (this.sim && this.meta.phase !== 'lobby') { const pid = this.att(ws).pid; const hh = pid >= 0 && this.sim.byId.get(pid); if (hh) hh.lastMsgAt = now; }
     try {
-      if (m.t === 'ping') return send(ws, { t: 'pong', c: m.c, s: now });
+      if (m.t === 'ping') {
+        const hh = this.sim && this.meta.phase !== 'lobby' && this.sim.byId.get(this.att(ws).pid);
+        if (hh && m.r > 0) hh.rtt = hh.rtt ? hh.rtt * 0.6 + m.r * 0.4 : m.r;   // reported RTT (only widens the combo clock allowance, capped in sim.js)
+        return send(ws, { t: 'pong', c: m.c, s: now });
+      }
       if (m.t === 'hello') return await this.onHello(ws, m, now);
       const a = this.att(ws);
       if (a.pid < 0) return;
@@ -251,13 +257,14 @@ export class MpRoom {
     return {
       t: type, room: this.meta.name, you: h.id, serverTime: now, startAt: s.startAt, playAt: s.playAt, endAt: s.endAt, hash: s.table.hash,
       holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round1(o.x), z: round1(o.z) })),
+      pu: s.puList(),
     };
   }
 
   resumeMsg(h, now) {
     const m = this.startMsg(h, now, 'resume');
     m.eaten = this.sim.eatenList;
-    m.me = { x: round1(h.x), z: round1(h.z), score: Math.round(h.score), state: h.state };
+    m.me = { x: round1(h.x), z: round1(h.z), score: Math.round(h.score), mass: Math.round(h.mass * 10) / 10, state: h.state, fx: fxRemain(h, now), combo: Math.round(h.combo.count), best: Math.round(h.combo.best) };
     m.snap = this.sim.snapshot(now);        // note: consumes pending events, fine (they are inside `eaten` already)
     return m;
   }
@@ -316,7 +323,7 @@ export class MpRoom {
       if (!humans.has(r.id)) continue;
       const score = Math.min(MAX_SCORE, Math.max(0, r.score));
       try {
-        await insertScore(this.env, { mode: 'online', name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.name, createdAt: t });
+        await insertScore(this.env, { mode: 'online', name: r.name, score, eaten: r.eaten, radius: r.radius, rank: r.rank, kills: r.kills, deaths: r.deaths, roundId: this.meta.name, createdAt: t, rules: RULES_VERSION });
       } catch (e) { ok = false; console.error('score insert', e && e.message); }
     }
     return ok;
@@ -334,9 +341,11 @@ export class MpRoom {
       const rb = sim.handlePos(h, m.x, m.z, now);
       if (rb && now - (this.lastRb.get(h.id) || 0) > 250) { this.lastRb.set(h.id, now); send(ws, { t: 'rb', x: rb.x, z: rb.z }); }
     }
-    if (m.c.length || m.m.length) {
-      const res = sim.handleClaims(h, m.c, m.m, now);
-      send(ws, { t: 'a', q: m.q, s: Math.round(h.score), b: res.bad });
+    if (m.c.length || m.m.length || m.p.length) {
+      const pb = m.p.length ? sim.handlePickups(h, m.p, now) : [];   // pickups first: a pickup claimed with the batch that swallowed things counts for them
+      const res = m.c.length || m.m.length ? sim.handleClaims(h, m.c, m.m, now, m.ct) : { bad: [] };
+      const c = h.combo;
+      send(ws, { t: 'a', q: m.q, s: Math.round(h.score), m: Math.round(h.mass * 10) / 10, c: Math.round(c.count), cm: c.mult, fx: fxRemain(h, now), b: res.bad, pb });
     }
   }
 

@@ -1,0 +1,122 @@
+<!doctype html><meta charset=utf-8><title>measure</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/examples/":"/three/examples/"}}</script>
+<style>body{margin:0;background:#222;color:#ddd;font:12px monospace}#log{white-space:pre;padding:8px}</style><div id="log"></div>
+<script type="module">
+// SAMPLING, step 1 (browser): rectify every facade run + every roof of the corridor buildings from the cached reality-mesh textures into flat images (intermediate, local only: tools/.cache/sampling/rect|roof).
+// The GPU does the work: an orthographic camera looks along the wall normal, a fragment shader keeps only mesh surface within a thin slab around the wall plane whose face normal agrees with the wall
+// (so trees / cars / awnings in front are cut away instead of painted on), the node's JPEG is sampled with mipmaps. Output 10 cm/px (facades), 20 cm/px (roofs).
+import * as THREE from 'three';
+import { CFG } from '/src/config.js'; import { mapPaths } from '/tools/maps.mjs'; import { loadCity } from '/src/data.js'; import { buildTrack } from '/src/proto/tram/track.js';
+import { buildBuildings } from '/buildings-s.js'; import { loadCorridor } from '/mesh.js';
+const Q = new URLSearchParams(location.search), CELL = +(Q.get('cell') || 220), PART = (Q.get('part') || '0/1').split('/').map(Number), PLAN = Q.get('plan') || 'plan-0.4.json', ONLY = Q.get('only') ? Q.get('only').split(',').map(Number) : null, OUTN = Q.get('out') || 'meta-centrs';
+const log = (...a) => { const m = a.join(' '); document.getElementById('log').textContent += m + '\n'; console.log('[m] ' + m); };
+const save = (name, body) => fetch('/save/scratch/' + name, { method: 'POST', body }).then((r) => { if (!r.ok) throw new Error('save ' + name); });
+const p = mapPaths('centrs'); CFG.dataUrl = p.data; CFG.shapesUrl = p.shapes; CFG.groundUrl = p.ground; CFG.sightsUrl = p.sights; CFG.map = { slug: 'centrs' };
+const data = await loadCity(false); log('city', data.buildings.length);
+globalThis.__SAMP = { level: 0, collect: true, params: new Map() };
+const B = buildBuildings(data); const items = B.items; log('items', items.length);
+const man = await (await fetch('/sc/' + PLAN)).json();
+let sel = items.filter((it) => it.edges && !((it.h < 5.5) && !it.name) && !(it.t === 'aux' && it.h < 8)); if (ONLY) sel = sel.filter((it) => ONLY.includes(it.id)); log('selected', sel.length);
+// ---- shader: keep surface in the slab with a matching face normal
+const U = { uN: { value: new THREE.Vector3(0, 0, 1) }, uP: { value: new THREE.Vector3() }, uLo: { value: -0.7 }, uHi: { value: 0.45 }, uMinDot: { value: 0.55 }, uMode: { value: 0 }, uYmin: { value: -1e9 }, uDsc: { value: 1.15 } };
+const mkMat = (tex) => new THREE.ShaderMaterial({ uniforms: { ...U, map: { value: tex } }, side: THREE.DoubleSide, glslVersion: THREE.GLSL3,
+  vertexShader: `out vec3 vW; out vec2 vUv; void main(){ vW = position; vUv = uv; gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `precision highp float; in vec3 vW; in vec2 vUv; uniform sampler2D map; uniform vec3 uN, uP; uniform float uLo, uHi, uMinDot, uMode, uYmin, uDsc; out vec4 o;
+  void main(){ vec4 tc = texture(map, vUv); vec3 fn = normalize(cross(dFdx(vW), dFdy(vW))); float nd = abs(dot(fn, uN)); float d = dot(vW - uP, uN); if (nd < uMinDot || d < uLo || d > uHi || vW.y < uYmin) discard;
+    if (uMode > 0.5) { o = vec4(clamp((d - uLo) / (uHi - uLo), 0.0, 1.0), 0.0, 0.0, 1.0); return; }
+    o = vec4(tc.rgb, 1.0); }` });
+const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: false }); renderer.setSize(64, 64); const scene = new THREE.Scene(); renderer.setClearColor(0x000000, 0);
+let nodes = [];
+
+// ---- CPU texture lookup (512 px wide copies, lazily) : the colour of the pavement in front of each facade = the illumination reference (sun / shade / colour cast) used to turn baked light into albedo-like wall colours
+const cpuTex = (nd) => { if (nd._c) return nd._c; if (!nd.tex) return (nd._c = null); const im = nd.tex.image, k = Math.min(1, 512 / im.width), w = Math.max(1, Math.round(im.width * k)), h = Math.max(1, Math.round(im.height * k)); const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h); return (nd._c = { w, h, d: x.getImageData(0, 0, w, h).data }); };
+// ---- CPU: triangles near a run -> ground height, wall-plane offset, coverage
+function stripStats(ax, az, tx, tz, nx, nz, L, H, gGuess) {
+  const hist = new Float32Array(61); const gy = []; let tot = 0, area = 0; const x0 = Math.min(ax, ax + tx * L) - 5, x1 = Math.max(ax, ax + tx * L) + 5, z0 = Math.min(az, az + tz * L) - 5, z1 = Math.max(az, az + tz * L) + 5;
+  const rows = [];
+  for (const nd of nodes) { const bb = nd.bbox; if (bb.max.x < x0 || bb.min.x > x1 || bb.max.z < z0 || bb.min.z > z1) continue; rows.push(nd); }
+  const P = (nd) => nd.pos;
+  // pass 1: ground = low percentile of upward-facing triangle centroids in the strip 1..4 m out
+  const gl = [];
+  for (const nd of rows) { const A = P(nd), n = A.length / 9; for (let i = 0; i < n; i++) { const o = i * 9;
+    const cx = (A[o] + A[o + 3] + A[o + 6]) / 3, cz = (A[o + 2] + A[o + 5] + A[o + 8]) / 3; const s = (cx - ax) * tx + (cz - az) * tz, d = (cx - ax) * nx + (cz - az) * nz; if (s < -1 || s > L + 1 || d < 0.8 || d > 4.5) continue;
+    const ux = A[o + 3] - A[o], uy = A[o + 4] - A[o + 1], uz = A[o + 5] - A[o + 2], vx = A[o + 6] - A[o], vy = A[o + 7] - A[o + 1], vz = A[o + 8] - A[o + 2]; const cxn = uy * vz - uz * vy, cyn = uz * vx - ux * vz, czn = ux * vy - uy * vx; const l = Math.hypot(cxn, cyn, czn) || 1;
+    const gyv = (A[o + 1] + A[o + 4] + A[o + 7]) / 3; if (Math.abs(cyn) / l > 0.85 && gyv > -3.5 && gyv < 3.5) gl.push(gyv); } }
+  gl.sort((a, b) => a - b); const g = gl.length > 20 ? gl[Math.floor(gl.length * 0.12)] : gGuess;
+  const pr = [], pg = [], pb = [];
+  for (const nd of rows) { const A = P(nd), n = A.length / 9, T = cpuTex(nd); if (!T) continue; for (let i = 0; i < n; i++) { const o = i * 9; const cy = (A[o + 1] + A[o + 4] + A[o + 7]) / 3; if (cy < g - 0.5 || cy > g + 0.6) continue;
+    const cx = (A[o] + A[o + 3] + A[o + 6]) / 3, cz = (A[o + 2] + A[o + 5] + A[o + 8]) / 3; const s = (cx - ax) * tx + (cz - az) * tz, d = (cx - ax) * nx + (cz - az) * nz; if (s < 0 || s > L || d < 0.8 || d > 4.5) continue;
+    const ux = A[o + 3] - A[o], uy = A[o + 4] - A[o + 1], uz = A[o + 5] - A[o + 2], vx = A[o + 6] - A[o], vy = A[o + 7] - A[o + 1], vz = A[o + 8] - A[o + 2]; const cyn = uz * vx - ux * vz, l = Math.hypot(uy * vz - uz * vy, cyn, ux * vy - uy * vx) || 1; if (Math.abs(cyn) / l < 0.85) continue;
+    const U = nd.uv, u = (U[i * 6] + U[i * 6 + 2] + U[i * 6 + 4]) / 3, v = (U[i * 6 + 1] + U[i * 6 + 3] + U[i * 6 + 5]) / 3; const px = Math.min(T.w - 1, Math.max(0, Math.floor(u * T.w))), py = Math.min(T.h - 1, Math.max(0, Math.floor(v * T.h))); const q = (py * T.w + px) * 4; pr.push(T.d[q]); pg.push(T.d[q + 1]); pb.push(T.d[q + 2]); } }
+  const qn = (a, q) => { a.sort((x, y) => x - y); return a.length ? a[Math.min(a.length - 1, Math.floor(a.length * q))] : null; }; const lum = pr.map((v, i) => v + pg[i] + pb[i]); const ord = lum.map((v, i) => i).sort((x, y) => lum[x] - lum[y]); const hiIdx = ord.slice(Math.floor(ord.length * 0.55)); // brighter half of the pavement texels = the sunlit (or at least the least shaded) reference
+  const pave = pr.length > 25 ? [qn(pr.slice(), 0.5), qn(pg.slice(), 0.5), qn(pb.slice(), 0.5)] : null, paveHi = pr.length > 25 ? [qn(hiIdx.map((i) => pr[i]), 0.5), qn(hiIdx.map((i) => pg[i]), 0.5), qn(hiIdx.map((i) => pb[i]), 0.5)] : null;
+  // pass 2: wall-like triangles (normal horizontal, facing out) above g+3 : histogram of the offset d (0.1 m bins over -3..+3)
+  let cover = 0, wallTri = 0;
+  for (const nd of rows) { const A = P(nd), n = A.length / 9; for (let i = 0; i < n; i++) { const o = i * 9;
+    const cy = (A[o + 1] + A[o + 4] + A[o + 7]) / 3; if (cy < g + 3 || cy > g + H - 0.3) continue;
+    const cx = (A[o] + A[o + 3] + A[o + 6]) / 3, cz = (A[o + 2] + A[o + 5] + A[o + 8]) / 3; const s = (cx - ax) * tx + (cz - az) * tz, d = (cx - ax) * nx + (cz - az) * nz; if (s < 0 || s > L || d < -3 || d > 3) continue;
+    const ux = A[o + 3] - A[o], uy = A[o + 4] - A[o + 1], uz = A[o + 5] - A[o + 2], vx = A[o + 6] - A[o], vy = A[o + 7] - A[o + 1], vz = A[o + 8] - A[o + 2]; const cxn = uy * vz - uz * vy, cyn = uz * vx - ux * vz, czn = ux * vy - uy * vx; const l = Math.hypot(cxn, cyn, czn) || 1;
+    if (Math.abs(cyn) / l > 0.35) continue; const dn = Math.abs((cxn * nx + czn * nz) / l); if (dn < 0.7) continue;
+    const a = l * 0.5; hist[Math.max(0, Math.min(60, Math.round((d + 3) * 10)))] += a; tot += a; wallTri++; } }
+  // peak of the 0.3 m smoothed histogram
+  let best = -1, bi = 30; for (let i = 0; i <= 60; i++) { let sum = 0; for (let k = -2; k <= 2; k++) sum += hist[Math.max(0, Math.min(60, i + k))]; if (sum > best) { best = sum; bi = i; } }
+  const d0 = bi / 10 - 3; const facade = Math.max(1, L * Math.max(1, H - 4)); return { pave, paveHi, nPave: pr.length, g, d0, cover: best / facade, share: tot ? best / tot : 0, nGround: gl.length, wallTri };
+}
+// ---- render one run
+function renderRun(it, run, ri, st) {
+  const ax = it.x + run.a[0], az = it.z + run.a[1], bx = it.x + run.b[0], bz = it.z + run.b[1], L0 = Math.hypot(bx - ax, bz - az), tx = (bx - ax) / L0, tz = (bz - az) / L0, nx = run.nx, nz = run.nz;
+  const L = run.len; const H = it.h + 1.2; const PX = 0.1; let w = Math.round(L / PX), h = Math.round((H + 1.0) / PX); let sc = 1; if (w > 3000) { sc = 3000 / w; w = 3000; }
+  const rt = new THREE.WebGLRenderTarget(w, h, { colorSpace: THREE.NoColorSpace, depthBuffer: true, samples: 0 }); const out = {};
+  const cam = new THREE.OrthographicCamera(0, -L0, H - 0.5 + 0.5, -(0.5), 0.1, 80); // camera x = -u (looking from outside), left=0,right=-L: column <-> u increasing
+  const px0 = ax + nx * st.d0 + nx * 30, pz0 = az + nz * st.d0 + nz * 30; cam.position.set(px0, st.g, pz0); cam.up.set(0, 1, 0); cam.lookAt(px0 - nx, st.g, pz0 - nz); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+  // the run's polyline may bend slightly: u is measured along the chord (L0); stretch the image to the polyline length L so columns stay metric
+  cam.right = -L0; cam.updateProjectionMatrix();
+  U.uN.value.set(nx, 0, nz); U.uP.value.set(ax + nx * st.d0, st.g, az + nz * st.d0); U.uLo.value = -0.75; U.uHi.value = 0.5; U.uMinDot.value = 0.6; U.uYmin.value = -1e9;
+  for (const mode of [0]) {
+    U.uMode.value = mode; renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, cam);
+    const buf = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf); out[mode] = buf;
+  }
+  renderer.setRenderTarget(null); rt.dispose(); return { w, h, sc, bufs: out };
+}
+function toPng(buf, w, h) { // rows bottom-to-top -> top-to-bottom
+  const flip = new Uint8ClampedArray(w * h * 4); for (let y = 0; y < h; y++) flip.set(buf.subarray((h - 1 - y) * w * 4, (h - y) * w * 4), y * w * 4);
+  const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').putImageData(new ImageData(flip, w, h), 0, 0); return new Promise((r) => c.toBlob(r, 'image/png'));
+}
+function renderRoof(it, g) {
+  const xs = it.ring.map((p) => p[0]), zs = it.ring.map((p) => p[1]); const x0 = Math.min(...xs) - 1, x1 = Math.max(...xs) + 1, z0 = Math.min(...zs) - 1, z1 = Math.max(...zs) + 1; const PX = 0.2; const w = Math.min(1500, Math.ceil((x1 - x0) / PX)), h = Math.min(1500, Math.ceil((z1 - z0) / PX));
+  const rt = new THREE.WebGLRenderTarget(w, h, { colorSpace: THREE.NoColorSpace, depthBuffer: true, samples: 0 }); const cam = new THREE.OrthographicCamera(0, x1 - x0, 0, -(z1 - z0), 0.1, 400);
+  // view space: x = east, y = north (-z); camera at the NW corner above the roof, looking down
+  cam.position.set(x0, g + it.h + 60, z0); cam.up.set(0, 0, -1); cam.lookAt(x0, 0, z0); cam.updateMatrixWorld(); cam.left = 0; cam.right = x1 - x0; cam.top = 0; cam.bottom = -(z1 - z0); cam.updateProjectionMatrix();
+  U.uN.value.set(0, 1, 0); U.uP.value.set(0, 0, 0); U.uLo.value = -1e9; U.uHi.value = 1e9; U.uMinDot.value = 0.33; U.uMode.value = 0; U.uYmin.value = g + Math.max(2.5, 0.5 * it.h);
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear(); renderer.render(scene, cam); const buf = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf); renderer.setRenderTarget(null); rt.dispose();
+  return { w, h, x0, z0, PX, buf };
+}
+
+// ---- main: group by CELL, stream the mesh nodes of each group
+const groups = new Map(); for (const it of sel) { const k = Math.floor(it.x / CELL) + ',' + Math.floor(it.z / CELL); (groups.get(k) || groups.set(k, []).get(k)).push(it); }
+const keys = [...groups.keys()].sort().filter((_, i) => i % PART[1] === PART[0]); log('groups', keys.length);
+const meta = { createdBy: 'tools/sampling/measure2.html', plan: PLAN, buildings: [] }; let nRun = 0, nRoof = 0, gi = 0; const tStart = performance.now(); let lastNodes = 0;
+for (const key of keys) {
+  const its = groups.get(key); let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const it of its) for (const [x, z] of it.ring) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  const M = 25; const mesh = await loadCorridor('x', { man, base: '/mesh/', makeMaterial: (tex) => mkMat(tex), nodeFilter: (m) => m.bb && !(m.bb[2] < x0 - M || m.bb[0] > x1 + M || m.bb[3] < z0 - M || m.bb[1] > z1 + M) });
+  nodes = mesh.nodes; scene.add(mesh.group); lastNodes = nodes.length;
+  for (const it of its) {
+    const rec = { id: it.id, x: it.x, z: it.z, h: it.h, t: it.t, name: it.name || null, hero: !!it.hero, area: it.area, ring: it.ring, edges: it.edges.map((e) => [e.k, e.x0, e.z0, e.x1, e.z1, e.len, e.y0, e.top ?? null]), runs: [] }; const gs = [];
+    for (let ri = 0; ri < it.runs.length; ri++) {
+      const run = it.runs[ri]; const R = { i: ri, len: run.len, chord: run.chord, a: run.a, b: run.b, n: [run.nx, run.nz], edges: run.edges.map((ei) => it.edges[ei].k) };
+      if (run.len >= 2.4) {
+        const ax = it.x + run.a[0], az = it.z + run.a[1], bx = it.x + run.b[0], bz = it.z + run.b[1], L0 = Math.hypot(bx - ax, bz - az) || 1;
+        const st = stripStats(ax, az, (bx - ax) / L0, (bz - az) / L0, run.nx, run.nz, L0, it.h + 1, 0); Object.assign(R, { g: st.g, d0: st.d0, cover: st.cover, pave: st.pave, paveHi: st.paveHi, nPave: st.nPave, share: st.share, nGround: st.nGround, wallTri: st.wallTri });
+        if (st.wallTri > 5 && st.cover > 0.04) { const r = renderRun(it, run, ri, st); R.w = r.w; R.h = r.h; R.px = run.len / r.w; R.H = it.h + 1.2; await save(`rect/${it.id}_${ri}.png`, await toPng(r.bufs[0], r.w, r.h)); nRun++; }
+        if (st.nGround > 20) gs.push(st.g);
+      }
+      rec.runs.push(R);
+    }
+    gs.sort((a, b) => a - b); rec.g = gs.length ? gs[gs.length >> 1] : 0; const rr = renderRoof(it, rec.g); rec.roof = { w: rr.w, h: rr.h, x0: rr.x0, z0: rr.z0, px: rr.PX }; await save(`roof/${it.id}.png`, await toPng(rr.buf, rr.w, rr.h)); nRoof++;
+    meta.buildings.push(rec);
+  }
+  scene.remove(mesh.group); mesh.dispose(); nodes = []; gi++; if (gi % 5 === 0) log('group', gi, '/', keys.length, 'buildings', meta.buildings.length, ((performance.now() - tStart) / 1000).toFixed(0), 's', 'nodes in last group', lastNodes);
+}
+meta.stats = { runsRendered: nRun, roofs: nRoof, seconds: (performance.now() - tStart) / 1000 };
+await save(OUTN + '.json', JSON.stringify(meta)); log('FINISHED', JSON.stringify(meta.stats)); document.title = 'done';
+</script>

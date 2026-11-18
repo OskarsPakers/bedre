@@ -113,14 +113,14 @@ export class AudioEngine {
 
   // ---- sounds ---------------------------------------------------------------------------------------
   /** small swallow: people / props. size = fit radius in metres */
-  pop(size = 0.4, vol = 1) {
+  pop(size = 0.4, vol = 1, pitch = 1) {
     this.stats.triggered++;
     if (!this.running) return;
     if (this.budget.pop < 1 || !this._claim(0.3)) { this.stats.dropped++; return; }
     this.budget.pop--;
     this._guard_play(() => {
       const t = this.ctx.currentTime;
-      const f0 = clamp(820 * Math.pow(0.4 / Math.max(0.3, size), 0.5) * rnd(0.93, 1.08), 130, 1200);
+      const f0 = clamp(820 * Math.pow(0.4 / Math.max(0.3, size), 0.5) * rnd(0.93, 1.08) * pitch, 130, 2400);
       const v = 0.2 * vol * clamp(0.6 + size * 0.2, 0.6, 1.3);
       this._osc('sine', f0, f0 * 0.42, t, 0.13 + Math.min(0.12, size * 0.02), v);
       this._osc('triangle', f0 * 2, f0 * 0.9, t, 0.06, v * 0.35);
@@ -129,7 +129,7 @@ export class AudioEngine {
   }
 
   /** building: whomp + rumble + debris clatter. fit radius, height */
-  whomp(fit = 8, h = 12, vol = 1) {
+  whomp(fit = 8, h = 12, vol = 1, pitch = 1) {
     this.stats.triggered++;
     if (!this.running) return;
     if (this.budget.big < 1 || !this._claim(1.2)) { this.stats.dropped++; return; }
@@ -138,7 +138,7 @@ export class AudioEngine {
       const t = this.ctx.currentTime;
       const k = clamp(fit / 18, 0.25, 1.6);
       const v = 0.42 * vol * clamp(0.5 + k * 0.5, 0.5, 1.2);
-      const f = 95 / Math.pow(k, 0.35);
+      const f = 95 / Math.pow(k, 0.35) * Math.sqrt(pitch);
       this._osc('sine', f * rnd(0.95, 1.05), f * 0.38, t, 0.55 + k * 0.3, v);
       this._osc('triangle', f * 1.9, f * 0.7, t, 0.3, v * 0.35);
       this._noise(t, 0.7 + k * 0.5, 'lowpass', 1100, 140, 0.8, v * 0.9, true, 0.02);
@@ -277,9 +277,55 @@ export class AudioEngine {
       vol = clamp(1 - d / (40 + p.radius * 14), 0, 1) * 0.5;
       if (vol < 0.05) return;
     }
-    if (o.isBuilding) this.whomp(o.fit, o.h, vol);
-    else if (o.cls === 'monument') { this.whomp(o.fit * 2.2, o.h, vol); this.chime(3); }
-    else this.pop(o.fit, vol * (o.cls === 'person' ? 0.9 : 1));
+    // COMBOS: the sounds climb with the combo counter (up to an octave at 70)
+    const pitch = hole.isPlayer && hole.combo ? Math.pow(2, Math.min(12, hole.combo.count * 0.17) / 12) : 1;
+    if (o.isBuilding) this.whomp(o.fit, o.h, vol, pitch);
+    else if (o.cls === 'monument') { this.whomp(o.fit * 2.2, o.h, vol, pitch); this.chime(3); }
+    else this.pop(o.fit, vol * (o.cls === 'person' ? 0.9 : 1), pitch);
+  }
+
+  /** The combo multiplier stepped up: a short bright two-note pop, higher for higher steps. */
+  comboStep(mult = 1.2) {
+    this.stats.triggered++;
+    if (!this.running) return;
+    this._guard_play(() => {
+      const t = this.ctx.currentTime, base = 659.25 * Math.pow(2, clamp((mult - 1.2) / 1.8, 0, 1) * 7 / 12);
+      this._osc('triangle', base, base, t, 0.22, 0.14, null, 0.004);
+      this._osc('triangle', base * 1.5, base * 1.5, t + 0.07, 0.3, 0.13, null, 0.004);
+      this._osc('sine', base * 3, base * 3, t + 0.07, 0.18, 0.04, null, 0.004);
+    });
+  }
+
+  /** The combo ran out: a soft falling blip. */
+  comboLost() {
+    this.stats.triggered++;
+    if (!this.running) return;
+    this._guard_play(() => {
+      const t = this.ctx.currentTime;
+      this._osc('sine', 420, 190, t, 0.22, 0.09, null, 0.005);
+    });
+  }
+
+  /** Power-up collected: one sound per type. */
+  powerup(type) {
+    this.stats.triggered++;
+    if (!this.running) return;
+    this._guard_play(() => {
+      const t = this.ctx.currentTime;
+      if (type === 'magnet') {           // rising "whoop" with a tail
+        this._osc('sine', 260, 980, t, 0.32, 0.2, null, 0.01);
+        this._osc('triangle', 130, 490, t, 0.32, 0.12, null, 0.01);
+        this._osc('sine', 1400, 700, t + 0.28, 0.25, 0.08, null, 0.01);
+      } else if (type === 'speed') {     // quick ascending ticks + a whoosh
+        [0, 4, 7, 12].forEach((st, i) => this._osc('square', 440 * Math.pow(2, st / 12), 440 * Math.pow(2, st / 12), t + i * 0.045, 0.06, 0.05, null, 0.002));
+        this._noise(t, 0.4, 'bandpass', 600, 3800, 1.4, 0.16, false, 0.03);
+      } else if (type === 'double') {    // two bright bells
+        [880, 1318.5].forEach((f, i) => { this._osc('sine', f, f, t + i * 0.11, 0.7, 0.16, null, 0.004); this._osc('sine', f * 2.76, f * 2.76, t + i * 0.11, 0.35, 0.04, null, 0.004); });
+      } else {                           // shield: a soft shimmering chord
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => { this._osc('triangle', f, f * 1.004, t + i * 0.05, 0.9, 0.1, null, 0.02); });
+        this._noise(t, 0.5, 'highpass', 5000, 7000, 0.7, 0.03, false, 0.1);
+      }
+    });
   }
 
   // ---- ambient bed + hum ------------------------------------------------------------------------------
@@ -377,6 +423,9 @@ export function mountMuteButton(audio) {
 export function wireAudioEvents(audio) {
   bus.on('swallow', (o, hole) => audio.onSwallow(o, hole));
   bus.on('levelUp', ({ level }) => audio.chime(level));
+  bus.on('combo', (e) => { if (e && e.step && e.hole && e.hole.isPlayer) audio.comboStep(e.mult); });
+  bus.on('comboLost', (e) => { if (e && e.count >= 5) audio.comboLost(); });
+  bus.on('powerup', (e) => { if (e && e.hole && e.hole.isPlayer) audio.powerup(e.type); });
   bus.on('holeEaten', (ev) => audio.holeEaten(ev && ev.size));
   bus.on('playerEaten', () => audio.playerEaten());
   bus.on('respawn', () => audio.respawn());

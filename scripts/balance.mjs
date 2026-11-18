@@ -5,6 +5,8 @@
 //   - player-spawn density: edible objects within 60 m of the player spawn over 5 rounds
 // Usage: PORT=5183 GPU=1 node scripts/balance.mjs [--runs 3] [--greedy 2] [--spawn-only] [--no-build]
 //        [--set bots.difficulty=0.9,bots.speedMax=0.95]   (runtime CFG overrides)
+//   BAL_Q=pu=0   extra URL query for every page (pu=0: no power-ups: the pacing comparison against the pre-combo numbers; puseed=N: a fixed pickup layout)
+//   Scoring rules 2: `score` = points (combos x power-ups), `mass` = the growth value that drives the radius; the greedy lines print both, the final radius and the pickups.
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
@@ -46,7 +48,7 @@ const page = await (await browser.newContext({ viewport: { width: 800, height: 5
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 const G = (fn, a) => page.evaluate(fn, a);
 const open = async (q) => {
-  await page.goto(`${base}/?intro=0&${q}${process.env.MAP ? '&map=' + process.env.MAP : ''}`); // MAP=<slug>: balance a district
+  await page.goto(`${base}/?intro=0&${q}${process.env.BAL_Q ? '&' + process.env.BAL_Q : ''}${process.env.MAP ? '&map=' + process.env.MAP : ''}`); // MAP=<slug>: balance a district
   await page.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 120000 });
   // the HUD is irrelevant for balance and may be mid-edit by someone else: keep the sim independent of it
   await G(() => { const g = window.__G; g._hudSync = () => {}; g._overlay = () => {}; g._flushPopup = () => {}; });
@@ -96,10 +98,11 @@ for (let i = 0; i < GREEDY; i++) {
         late = { r: +p.radius.toFixed(1), edibleN: n, edibleValue: Math.round(v), within1_5xN: n2, within1_5xValue: Math.round(v2) };
       }
     }
-    return { m, late, r: +g.player.radius.toFixed(1) };
+    const pk = g.player.picks;
+    return { m, late, r: +g.player.radius.toFixed(1), mass: Math.round(g.player.mass), combo: Math.round(g.player.combo.best), picks: `${pk.magnet}/${pk.speed}/${pk.double}/${pk.shield}` };
   });
   greedy.push(gr.m[4]);
-  console.log('greedy per-minute:', gr.m.join(' '), '| final r', gr.r);
+  console.log('greedy per-minute:', gr.m.join(' '), '| final r', gr.r, '| mass', gr.mass, '| best combo', gr.combo, '| picks magnet/speed/double/shield', gr.picks);
   console.log('late round (t=240 s, 300 m around the player):', JSON.stringify(gr.late));
 }
 if (GREEDY) console.log('greedy autoplayer (no bots):', greedy.join(' '));

@@ -80,10 +80,10 @@ body.mode-free #card-time, body.mode-free #board { display: none !important; }
 #meta-pct b { color: var(--ink); font-variant-numeric: tabular-nums; } #meta-pct b.me { color: var(--terra2); }
 #meta-pct .bar2 { height: 5px; border-radius: 4px; background: var(--cream2); margin-top: 3px; position: relative; overflow: hidden; }
 #meta-pct .bar2 i { position: absolute; left: 0; top: 0; bottom: 0; background: #8aa0b4; display: block; } #meta-pct .bar2 i.me { background: var(--terra); }
-#meta-area { position: fixed; left: 50%; top: 150px; transform: translateX(-50%); z-index: 20; pointer-events: none; text-align: center; color: #fff; text-shadow: 0 2px 0 rgba(43,34,24,.5), 0 0 14px rgba(0,0,0,.45); opacity: 0; white-space: nowrap; }
-#meta-area.show { animation: metaarea 2.8s ease-out forwards; }
-#meta-area .an { display: inline; font-size: 22px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
-#meta-area .as { display: inline; margin-left: 10px; font-size: 12px; font-weight: 700; letter-spacing: .1em; opacity: .92; }
+#meta-area { position: fixed; left: 50%; top: 118px; transform: translateX(-50%); z-index: 20; pointer-events: none; text-align: center; color: #fff; text-shadow: 0 2px 0 rgba(43,34,24,.5), 0 0 14px rgba(0,0,0,.45); opacity: 0; white-space: nowrap; }
+#meta-area.show { animation: metaarea 2.5s ease-out forwards; }
+#meta-area .an { display: inline; font-size: 16px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+#meta-area .as { display: inline; margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .1em; opacity: .92; }
 @keyframes metaarea { 0% { opacity: 0; transform: translate(-50%, -8px); } 12% { opacity: 1; transform: translate(-50%, 0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -4px); } }
 #meta-toasts { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(440px, calc(100vw - 24px)); }
 body:has(#results:not(.hidden)) #meta-toasts { display: none; }
@@ -94,8 +94,8 @@ body:has(#results:not(.hidden)) #daily-intro, body:has(#start:not(.hidden)) #dai
 .pop { position: absolute; transform: translate(-50%, -50%); font-weight: 800; font-size: 20px; color: #fff; text-shadow: 0 2px 0 rgba(60, 30, 15, .55), 0 0 8px rgba(0,0,0,.35); animation: rise .9s ease-out forwards; white-space: nowrap; }
 .pop.big { font-size: 30px; color: #ffe08a; }
 @keyframes rise { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.7); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -190%) scale(1); } }
-.lab { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); max-width: calc(100vw - 24px); overflow: hidden; text-overflow: ellipsis; background: var(--cream); padding: 8px 18px 8px 36px; border-radius: 999px; font-weight: 700; font-size: 17px; box-shadow: var(--shadow); animation: lab 2.2s ease-out forwards; white-space: nowrap; }
-.lab::before { content: ""; position: absolute; left: 14px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--verd); }
+.lab { position: absolute; left: 50%; top: 76px; transform: translateX(-50%); max-width: calc(100vw - 24px); overflow: hidden; text-overflow: ellipsis; background: var(--cream); padding: 5px 14px 5px 30px; border-radius: 999px; font-weight: 700; font-size: 14px; box-shadow: var(--shadow); animation: lab 2.5s ease-out forwards; white-space: nowrap; }
+.lab::before { content: ""; position: absolute; left: 12px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--verd); }
 .lab.lm::before { background: #d9a52f; }
 .lab i { font-style: normal; color: var(--verd); margin-left: 6px; }
 @keyframes lab { 0% { opacity: 0; transform: translate(-50%, 14px); } 10% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -10px); } }
@@ -267,8 +267,9 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
 #meta-recap .rc-leg { display: flex; gap: 12px; font-size: 11px; font-weight: 700; color: var(--ink2); margin-top: 3px; }
 .rc-leg i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 #meta-recap .rc-big { font-size: 15px; font-weight: 800; margin: 8px 0 4px; color: var(--slate); text-align: left; }
-#meta-recap .rc-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0 8px; }
-.rc-chip { background: #fff; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 2px var(--cream2); }
+.rc-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 4px 0 8px; }
+#meta-recap .rc-chips { justify-content: flex-start; }
+.rc-chip { max-width: 100%; background: #fff; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 2px var(--cream2); }
 .rc-chip b { color: var(--terra2); }
 #meta-recap .rc-sec { font-size: 12px; font-weight: 800; color: var(--ink2); margin-top: 8px; text-align: left; }
 .rc-empty { margin: 24px 8px; color: var(--ink2); font-weight: 600; font-size: 14px; }
@@ -397,6 +398,7 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
 /* ================= layering + overlap guards (QA2-02..08, QA1-01..04) ================= */
 /* stacking: world-space name tags < HUD cards < panels; round buttons (z 40) stay above everything and step aside via body.hud-guard */
 #tags { z-index: 1; }
+#popups { z-index: 1; }   /* DOM order puts it after #tags: the "+N" popups sit IN FRONT of the name tags (they used to hide behind them at high combos) */
 #hud { z-index: 2; }
 .panel { z-index: 10; }
 .tag { transition: opacity .12s; }
@@ -411,3 +413,56 @@ body.hud-guard #hud-btns > button, body.hud-guard #mp-net { visibility: hidden !
 @media (min-width: 901px) and (min-height: 521px) { #meta-pct { width: auto; min-width: 168px; white-space: nowrap; } }
 .btn.alt.done { background: var(--verd); box-shadow: 0 4px 0 #46705f; }
 .r-share .btn.alt { min-width: 44px; }
+
+/* ================= COMBOS + POWER-UPS (src/hud.js _buildFx, src/powerupView.js) ================= */
+/* One stack that follows the player's hole (above its name tag): pickup toast, combo chip, timed badges. World-anchored like a name tag, never on a HUD card. */
+#fx-hud { position: fixed; left: 0; top: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; pointer-events: none; will-change: transform; }
+#fx-hud[hidden], #fx-hud [hidden] { display: none !important; }
+.combo-chip { --c: #fff; --p: 100; display: flex; align-items: center; gap: 7px; height: 32px; padding: 3px 12px 3px 3px; border-radius: 999px; background: rgba(36, 29, 24, .86); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.35); transition: opacity .7s, filter .7s; }
+.combo-chip .cc-ring { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255,255,255,.2) 0); position: relative; flex: none; }
+.combo-chip .cc-ring::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: #2a221c; }
+.combo-chip .cc-n { position: relative; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.combo-chip .cc-x { font-size: 19px; font-weight: 900; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; text-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent); }
+.combo-chip .cc-l { font-size: 10px; font-weight: 800; color: #f5b82e; margin-left: -2px; }
+.combo-chip .cc-l:empty { display: none; }
+.combo-chip.dbl { box-shadow: 0 0 0 2px #f5b82e, 0 2px 10px rgba(0,0,0,.35); }
+.combo-chip.step { animation: ccstep .45s ease-out; }
+@keyframes ccstep { 0% { transform: scale(1); } 30% { transform: scale(1.28); filter: brightness(1.5); } 100% { transform: scale(1); } }
+.combo-chip.lost { opacity: 0; filter: grayscale(1) brightness(.8); }
+.fx-badges { display: flex; gap: 5px; }
+.fx-badge { --c: #fff; position: relative; display: flex; align-items: center; gap: 4px; height: 24px; padding: 2px 8px 2px 3px; border-radius: 999px; background: rgba(36, 29, 24, .86); overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.fx-badge img { width: 18px; height: 18px; display: block; }
+.fx-badge b { color: #fff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 10px; text-align: center; }
+.fx-badge i { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c); transform-origin: left; }
+.fx-badge.low { animation: fxlow .5s steps(2) infinite; }
+@keyframes fxlow { 50% { opacity: .55; } }
+.fx-toast { --c: #fff; position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: max-content; white-space: nowrap; display: flex; align-items: center; gap: 8px; max-width: min(280px, calc(100vw - 24px)); padding: 5px 12px 5px 5px; border-radius: 14px; background: rgba(246, 239, 223, .96); box-shadow: 0 3px 12px rgba(0,0,0,.3), 0 0 0 2px var(--c); }
+.fx-toast img { width: 30px; height: 30px; flex: none; }
+.fx-toast b { display: block; font-size: 14px; font-weight: 800; line-height: 1.15; }
+.fx-toast span { display: block; font-size: 11px; font-weight: 700; color: var(--ink2); line-height: 1.2; }
+.fx-toast.show { animation: fxtoast 2.3s ease-out forwards; }
+@keyframes fxtoast { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.9); } 8% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -6px); } }
+/* "+N" popups with a multiplier (combo / double): warmer, a touch bigger */
+.pop.hot { color: #ffb347; text-shadow: 0 2px 0 rgba(120, 40, 10, .7), 0 0 10px rgba(255, 120, 30, .6); }
+.pop.big.hot { color: #ff9340; }
+@media (max-width: 900px), (max-height: 520px) {
+  .combo-chip { height: 28px; } .combo-chip .cc-x { font-size: 17px; }
+  .fx-toast span { display: none; } .fx-toast { padding: 3px 10px 3px 4px; } .fx-toast img { width: 24px; height: 24px; } .fx-toast b { font-size: 13px; }
+}
+/* the compact leaderboard chip belongs to the phone layout only (mobile.css turns it on under body.tui) */
+#board-chip { display: none; }
+
+/* Top scores: Archive toggle (older scoring rules) */
+.ts-modes { position: relative; }
+.ts-arch { flex: 0 0 auto; margin-left: auto; padding: 4px 10px; border-radius: 999px; border: 2px solid var(--cream2); background: transparent; font: inherit; font-size: 12px; font-weight: 800; color: var(--ink2); cursor: pointer; }
+.ts-arch[aria-pressed="true"] { background: var(--slate); border-color: var(--slate); color: #fff; }
+.ts-arcnote { margin: 2px 0 4px; }
+/* results stats: two equal columns that may shrink (long Latvian labels were pushing the right column out of the card on phones) */
+.stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.stats li span { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats li b { flex: 0 0 auto; max-width: 62%; }
+
+/* compact layouts: the pickup is announced by its badge (name next to the icon for ~2 s), not by a floating toast */
+.fx-badge .nm { display: none; font-size: 12px; font-weight: 800; color: #fff; }
+.fx-badge.new .nm { display: inline; }
+.fx-badge.new { box-shadow: 0 0 0 2px var(--c), 0 2px 6px rgba(0,0,0,.3); }

@@ -7,7 +7,7 @@ PWA shell. Vite + vanilla JS ES modules + three.js client; a Cloudflare Worker (
 Live at https://bedre.pakers.lv. No physics engine, no framework, no assets (everything is generated), no third-party scripts.
 
 Contents: 1 Quick start · 2 Play, test, deploy · 3 Architecture map · 4 Data pipeline and credits · 5 Backend (API, modes, anti-cheat,
-analytics, multiplayer) · 6 Tunables · 7 Known limits
+analytics, multiplayer, **5.7 combos + power-ups = scoring rules 2**) · 6 Tunables · 7 Known limits
 
 ---
 
@@ -34,16 +34,17 @@ auto scaler; the start screen's Graphics choice is remembered and applied on the
 ### 2.2 Tests (headless Chromium; `smoke:engines` also WebKit + Firefox; `GPU=1` = real GPU, omit for SwiftShader)
 | command | what it covers | port |
 | --- | --- | --- |
-| `PORT=5186 GPU=1 npm run smoke [-- --sample]` (`MAP=<slug>` for a district) | gameplay, bots, duels, results, intro, zoom, balance curve | PORT |
+| `PORT=5186 GPU=1 npm run smoke [-- --sample]` (`MAP=<slug>` for a district) | gameplay, bots, duels, results, intro, zoom, balance curve, **combos + power-ups** (a chain multiplies points but not the radius, expiry, seeded schedule + respawn, each effect + its expiry, shield vs a bigger hole, bots collect pickups, daily = same sequence, trace v2, best combo in the results) | PORT |
 | `PORT=5187 GPU=1 npm run smoke:world [-- --sample]` | traffic, audio, particles, landmarks, labels, perf | PORT |
-| `API_PORT=8796 npm run smoke:api` | worker API on a local wrangler: modes, per-map boards, migrations (fresh + upgrade from 0001), validator, rate limits, Turnstile mock, analytics | API_PORT |
+| `API_PORT=8796 npm run smoke:api` | worker API on a local wrangler: modes, per-map boards, migrations (fresh + upgrade from EVERY earlier schema 0001..0005 -> 0006), scoring-rules boards (current / `?archive=1`, stale v1 trace -> archive), validator (trace v1 + v2: inflated multiplier, impossible pickups, combo longer than eaten ...), rate limits, Turnstile mock, analytics | API_PORT |
 | `E2E_PORT=8797 GPU=1 npm run smoke:e2e` | built game + worker: server round length, submit, boards, tamper rejected, daily, district ranking + map switch, results | E2E_PORT |
-| `npm run test:mp` / `GPU=1 npm run smoke:mp` | multiplayer: pure-Node sim/validator/bots/CPU bench / full end-to-end on wrangler :8793 (`MP_PORT=<n>` for another port + own build/state dirs), followed by `smoke:engines` | 8793 |
+| `npm run test:mp` / `GPU=1 npm run smoke:mp` | multiplayer: pure-Node sim/validator/bots/CPU bench + combos (chain, expiry, 300 ms-latency clock, forged timestamps / multipliers) + power-ups (same seed same layout, race = one winner, speed budget, magnet reach, shield vs kill, double x combo cap, bots) / full end-to-end on wrangler :8793 (`MP_PORT=<n>` for another port + own build/state dirs; `--fx-only` runs just the second phase: 3 browsers (one behind a 300 ms-each-way lag proxy, `scripts/lib/tcp-proxy.mjs delay()`) + a protocol bot on a server with `MP_TEST_PU` / `MP_TEST_START_MASS` / `MP_TEST_FX_SCALE`: same pickups for everybody, one winner, server-applied effects, forged pickup / multiplier / speed rejected, shield vs a big hole, reconnect mid-effect, a laggy player keeps combos), followed by `smoke:engines` (also compares the pickups across engines) | 8793 |
 | `GPU=1 npm run smoke:resume` | online session resume + REAL network outages (TCP proxy cut / stall 3-60 s) + 12-client room + human-vs-human kill + mover double claim, on WebKit iPhone 13 / SE and Chromium Pixel 5 against a local wrangler (`RS_PORT`, default 8794; proxies on the next ports) | 8794-8800 |
 | `npm run smoke:layout` / `npm run check:spawns` | generic layout audit (HUD vs panels, tags vs HUD, tap targets, results fit) on 12 viewports x LV/EN (`LAYOUT_URL=<built client>`) / online start-point fairness of `RoomSim.pickHumanSpawns` | - |
 | `GPU=1 [ENG_PORT=8798] npm run smoke:engines [-- --static-only \| --rooms-only \| --stale-only] [--fix]` | **cross-engine**: Chromium / WebKit (iPhone 13 profile) / Firefox build identical worlds on all 4 maps (full per-id dump compare, placement hash, solo Play, no console errors, missing/stale-file fallback); Chromium+WebKit and Chromium+Firefox in ONE online room (same ids, eaten objects vanish for the other engine, same ranking); stale tab after a deploy recovers (also with the service worker) | ENG_PORT 8798, vite 5185 |
-| `npm run check:legit` | fresh autoplayer rounds on EVERY map + all modes through the validator: 0 false rejects expected; tampered control must be flagged | 5191 |
-| `PORT=5188 GPU=1 node scripts/smoke-meta.mjs` | album, achievements, % meter, recap, share card, PWA, radio | PORT |
+| `npm run check:legit` | fresh autoplayer rounds on EVERY map + all modes through the validator (trace v2): 0 false rejects / 0 suspect expected; tampered controls must be flagged (incl. inflated multiplier, impossible power-up count / burst, combo longer than eaten, radius following the points) | 5191 |
+| `[GPU=1] [SHOTS_PORT=5187] node scripts/combo-shots.mjs` | screenshots of the combo chip at every step, each token on the street, badges + toast, magnet pull, minimap dots, results with the best combo, Top scores current / Archive: desktop + real WebKit iPhone 13 -> `scripts/out/combo-*.png`, `powerup-*.png` (the online round ones come from `smoke:mp`) | SHOTS_PORT |
+| `PORT=5188 GPU=1 node scripts/smoke-meta.mjs` | album, achievements, % meter, recap, share card, PWA, radio, daily streak, weekly goals, rewards (5.6) | PORT |
 | `PORT=5187 GPU=1 node scripts/smoke-theme.mjs` | themes, clock auto-selection, fireworks, per-theme frame cost | PORT |
 | `PORT=5185 GPU=1 node scripts/final-shots.mjs` | UI shots, pause / resize / touch / leak checks (geometry compared across replays after a warm-up round) | PORT |
 | `MATRIX_PORT=5188 GPU=1 node scripts/smoke-matrix.mjs` | ~24 combinations of map x theme x mode x quality (+ LV/EN, phone, landscape): no errors, HUD nodes do not overlap, score rises, results render, Play again works; `scripts/out/matrix-*.png` + `matrix-contact-sheet.png` | MATRIX_PORT |
@@ -70,9 +71,16 @@ Then `npm run deploy` = `build:mp` (generate the placement files from the real w
   stale, fails loudly when it cannot, `SKIP_MP_CHECK=1` bypasses) and afterwards `--dist dist` (the built client has the same files and the same content ids baked in); `npm run deploy` and
   `smoke:mp` check it too. `npm run build:web` is the bare `vite build`. **Release order: `GPU=1 npm run build:mp` -> `node tools/mp/check-objects.mjs` -> client build -> deploy** (`npm run deploy` does exactly this).
 * **Release checklist (client changes):** `npm run check:sights` (every sight differs from an apartment block, 0 failures in tier A / B) · `node tools/detail/roof-report.mjs --map=<slug>` (0 violations) · `npm run build` · `npx wrangler deploy --dry-run` · `PORT=.. GPU=1 npm run smoke` (+ `-- --sample`, + `MAP=` each district) · `npm run smoke:world` · `npm run smoke:api` · `GPU=1 npm run smoke:e2e` · `npm run test:mp` + `GPU=1 npm run smoke:mp` · `npm run check:legit` · `node scripts/smoke-meta.mjs` · `node scripts/smoke-matrix.mjs` (24/24) · **`GPU=1 npm run smoke:mobile`** (phones: real WebKit iPhone 13 / SE + Chromium Pixel 5; never replace this by an "iPhone" profile on Chromium) · then the five-minute phone run in `docs/mobile-test-checklist.md` (haptics, thumb feel, Safari memory, audio interruptions cannot be automated).
-* Migrations are never edited once applied; the next one is `0006_...`. `0004_maps.sql` adds `rounds.map` / `scores.map` (default `centrs`) + indexes; `0005_difficulty.sql` adds the nullable informational `scores.difficulty` tag (easy | normal | hard; NULL for old and online rows). **Apply 0005 before deploying this worker** (`npm run deploy` already does: migrations first, then `wrangler deploy`), the INSERT names the new column.
+* Migrations are never edited once applied; the next one is `0007_...`. `0006_rules.sql` adds the nullable `scores.rules` (scoring rules generation, 5.7). `0004_maps.sql` adds `rounds.map` / `scores.map` (default `centrs`) + indexes; `0005_difficulty.sql` adds the nullable informational `scores.difficulty` tag (easy | normal | hard; NULL for old and online rows). **Apply 0005 and 0006 before deploying this worker** (`npm run deploy` already does: migrations first, then `wrangler deploy`), the INSERT names the new columns. **Releasing combos + power-ups restarts the leaderboards** (old and new points are not comparable; old rows stay under "Arhīvs / Archive"), bumps `PROTOCOL_VERSION` to 3 (a deploy ends running rooms; stale tabs get the usual "new version - reload" message) and changes the trace to v2.
 * A Worker deploy restarts running multiplayer rooms (a round in progress is lost); the Durable Object migration tag `mp-v1` is never reused.
 * Optional: Cloudflare Turnstile and `STATS_KEY` (5.5). Privacy: only the chosen display name + score stats + the anti-cheat trace are stored; no cookies.
+
+### 2.4 Prototype: Tramvaja vadītājs (`/tramvajs/`)
+
+A small tram-driving game on the real tracks of Riga (city centre + the Mežaparks end of line 11) built on the same world (`src/proto/shared/street-world.js` boots the engine's world
+without the hole game). Own second Vite entry (`tramvajs/index.html`), own code in `src/proto/tram/`, no backend. Docs: `docs/proto/tram.md` (routes, systems, tunables, what is cut);
+`npm run smoke:tram` (builds into `scripts/.dist-tram`, previews on 5193; `GPU=1`, `ONLY=`, `FAST=1`); routes are generated by `node src/proto/tram/tools/build-route.mjs`. The old prototype
+"Kur es esmu?" (`/kur/`) was removed: that path now serves the main game and redirects to `/` (script injected into the main `index.html` by `vite.config.js`).
 
 ## 3. Architecture map
 
@@ -92,7 +100,7 @@ switch, About), `modes.js` + `modes.css` (mode selector, daily intro), `minimap.
 **Life and feel** — `life.js`, `events.js` (bus), `effects.js`, `audio.js` (procedural WebAudio + mute button), `quality.js` (auto scaler).
 **Themes** — `theme.js` (+ `sky.js`, `glow.js`, `snow.js`, `flags.js`, `fireworks.js`, `themeUniforms.js`).
 **Meta** (`src/meta/`, passive observers of the bus) — `progress.js` (% of Riga meter, area banner, toasts, My progress panel, recap), `album.js`, `achievements.js`,
-`districts-names.js`, `recap.js`, `share.js`, `radio.js` (bundled hls.js, dynamic import), `pwa.js`, `store.js`, `strings.js`.
+`districts-names.js`, `recap.js`, `share.js`, `radio.js` (bundled hls.js, dynamic import), `pwa.js`, `store.js`, `strings.js`; retention: `streak.js`, `goalPool.js`, `goals.js`, `rewards.js`, `retention.js`, `clock.js` (see 5.6).
 **Multiplayer client** (`src/net/`) — `client.js`, `online.js`, `ui.js`, `net.css`; placement files: `src/placements.js` (loader + generator dump), `worker/mp/table.js` (format, shared with the Worker), `tools/mp/` (build / check / fingerprint). **Worker** (`worker/`) — `index.js` API, `lib/*` (db, validate, limits, moderation,
 analytics, turnstile), `mp/*` (Durable Objects + authoritative sim).
 
@@ -182,9 +190,9 @@ offline. Same-origin POSTs only.
 ### 5.1 API
 - `POST /api/rounds {mode?, map?, day?}` -> `{roundId, roundSeconds, mode, map, day?, seed, turnstileSiteKey?}`. `mode` in classic|quick|daily; `map` a slug from the shared allow-list
   `tools/maps.mjs` (default `centrs`); the **daily challenge is centre-only** (district -> 400); free / online -> 400. 30 rounds / hour / IP-hash. The round token is bound to mode, map, day, seed.
-- `POST /api/scores {roundId, map?, difficulty?, name, score, eaten, radius, rank, biggest, trace[, turnstile]}` -> `201 {ok,id,name,mode,map,rankAllTime,rankToday}`; 400 bad payload / map mismatch,
+- `POST /api/scores {roundId, map?, difficulty?, name, score, eaten, radius, rank, biggest, trace[, turnstile]}` -> `201 {ok,id,name,mode,map,rankAllTime,rankToday,rules}`; 400 bad payload / map mismatch,
   403 unknown / early / expired round, 409 replay, `difficulty` (optional, easy|normal|hard, else 400; the daily challenge is always stored as normal) is an informational tag shown next to the name in Top scores and **never splits a board**, **422 failed plausibility** (token burnt, nothing stored), 429 daily submission cap (classic 60, quick 120, daily 5 per IP-hash).
-- `GET /api/scores?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=][&limit=20]` — one board per map x mode (daily / online exist for the centre only; other maps answer empty).
+- `GET /api/scores?mode=classic|quick|daily|online&map=<slug>&period=all|week|day[&day=][&limit=20][&archive=1]` — one board per map x mode (daily / online exist for the centre only; other maps answer empty) **of the current scoring rules** (`rules >= 2`); `archive=1` lists the older generations (5.7).
   Suspect rows are never listed. The Top-scores panel has the mode switch AND a map switch (daily / online lock it to the centre and say so).
 - `POST /api/e` analytics beacon, `GET /api/stats?days=30`, `/api/mp/*` multiplayer.
 
@@ -220,6 +228,72 @@ hibernate; ~190 billed requests per human per round. `MP` in `worker/mp/protocol
 Test vars (never in `wrangler.jsonc`): `MP_ROUND_SECONDS`, `MP_LOBBY_SECONDS`, `MP_RESULTS_SECONDS`, `MP_MAX_HUMANS`, `MP_TEST_CLOSE_SPAWN`, `MP_BOT_SKILL`, `MP_BOT_GRACE`, `MP_REMOVE_AFTER_MS`, `MP_SILENT_AFTER_MS`; worker test vars:
 `ROUND_SECONDS_OVERRIDE`, `RATE_ROUNDS_PER_HOUR`, `CAP_<MODE>`, `TURNSTILE_VERIFY_URL`.
 
+
+### 5.6 Streak, weekly goals and rewards (`src/meta/streak.js`, `goalPool.js`, `goals.js`, `rewards.js`, `retention.js`, `clock.js`)
+Device-local retention layer, no backend, no notifications. Observes the event bus only (`swallow`, `holeEaten`, `roundStart/End`, plus optional `comboBest` / `powerupPicked`).
+* **Daily streak.** One day counts when an *eligible* round **ends** on it (Riga calendar day, `rigaDay`): Classic, Quick, Daily or online, not free roam, no debug hooks, at least
+  `min(60 s, half the round)` played (the achievements' rule). Same day again = nothing; next day = +1; exactly one missed day is covered by a *streak freeze* (spent automatically);
+  two or more missed days restart at 1. A freeze is earned at every multiple of 7 (max 2 held). A device clock moved *back* is ignored (no extra day, nothing lost), jumping forward
+  again simply continues; time zones do not matter (the day is always Riga time); a round across midnight counts for the day it ends. Milestones 3/7/14/30/60/100 give a toast
+  (shown when the next round starts, the lane is hidden under the results panel) and a reward. UI: one chip beside "My progress" on the start screen (flame + days + today tick | goals n/3,
+  the two chips are folded into one because the 320x568 card has no spare row), a line on the results screen ("3 dienas pēc kārtas!"), the *Week* tab of the progress panel.
+* **Weekly goals.** Each ISO week (Monday 00:00 Riga) three goals (easy, medium, hard) are picked from `POOL` in `goalPool.js` by a seeded permutation per tier that advances one step per week:
+  same for every player, no repeats within a cycle, at most one "special" goal (a non-default map or online) per week, never the hard bot difficulty. Templates are data
+  (`sw(o, albumEntry, ctx)` counts per swallowed object, `rd(ctx)` reads round numbers; `type` = `sum` | `best` | `days`; `maps` / `modes` restrict where they count). Progress is committed when an
+  eligible round ends; a goal that crosses its target mid-round is completed at once (toast, at most one goal toast per 20 s, only on completion or at 50 %). In round: three slim bars under the
+  % meter tick on progress. Add a goal = add a `G(...)` row to `POOL` (the smoke test then drives it to completion). Templates with `needs: 'comboBest' | 'powerupPicked'` are offered only once
+  that bus event has been seen on the device (`seen` in the store) or `CFG.features.comboBest|combo` / `powerupPicked|powerups` is truthy; the week's three ids are stored when the week is
+  first seen, so they never change mid-week. Payloads: `comboBest` = number or `{best|value|n|combo|count}`; each `powerupPicked` counts 1.
+* **Storage.** One global (not per map) key `bedre.meta.global.v1`: `{ v:1, streak:{cur,best,last,freezes,frozen[]}, goals:{week,ids[],prog{id:{v|d[],h}},done{id:day},all}, rewards{id:{d,s}}, seen{} }`
+  (all access in try/catch; a corrupt value starts empty). Tests inject the clock with `window.__retentionNow = <unix ms>`.
+* **Rewards.** `grantReward(id)` (`rewards.js`) records an id once in `rewards` and emits `bus.emit('rewardUnlocked', id, { src, day })`. Ids: `streak-3|7|14|30|60|100`,
+  `week-YYYY-WW-easy|medium|hard` (ISO year + week, e.g. `week-2026-47-hard`), `week-YYYY-WW-all` (bonus for all three). They are only badges in the progress panel for now: a skin feature should
+  listen to `rewardUnlocked` (new ones) and read `loadG().rewards` (everything earned) and map ids to skins; never grant or delete rewards from anywhere else.
+* **Tests.** `PORT=5188 GPU=1 node scripts/smoke-meta.mjs` (checks in `scripts/lib/retention-checks.mjs`: pure rules for any dates, two fresh browsers, real rounds with the injected clock,
+  every goal template driven to completion with the game's test hooks, map-data proofs, chip bounding boxes at 320x568 / 390x780 / 1280x720, LV + EN) writes `scripts/out/retention-*.png`.
+
+### 5.7 Combos and power-ups = scoring rules 2 (`src/combo.js`, `src/powerups.js`, `src/powerupView.js`, `worker/mp/powerups.js`)
+**Two numbers per hole.** `hole.mass` is the unmultiplied value swallowed (value x the bot growth handicap `gainMul`): it is the ONLY input of the growth formula
+(`radius = 2.2 (1 + mass / k)^0.44`, `radiusFromScore(mass)`), of the size bar and of every bot decision (eating rate, hunt value, "leader" / "underdog", the easy rubber band).
+`hole.score` is POINTS = mass x combo multiplier x Dubultpunkti (combined cap x5): what the HUD, the ranking, the results, the leaderboards and the trace's `s` show. Pacing, radius and
+maps are therefore exactly what they were before combos (verified: with `?pu=0` the greedy autoplayer ends at the very same radius and mass as before, see 6.2). Where the old single number
+was split: respawn keeps the same fraction of mass AND points; a duel gives the eater `victim.mass x 0.5` of mass and `victim.score x 0.5` of points (no multiplier on duel gains); the level
+bar, bots' brains (`src/bots.js`, `worker/mp/sim.js` BotBrain), `setRadius`, the server's radius / pickRespawn all use the mass; ranking, the kill feed, `insertScore` and `final_mismatch` use points.
+
+**Combo rules** (`COMBO` in `src/combo.js`, shared by the browser, the room simulation and the validator). Every swallow raises a counter by its weight (props 1, valuable monuments 2, buildings
+2 / 3 / 4 by fit radius < 7 / < 14 / larger); the counter dies when no swallow lands within the window (1.6 s, +0.011 s per metre of radius beyond 8 m, max 2.6 s); the multiplier is the highest step
+reached: **x1 -> x1.2 (5) -> x1.5 (12) -> x2 (25) -> x2.5 (45) -> x3 (70)**, applied to the swallow that raised the counter and every later one while the combo lives. Being swallowed drops it.
+Easy bots build their counter 15 % slower (`BOT_COMBO_SCALE`), server bots too (`MP.botComboScale` 0.85); everything else is identical for bots and players.
+**Power-ups** (`PU` in `src/powerups.js`): **Magnēts** 6 s: edible non-mover objects within 1.8 x radius (tapering to 1.3 x for a huge hole, `magnetFactor`: a magnet nearly doubles the area a big hole sweeps, which broke the late-game pacing) slide towards the hole (`pullObjects`; the objects it moved go back to their places at the next round, `restoreMoved`); **Ātrums** 6 s: speed x1.5; **Dubultpunkti** 12 s: points x2,
+stacks with the combo, combined cap x5; **Vairogs** 8 s: bigger holes cannot swallow you (only the duel rule changes: a shielded hole still cannot swallow bigger ones). One effect per type; the same type
+again refreshes the timer. Active pickups: `max(6, round(sqrt(map area) / 250))` (centre 12, districts 10) at fixed candidate points = the placement file's spawn candidates (street points with food and
+buildings around them: never water, buildings or dense forest; fallback without a placement file: the picker's street points, thinned); a taken pickup's slot reappears 20-30 s later at another candidate
+(>= 160 m away), an uncollected one moves on after 75 s. What a slot shows (place, type) is a pure function of `(seed, slot, how many it showed)` (`PowerupField`): solo uses a random seed per round until the round id arrives and then **the server's round seed** from `POST /api/rounds` (`Game._adoptServerSeed`: the device cannot pick a favourable schedule; `?puseed=N` pins it for tests and makes the round unranked), the **daily challenge uses the daily seed = the same sequence for everybody**, a multiplayer room a seed of its own. Pickups are NOT objects: no ids, not in the placement files
+(the placement hash is not affected by them, `node tools/mp/check-objects.mjs`). Free roam has them too (no scoring). `?pu=0` (test hook, makes the round unranked) turns them off.
+Pickup odds `PU_WEIGHTS` (magnet 16 %, speed 26 %, double 30 %, shield 28 %; a slot's first pickup cycles through all four). Bots notice a pickup within `BOT_PU` range (+ 4 x radius) with a per-decision chance (easy 12 %, normal 45 %, hard 85 %; server bots 12-57 % by `botSkill`) and detour for it; they collect by touching it
+like the player. Visuals: low-poly coin token (own canvas icons) with a ground glow, scaled with the camera distance so it reads from the whole-city zoom, minimap dots, auras (dashed pull ring, shield bubble,
+gold ring), speed streaks; HUD: one stack above the player's hole (combo chip with a draining ring, timed badges, pickup toast; below the hole on short landscape screens), "+N" popups of multiplied points in
+orange (`.pop.hot`), audio (rising pitch with the counter, a pop on each step, a falling blip when it ends, one sound per pickup type). Results: best combo (count and multiplier). Achievements `combo2`,
+`combo3`, `fullkit` (`comboRound` in `src/combo.js`; the usual eligibility: debug rounds never unlock).
+
+**Online (protocol version 3, `worker/mp/protocol.js` has the frame list).** Everything is decided by the server (`worker/mp/sim.js`, `worker/mp/powerups.js`): the room creates a `PowerupField` from the room
+seed; clients CLAIM a pickup (`p: [slot..]` in their update frame; the server checks that the slot is live and that the hole's server-known position is within the pickup radius + the latency allowance of the
+eat claims; the first valid claim wins, everybody sees `pp` in the next snapshot and the token disappears). Effects live in server milliseconds (`fxUntil`): the speed budget of the anti-speed-hack check is
+x1.5 (+0.9 s grace) while Ātrums runs, the claim reach tolerance x1.8 while Magnēts runs, the duel rule skips a shielded victim, Dubultpunkti multiplies in `eat()`. **Combos are computed on the server from the
+times claims are accepted**: a claim batch carries `ct` (the client's estimate of the server clock); the server uses it clamped to [receipt - (450 ms + 1.5 x reported RTT, max 1.0 s), receipt] and never backwards, and its timeline may gain at most `COMBO.stampJitter` = 0.35 s on the receipt timeline per batch (a faked RTT with early stamps on long gaps otherwise stretched every combo window by the full allowance; `scripts/test-mp-sim.mjs`), and
+grants `COMBO.netSlack` = 0.25 s extra window; a 300 ms-each-way player with +-60 ms jitter keeps every combo (test in `scripts/smoke-mp.mjs`), a client that reports timestamps closer together than it sends claims
+is clamped back (`scripts/test-mp-sim.mjs`). A client-sent multiplier / score / effect is never read (the parser drops unknown fields). Acks carry points, mass, combo counter + multiplier and the four remaining
+effect times; snapshots carry the effect bitmask of every hole (others draw the shield). Test-only server vars: `MP_TEST_PU`, `MP_TEST_START_MASS`, `MP_TEST_FX_SCALE` (never in `wrangler.jsonc`).
+
+**Scoring version, leaderboards and anti-cheat.** `RULES_VERSION = 2` (`src/combo.js`). Migration `0006_rules.sql` adds the nullable `scores.rules`; every new row carries 2 (client submissions with a v2 trace,
+the server-written online rows); `GET /api/scores` answers only `rules >= 2` rows by default (and ranks only among them), `?archive=1` answers the older generations (rows from before the column have NULL =
+rules 1). A stale tab that still sends a v1 trace is accepted by the old validator path and stored with `rules = 1`, i.e. into the archive. **The boards effectively restart** (old and new scores are not
+comparable; the old rows stay in the table and show under "Arhīvs / Archive" in the Top-scores panel). Trace v2 (`src/trace.js`) per 10 s sample: `s` points, `m` mass, `r` radius, `e`, `k`, `w` raw value swallowed,
+`p` points earned by swallows, `c` best combo counter so far, `u` {magnet, speed, double, shield} cumulative pickups. `validateV2` (`worker/lib/validate.js`) adds: radius follows `m`; per interval
+`p - p_prev <= (w - w_prev) x min(5, multFor(c) x (Dubultpunkti pickup in this or the two previous intervals ? 2 : 1))`; `s - s_prev <= (p - p_prev) + kills in the interval x killMax`; `c <= 4 x eaten`; pickups <= `maxPickups(slots, t)` and <= `slots + 1` per interval;
+`s <= p + kills x killMax`; `m <= w + kills x killMax` and `m <= s`; raw value vs what the eaten kinds can be worth; the old gain / cap ceilings on the points. `worker/lib/limits.js` is format 2 (points ceilings,
+radius bands from the mass, per mode best combo and most pickups seen); regenerate it with `GPU=1 node tools/gen-limits.mjs --runs 8 --merge-max` (the autoplayers chase pickups and keep their combos).
+
 ## 6. Tunables
 - `src/config.js` (`CFG`, `LIFE`): round, growth (`radius = 2.2 (1 + score/k)^0.44`, k 16 classic / 6 quick), swallow rule (`reach`, `fitRatio`), duel (`ratio 1.15`, `reach 0.62`, `gain 0.5`), bots
   (`DIFFICULTY` profiles: skill, speed, think rate, reaction, aim noise, aggression, hunt range / greed / human ratio, growth handicap `gain`, `humanGrace`, `respawnGrace`, duel `keepScore` / `protect`; see 6.1), camera, props, ground (`pxPerM` per tier), quality (`LIFE.quality`), radio, `mapsRanked`.
@@ -249,6 +323,28 @@ Test vars (never in `wrangler.jsonc`): `MP_ROUND_SECONDS`, `MP_LOBBY_SECONDS`, `
   chunked into 250 m cells, one geometry per kind is shared by the chunks, the person model went from 168 to 90 triangles and car wheels from 8 to 6 sides.
 - Themes: `THEME_TUNE` and `LOOKS` in `theme.js` (fireworks, sunset offset, looks). While fireworks are in the sky the camera eases pitch / zoom (`cam.ease`), the round-end finale gets a wider shot.
 - Multiplayer: `MP` (`botSkill`, `botHumanGrace`, `totalHoles`, lobby / round seconds, speed tolerance, claim budgets).
+
+### 6.0 Combos / power-ups: pacing and balance (scoring rules 2, measured 2026-11, `scripts/balance.mjs`, `scripts/balance-diff.mjs`)
+**Pacing is unchanged: size follows the mass.** Greedy autoplayer, no bots, final RADIUS (mass), before -> after with `?pu=0` (combos on, no pickups): centre 138.2 -> 138.2 (mass 195.7k -> 195.7k), Mežaparks 140.3 -> 140.2: identical,
+the combos only move the points (centre 195.8k -> ~585k points, x3.0: the greedy player keeps x3 almost all the time). With power-ups on (the autoplayer detours for the near ones, 3-5 pickups per round; 5 rounds per map, spawn and
+pickup layout random): centre 134.1 / 138.1 / 141.5 / 141.0 / 139.9 (mean 138.9 = +0.5 %, before 138.2), Āgenskalns 151.5 mean (before 153.4, spawn-dependent 136-164), Mežaparks 137.5 (141.3-145.6, one slow-start round 118.1; before 140.3),
+Purvciems 150.5 (before 141.6, 121-158): within +-5 % of the old means; single rounds scatter with the spawn (as before). Why it holds: speed is x1.5 for 6 s only, Magnēts is 6 s and its pull radius tapers from x1.8 to x1.3 for a big hole
+(an untapered 8 s magnet pushed a late-game hole's final radius +10-20 %: it nearly doubles the area a big hole sweeps), pickups are ~1 per 250 m x 250 m (centre 12, districts 10) and the casual / strong autoplayers only take near ones.
+Bot detours are small on purpose (`BOT_PU`: chance per decision easy 10 % / normal 30 % / hard 55 %, range 28 / 42 / 65 m + 1.5 x radius, cooldown 14 / 10 / 7 s; a first version that chased every pickup crippled the bots: worst bots ended with 0-150 points).
+Difficulty with points (4 rounds per cell, bots at their level, points rank; `balance-diff`): Centre easy casual 1.5th (win 50 %, top 3 100 %, best bot 85 % of the casual player), easy greedy 1st (100 %); normal casual 2.3 (win 50 %, top 3 75 %, best bot 124 %),
+normal greedy 1st; **hard casual 6.8 (0 % wins, 0 % top 3)**, hard greedy 1.8 (75 % wins, best bot 95 %). Āgenskalns: easy casual 1.8 (50 % / 100 %), normal casual 1.0 (100 %), hard casual 6.5 (0 %), hard greedy 1.3 (75 % wins).
+(Before: Centre normal casual win 40 % / top 3 80 %, hard greedy 0 % wins: a perfect player now wins the hard rounds more often because bots build combos a little less steadily than the greedy player; the casual player at hard still never wins.)
+
+**Release stabilisation (2026-11-18).** Sights now need a hole proportionate to their size: `CFG.sightFit` gives landmarks / tier A sights fit >= 0.34 x height (<= 26 m) and the Freedom Monument a fit of 14.5 m (it was swallowable from r 6.5 m; now from ~15.3 m), bots weigh landmarks at 25 % -> 100 % over the first 4 minutes (`lmW`, solo and server bots). The placement files were regenerated (`GPU=1 npm run build:mp`; centre hash now `a7c86ad07f1ce3e6`). Greedy final radius (no bots, power-ups on, 4 rounds each): centre 141.2 (was 138.2 before the features), Āgenskalns 155.3 (153.4), Mežaparks 137.3 (140.3), Purvciems 155.3 (spawn-dependent 121-162; 141.6): within the usual +-5 % of the old means except Purvciems (+9 %, one of the old rounds was a 121 outlier). Casual player vs bots, 4 rounds per cell (`balance-diff`): centre easy 1.0 (100 % top 3) / normal 3.3 (75 %) / hard 6.8 (0 %); Mežaparks easy 1.8 (75 %) / normal 2.0 (100 %) / hard 5.0 (25 %); Purvciems easy 3.0 (50 %) / normal 3.8 (75 %) / hard 8.0 (0 %).
+
+**Limits regenerated for rules 2** (`GPU=1 node tools/gen-limits.mjs --runs 4 --merge-max --maps <slug>` per map in parallel (4 rounds per cell instead of 8: the machine was shared), every difficulty, bots on / off, daily twists on the centre; `merge-max` keeps the pre-combo ceilings as a floor, so no ceiling went down; format 2). Final-points caps (classic / quick / daily) and the best combo / most pickups an autoplayer reached:
+| map | rounds in the table | classic cap | quick cap | daily cap | best combo (classic) | most pickups |
+| --- | --- | --- | --- | --- | --- | --- |
+| centrs | 608 | 734,088 | 463,835 | 680,691 | 13,877 | 11 |
+| agenskalns | 368 | 880,463 | 497,310 | - | 14,904 | 7 |
+| mezaparks | 368 | 765,260 | 434,871 | - | 13,199 | 10 |
+| purvciems | 368 | 839,899 | 513,768 | - | 10,663 | 4 |
+`node tools/check-legit.mjs` on fresh rounds (every map, all modes + daily twists, greedy / cluster / slowed / casual players at every difficulty, trace v2): centre 36 rounds ok 36 / suspect 0 / REJECT 0, Mežaparks 16/16, Āgenskalns + Purvciems 32/32; control: 72/72 tampered submissions flagged or rejected (new: inflated multiplier (all intervals / one interval), impossible power-up count, power-up burst, combo longer than eaten, radius following the points, a +30000 jump).
 
 ### 6.1 Difficulty and balance (`DIFFICULTY` in `src/config.js`, `scripts/balance-diff.mjs`, `scripts/mp-bot-bench.mjs`)
 Three levels, chosen under Advanced (`?difficulty=easy|normal|hard`, remembered, default **Easy**). A profile rewrites `CFG.bots` + the human's `CFG.duel` numbers at every round start (`applyDifficulty`, called by

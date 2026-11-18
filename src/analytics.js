@@ -42,7 +42,8 @@ function flush() {
   } catch { /* analytics must never break the game */ }
 }
 
-const scoreBucket = (s) => { const edges = [100, 300, 700, 1500, 3000, 6000, 12000]; let i = 0; while (i < edges.length && s >= edges[i]) i++; return i; };
+const scoreBucket = (s) => { const edges = [300, 900, 2100, 4500, 9000, 18000, 36000];   // (scoring rules 2: points with combos run ~3x higher than the old plain value)
+   let i = 0; while (i < edges.length && s >= edges[i]) i++; return i; };
 
 function webglOk() {
   try {

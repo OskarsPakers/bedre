@@ -38,6 +38,7 @@ export const CFG = {
     buildingMin: 4,
     landmarkMul: 2.5,
   },
+  sightFit: { heightFrac: 0.34, max: 26 },          // landmarks / tier A sights: fit >= 0.34 x height (<= 26 m): the Freedom Monument (42 m) needs a hole of ~15 m
   buildingFit: { boxWeight: 0.5, areaWeight: 0.5 }, // blend of half-long-side and sqrt(A/pi)
 
   camera: {
@@ -231,3 +232,6 @@ CFG.radio = {
     { id: 'lr2', name: 'Latvijas Radio 2', url: 'https://lsm.eu.cdns-redge.media/livehls/o2/lsm-live/live/audio/lr2_radio/live.livx/playlist.m3u8?renditions', type: 'hls', link: 'https://lr2.lsm.lv', linkLabel: 'lr2.lsm.lv' },
   ],
 };
+
+// Feature flags read by the meta layer (weekly-goal templates for combos / power-ups are offered only when on).
+CFG.features = { combo: true, powerups: true };
