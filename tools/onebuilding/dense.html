@@ -1,0 +1,13 @@
+<!doctype html><meta charset=utf-8><title>dense</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script>
+<style>html,body{margin:0;background:#9cc3e6;overflow:hidden}canvas{display:block}</style>
+<script type="module">
+import * as THREE from 'three'; import { loadDense } from '/meshload.js';
+const Q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setSize(innerWidth, innerHeight); document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9cc3e6); const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.3, 1500);
+const box = { x0: +(Q.get('x0') ?? 5), x1: +(Q.get('x1') ?? 125), z0: +(Q.get('z0') ?? 175), z1: +(Q.get('z1') ?? 335) };
+const { group, stats } = await loadDense(box); scene.add(group);
+window.__d = { stats, THREE, scene, camera, renderer, group, view(p, l, fov = 45, w, h) { if (w) { renderer.setSize(w, h); camera.aspect = w / h; } camera.fov = fov; camera.position.set(...p); camera.lookAt(...l); camera.updateProjectionMatrix(); renderer.render(scene, camera); }, ready: true };
+const p = (Q.get('cam') || '-40,60,230').split(',').map(Number), l = (Q.get('look') || '60,12,260').split(',').map(Number); window.__d.view(p, l);
+</script>

@@ -158,6 +158,7 @@ body:has(#results:not(.hidden)) #daily-intro, body:has(#start:not(.hidden)) #dai
 .btn.small { font-size: 16px; padding: 9px 30px; }
 .btn.alt { background: var(--slate); box-shadow: 0 4px 0 #1d2833; font-size: 14px; padding: 8px 16px; }
 .btn.alt:hover:not(:disabled) { box-shadow: 0 3px 0 #1d2833; }
+.btn.alt:disabled { background: #b9a99a; box-shadow: 0 4px 0 #96877a; }
 .linkrow { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 18px; margin-top: 10px; }
 .link { font: inherit; font-size: 14px; font-weight: 700; background: none; border: 0; color: var(--terra2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 8px 4px; min-height: 36px; }
 .link:hover { color: var(--terra); }
@@ -257,7 +258,14 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
 .stats li span { color: var(--ink2); flex: none; }
 .stats li b { text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .r-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.r-actions > .btn { width: 100%; padding: 12px 20px; font-size: 19px; }
+.r-main { display: flex; gap: 8px; width: 100%; }
+.r-main .btn { flex: 1 1 0; min-width: 0; padding: 12px 10px; font-size: 19px; line-height: 1.15; }
+.r-main #again { flex: 1.45 1 0; }                         /* primary: Play again; secondary: Main menu beside it */
+.r-actions.priv .r-main { flex-direction: column; }        /* private room: "Rematch with friends" over "Main menu · leave room", both full width */
+.r-actions.priv .r-main .btn { flex: 0 0 auto; }
+.btn.sec, .btn.sec:hover:not(:disabled), .btn.sec:active:not(:disabled) { background: transparent; color: var(--slate); box-shadow: inset 0 0 0 2px var(--slate); }
+.btn.sec:hover:not(:disabled) { background: rgba(43,58,74,.08); }
+.btn.sec:active:not(:disabled) { background: rgba(43,58,74,.14); transform: translateY(2px); }
 .r-share { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .r-share:empty { display: none; }
 .results-card .linkrow { margin-top: 2px; }
@@ -297,6 +305,11 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
 #pause .place { margin: 4px 0 18px; }
 #pause .btn { margin: 0 0 12px; }
 #pause .how { margin: 0 0 4px; }
+#pause-confirm .pc-title { font-size: 20px; font-weight: 900; margin: 2px 0 8px; color: var(--ink); }
+#pause-confirm .how { margin: 0 0 14px; }
+#pause-confirm .btn:last-child { margin-bottom: 0; }
+#pause-main .btn.sec { font-size: 16px; padding: 10px 24px; }
+#pause .btn { min-height: 44px; }
 #meta-panel .panel-inner { max-width: 580px; text-align: left; } #meta-panel h2 { text-align: center; }
 #mp-close { display: block; margin: 0 auto; }
 #mp-lobby .panel-inner { max-width: 440px; }
@@ -388,7 +401,8 @@ body[data-map]:not([data-map="centrs"]) #play-online { display: none !important;
   .place { font-size: 24px; } .result-score { font-size: 28px; }
   .r-head { display: flex; align-items: baseline; justify-content: center; gap: 14px; flex-wrap: wrap; }
   .r-head .sub { flex: 0 0 100%; }
-  .r-actions { flex-direction: row; justify-content: center; } .r-actions .btn { width: auto; padding: 9px 22px; font-size: 17px; }
+  .r-actions { flex-direction: row; justify-content: center; flex-wrap: wrap; } .r-main { width: auto; } .r-main .btn { flex: 0 0 auto; padding: 9px 22px; font-size: 17px; }
+  .r-actions.priv .r-main { flex-direction: row; } .r-actions.priv .r-main .btn { padding: 9px 14px; font-size: 15px; }
 }
 @media (max-width: 380px) {
   #card-score { width: 100px; }

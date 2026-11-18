@@ -251,9 +251,9 @@ async function scenarioReload() {
   check('...and shows the same final ranking again', res && JSON.stringify(fA2) === JSON.stringify(obs.final));
   await shot(A3, 'fix2-qa2-01-wk13-results-after-reload.png');
   // leaving the results clears the record: a further reload shows the plain menu
-  await click(A3, 'mp-menu');
+  await click(A3, 'to-menu');
   await sleep(300);
-  check('"Back to menu" clears the stored session', (await O(A3, () => window.__online.session)) === null);
+  check('"Main menu" clears the stored session', (await O(A3, () => window.__online.session)) === null);
   obs.close();
   await A3.context().close();
 }

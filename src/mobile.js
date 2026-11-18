@@ -110,6 +110,7 @@ async function releaseWake() {
 function wireWake() {
   bus.on('roundGo', () => { wake.want = true; acquireWake(); });
   bus.on('roundEnd', releaseWake);
+  bus.on('menu', releaseWake);   // abandoned round (pause -> Main menu)
   document.addEventListener('visibilitychange', () => { if (!document.hidden && wake.want) acquireWake(); });
 }
 

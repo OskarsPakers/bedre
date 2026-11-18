@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "bedre-ux-test" generated at 2026-11-18T19:56:48.184Z.

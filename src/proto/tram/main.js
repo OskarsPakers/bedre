@@ -46,7 +46,7 @@ let S = null, track = null, tram = null, stopsView = null, pax = null, run = nul
 let net = null, life = null, heads = null, boards = null, aiTracks = [], aiModels = [], hazards = null, env = null;
 let phase = 'loading';                          // loading | menu | play | paused | result
 let view = 'chase';
-let auto = null, manual = false, autoCtx = {};
+let dcam = 0, auto = null, manual = false, autoCtx = {};
 const audio = new TramAudio();
 const keys = { up: false, down: false, eb: false };
 let touchLever = null, ebTouch = false;
@@ -308,6 +308,7 @@ function updateHud(dt) {
   setText('pill', run.started ? t(pillKey, { s: Math.abs(Math.round(e)) }) : t('punctual'));
   const pc = $('pill'); if (hudCache.pillc !== cls) { hudCache.pillc = cls; pc.className = 'pill ' + cls; }
   setText('load', `🚋 ${run.pax}/${110}`);
+  if (run.dwell && run.servedStop && !run.servedStop.last && run.doorState !== 'closed') setText('st-extra', `🚏 ${run.servedStop.name}: 👥 ${run.dwell.waitLeft ?? 0} ${t('waiting')}`);
   $('cmf').style.width = Math.round(run.comfort) + '%'; $('cmf').style.background = run.comfort > 70 ? 'var(--green)' : run.comfort > 40 ? '#d9a000' : 'var(--red)';
   const s0 = plan.stops[0].s, s1 = last.s;
   $('prog-pos').style.left = clamp(100 * (run.s - s0) / (s1 - s0), 0, 100) + '%';
@@ -355,7 +356,7 @@ function handleEvents() {
     switch (e.type) {
       case 'served': { showToast(e.res); (e.res.accTxt === 'perfect' ? audio.good : audio.chime).call(audio, true); break; }
       case 'missed': showToast({ missed: true, name: e.name }); showMsg(t('missed'), true, 2500); audio.bad(); break;
-      case 'doorsOpening': { const sv = run.servedStop; const k = plan.stops.indexOf(sv); pax.startDwell(k, run.s, run.dwell.alight, run.dwell.board); audio.doorBeep(false); break; }
+      case 'doorsOpening': { const sv = run.servedStop; const k = plan.stops.indexOf(sv); pax.startDwell(k, run.s, run.dwell.alight, run.dwell.board, run.dwell.sch); audio.doorBeep(false); break; }
       case 'doorsClosing': pax.endDwell(); audio.doorBeep(true); break;
       case 'doorsDenied': showMsg(t('zoneHint'), true, 1500); break;
       case 'redpass': showMsg(t('passedRed', { p: PEN.redPass }), true, 2600); audio.alert(); metrics.redPass++; break;
@@ -417,6 +418,11 @@ function updateCamera(dt) {
     tx = p.x - rx * 0.45; tz = p.z - rz * 0.45; ty = 3.15;
     track.at(run.s + TRAM.nose + 60, q); lx = q.x; ly = 1.9; lz = q.z;
   }
+  // cab view at a stop with the doors open: a "door camera" looks back along the platform side so that people getting off / on can be seen
+  { const want = view === 'cab' && run.dwell && !run.dwell.last && run.doorState !== 'closed' ? 1 : 0; dcam += (want - dcam) * (1 - Math.exp(-dt * 3.5));
+    if (dcam > 0.003) { track.at(run.s + 2.4, p); const rx = -Math.sin(p.yaw), rz = Math.cos(p.yaw); track.at(run.s - 10, q);
+      const qx = -Math.sin(q.yaw), qz = Math.cos(q.yaw); const k2 = dcam; tx += (p.x + rx * 0.5 - tx) * k2; tz += (p.z + rz * 0.5 - tz) * k2; ty += (3.1 - ty) * k2;
+      lx += (q.x + qx * 3.6 - lx) * k2; lz += (q.z + qz * 3.6 - lz) * k2; ly += (0.9 - ly) * k2; } }
   if (!cp.init) { cp.x = tx; cp.y = ty; cp.z = tz; cp.init = true; }
   const k = view === 'cab' ? 1 : 1 - Math.exp(-dt * 16);
   cp.x += (tx - cp.x) * k; cp.y += (ty - cp.y) * k; cp.z += (tz - cp.z) * k;
@@ -446,7 +452,7 @@ function simStep() {
   for (const sw of track.switches) if (sw > prevNose && sw <= run.noseS) audio.clatter(run.v);
   const st = run.stop; if (st && lastAnnounce !== st.idx && run.distToStop < 110 && run.v > 3) { lastAnnounce = st.idx; audio.announce(); }
   handleEvents();
-  pax.update(STEP, run.door);
+  pax.update(STEP, run.door, run.dwell);
   if (run.finished && resultT <= 0 && phase === 'play') resultT = 0.5;
   // bookkeeping for the tests: closest approach to another tram, the longest time standing against a person / vehicle on the rails, any backwards movement
   { const P = net.player.pts; let m = 1e9; for (const a of net.ai) if (a.active && a.visible !== false) for (const q of a.pts) for (const w of P) { const d = Math.hypot(q.x - w.x, q.z - w.z); if (d < m) m = d; } if (m < metrics.minTramDist) metrics.minTramDist = m; }
@@ -497,7 +503,7 @@ function frame(now) {
 function installHooks() {
   const api = {
     get phase() { return phase; }, get run() { return run; }, get track() { return track; }, get plan() { return plan; }, get S() { return S; }, get net() { return net; }, get life() { return life; }, get hazards() { return hazards; }, get env() { return env; },
-    get audio() { return audio; }, get tram() { return tram; }, get route() { return route; }, get routes() { return ROUTES; }, metrics, camera,
+    get pax() { return pax; }, get audio() { return audio; }, get tram() { return tram; }, get route() { return route; }, get routes() { return ROUTES; }, metrics, camera,
     state() { return { phase, s: run.s, v: run.v, lever: run.lever, door: run.door, doorState: run.doorState, next: run.next, dist: run.distToStop, due: run.dueIn, time: run.time, limit: run.limit, results: run.results.map((r) => ({ ...r })), finished: run.finished, pax: run.pax, pendingOpen: run.pendingOpen, view, started: run.started, awaitBell: run.awaitBell, gap: run.gap, comfort: run.comfort, held: run.heldByEnv, stats: { ...run.stats }, penalties: run.penalties.length }; },
     setAuto(k) { auto = k; autoCtx = {}; },
     bell() { bell(); },

@@ -5,11 +5,17 @@
 // involved: this module is imported by the tram game only; nothing in src/buildings.js etc. is touched.
 import * as THREE from 'three';
 import { Acc } from './acc.js';
-import { emitLo, emitFromPlan, planGeneric, planMeasured, chimney, portico, archGable, grandFacade, lin } from './facade.js';
+import { archExtras, emitLo, emitFromPlan, planGeneric, planMeasured, chimney, portico, archGable, grandFacade, lin } from './facade.js';
 import { makeLoMaterial, makeHiMaterial } from './material.js';
 import { loadLook, loadCorridor, loadFacades, restore } from './look.js';
 import { CURATED } from './curated.js';
+import { sigFacade, tower } from './signature/gen.js';
+import { ASSETS } from './signature/assets.js';
+import { loadSigAsset, buildSigGeometries } from './signature/asset.js';
 
+const SIGA = typeof location === 'undefined' || new URLSearchParams(location.search).get('sig') !== '0';   // ?sig=0: no packed signature assets (round-4 recipes only)
+const SIGLOD = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('siglod');   // ?siglod=0|1|2 forces one LOD of the signature assets (sheets)
+const R4 = typeof location === 'undefined' || new URLSearchParams(location.search).get('r4') !== '0';   // ?r4=0: round-3 look (no signature recipes / archetypes) for before / after sheets
 const CH = 150;                      // chunk size, metres
 const CORRIDOR_DETAIL = 72;          // an edge gets relief geometry only within this distance of a track
 const PLASTER = [0xd9cdb0, 0xe0d4b8, 0xcfc4a8, 0xe3d9c2, 0xd6c3a0, 0xc9b8a0, 0xdcd2c4, 0xd8c8a8, 0xe4d2a8, 0xcdbfae, 0xc9c8c2, 0xdcbfb0, 0xd6b784, 0xe6dca8, 0xbcc4b4, 0xc3c9cf, 0xd3cfc6, 0xdfc6b4];
@@ -29,7 +35,8 @@ function matchRun(runs, E) {
 
 export async function buildTramCity({ scene, world, slug, routes = [], phone = false }) {
   const t0 = performance.now();
-  const [look, corridor, facades] = await Promise.all([loadLook(slug), loadCorridor(slug), loadFacades(slug)]);
+  const [look, corridor, facades, sigLoaded] = await Promise.all([loadLook(slug), loadCorridor(slug), loadFacades(slug), SIGA ? Promise.all(Object.entries(ASSETS).filter(([, a]) => a.maps.includes(slug)).map(async ([k, a]) => [k, a, await loadSigAsset(a.file)])) : []]);
+  const sigReady = sigLoaded.filter((e) => e[2]), sigHide = new Set(); for (const [, a] of sigReady) for (const id of a.ids) sigHide.add(id);
   const tLoad = performance.now() - t0;
   const bm = world.buildingMesh, G = bm.geometry, items = world.buildingItems;
   const P = G.attributes.position.array, N = G.attributes.normal.array, C = G.attributes.color.array, W = G.attributes.aWin.array, IDX = G.index.array, ns = G.attributes.normal.itemSize;
@@ -52,6 +59,7 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
   for (const it of items) {
     if (it.gidShape == null || it.gidShape < 0) continue;
     stats.buildings++;
+    if (sigHide.has(it.id)) { stats.sigHidden = (stats.sigHidden || 0) + 1; continue; }   // replaced by a packed signature asset
     bm.getGeometryRangeAt(it.gidShape, range);
     const ic = range.indexCount, is = range.indexStart;
     const ch = chunkOf(it.x, it.z), lo = ch.lo, hi = ch.hi;
@@ -102,6 +110,11 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
       co: cur && cur.co ? cur.co : rec && rec.nF ? rec.co : (it.h > 10 ? 0.7 : 0),
       hash: rnd(), roofRise: 0, balc: isCor && rnd() < 0.5 && it.t === 'res', shopAwn: true,
     };
+    { const hv = B.hash; B.arch = !R4 || !isCor || cur ? null : it.h >= 13 && (it.t === 'res' || it.t === 'com') && hv < 0.38 ? 'nouveau' : it.h >= 10 && hv < 0.72 ? 'eclectic' : it.h >= 9 && hv >= 0.9 ? 'func' : null; B.roofCol = B.roofCol || roofCol || [0.3, 0.3, 0.3]; }
+    if (B.arch) { const wh = [0.92, 0.9, 0.84], mixc = (a, b, k) => a.map((v, i) => v * (1 - k) + b[i] * k);
+      if (B.arch === 'nouveau') { B.trim = mixc(B.trim, wh, 0.6); B.shopTrim = B.trim; B.plinth = B.wall.map((v) => v * 0.6); B.co = Math.max(B.co, 1.1); }
+      else if (B.arch === 'eclectic') { B.trim = mixc(B.trim, wh, 0.4); B.shopTrim = B.trim; B.plinth = B.wall.map((v) => v * 0.68); B.stone = B.plinth; }
+      else { B.trim = B.wall.map((v) => Math.max(0, v * 0.78)); B.shopTrim = B.trim; } }
     if (cur && cur.sp) B.sp = cur.sp; if (cur && cur.ww) B.ww = cur.ww;
     if (rec && rec.nF && rec.ww && !(cur && cur.ww)) { B.ww = Math.max(0.25, Math.min(0.8, rec.ww)); stats.rhythm++; }
     // ---- engine ground-based wall faces -> own facades
@@ -148,11 +161,13 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     // ---- facades
     if (isCor) stats.corridor++;
     let porticoEdge = null;
-    if (cur && cur.portico) { const tx = -it.x, tz = -it.z, tl = Math.hypot(tx, tz) || 1; let bs = 0.4; for (const E of E_list) { const sc = (E.nx * tx + E.nz * tz) / tl; if (E.len >= 14 && sc > bs) { if (!porticoEdge || E.len * sc > porticoEdge.len * bs) { porticoEdge = E; bs = sc; } } } }
+    if (R4 && cur && cur.portico && cur.portico.dir) { let bp = -1e9; for (const E of E_list) { if (E.len >= 14 && E.nx * cur.portico.dir[0] + E.nz * cur.portico.dir[1] > 0.95) { const pr = E.ax * cur.portico.dir[0] + E.az * cur.portico.dir[1]; if (pr > bp) { bp = pr; porticoEdge = E; } } } }
+    else if (cur && cur.portico) { const tx = -it.x, tz = -it.z, tl = Math.hypot(tx, tz) || 1; let bs = 0.4; for (const E of E_list) { const sc = (E.nx * tx + E.nz * tz) / tl; if (E.len >= 14 && sc > bs) { if (!porticoEdge || E.len * sc > porticoEdge.len * bs) { porticoEdge = E; bs = sc; } } } }
     const hi0 = hi.idx.length;
     const fruns = facades.get(it.id) || null; let bldWall = null;
     if (fruns) { const cs = fruns.filter((r) => r.col != null).sort((p, q) => q.len - p.len); if (cs.length) bldWall = lin(cs[0].col); }
     for (const E of E_list) {
+      if (R4 && cur && cur.sig && E.len >= 2.5) { sigFacade(lo, hi, E, B, cur.sig, it.id); stats.sigEdges = (stats.sigEdges || 0) + 1; continue; }
       if (cur && cur.grand && E.len >= 5) { grandFacade(lo, E, B, cur.grand); stats.grandEdges = (stats.grandEdges || 0) + 1; continue; }
       let detailed = false;
       if (isCor) {
@@ -168,11 +183,20 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
         if (cur && cur.portico && E === porticoEdge) { plan.wins = []; plan.ground = []; plan.gk = 2; }
         if (plan.measured) { stats.measuredEdges++; stats.measuredWindows += plan.wins.length; } else stats.genericEdges++;
         emitFromPlan(lo, hi, E, Be, plan, rnd, true); stats.edgesHi++;
+        if (B.arch && plan.wins.length) archExtras(hi, E, Be, plan, B.arch, rnd);
       } else emitLo(lo, E, B, detailed);
     }
     if (cur && cur.portico && porticoEdge) { portico(lo, porticoEdge, { ...cur.portico, roof: lin(cur.roof) }); stats.heroes++; stats.porticoAt = [Math.round(porticoEdge.ax), Math.round(porticoEdge.az), +porticoEdge.nx.toFixed(2), +porticoEdge.nz.toFixed(2), +porticoEdge.len.toFixed(1)]; }
+    if (R4 && (B.arch === 'nouveau' || (cur && cur.turret)) && E_list.length > 1 && it.h > 12) { // corner turret where two street-facing walls meet
+      let done = false;
+      for (let i = 0; i < E_list.length && !done; i++) for (let j = 0; j < E_list.length && !done; j++) { const A = E_list[i], C = E_list[j]; if (i === j || A.len < 5 || C.len < 5) continue;
+        const ex = A.ax + A.dx * A.len, ez = A.az + A.dz * A.len; if (Math.hypot(ex - C.ax, ez - C.az) > 0.5) continue; const dt = A.nx * C.nx + A.nz * C.nz; if (dt > 0.45 || dt < -0.3) continue;
+        const mx = ex + (A.nx + C.nx) * 0.5, mz = ez + (A.nz + C.nz) * 0.5; if (trackDist(mx, mz) > 50) continue; if (covered(ex - (A.nx + C.nx) * 0.4, ez - (A.nz + C.nz) * 0.4, it) && false) continue;
+        const nl = Math.hypot(A.nx + C.nx, A.nz + C.nz) || 1, r = 1.8, tx = ex + (A.nx + C.nx) / nl * 0.35, tz = ez + (A.nz + C.nz) / nl * 0.35, top = A.top;
+        tower(lo, tx, tz, top - 7.5, top + 0.4, top + 5.2 + (rnd() < 0.5 ? 1 : 0), r, wall, B.roofCol, { n: 9, dome: rnd() < 0.5, windows: 3, wy: 0.15, cornice: true, trim: B.trim, spire: 2.0 }); done = true; stats.turrets = (stats.turrets || 0) + 1; }
+    }
     if (cur && cur.hangar && E_list.length) { const L = E_list.filter((E) => E.len > 12).sort((p, q) => p.len - q.len).slice(0, 2); for (const E of L) { archGable(lo, E); stats.heroes++; } }
-    if (isCor && E_list.length && it.h > 6 && B.roofRise < 6) { // chimneys on two corners of the roof
+    if (isCor && !cur && E_list.length && it.h > 6 && B.roofRise < 6) { // chimneys on two corners of the roof
       const top = wallTopMax + 0.2;
       const E = E_list.reduce((a, b) => (b.len > a.len ? b : a));
       for (let k = 0; k < (it.h > 12 ? 2 : 1); k++) { const u = E.len * (0.25 + 0.5 * k + rnd() * 0.1), off = -1.6; chimney(hi, E.ax + E.dx * u + E.nx * off, E.az + E.dz * u + E.nz * off, top - 1.4, top + 1.0 + rnd() * 0.4, lin(0x8a5a48)); }
@@ -192,15 +216,27 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     list.push(e);
     c.lo = c.hi = null;
   }
+  // ---- packed signature assets: one mesh per LOD, switched by distance (update)
+  const sigs = [];
+  for (const [k, a, asset] of sigReady) {
+    const geos = buildSigGeometries(asset, a.pal, { flood: a.flood }), A = [Math.cos(a.th), Math.sin(a.th)], VV = [A[1], -A[0]];
+    const g = new THREE.Group(); g.name = 'sig-' + k; g.matrixAutoUpdate = false; g.matrix.set(VV[0], 0, A[0], a.O[0], 0, 1, 0, 0, VV[1], 0, A[1], a.O[1], 0, 0, 0, 1); g.matrixWorldNeedsUpdate = true;
+    const ms = geos.map((q, i) => { const m = new THREE.Mesh(q.geo, lom); m.castShadow = i < 2; m.receiveShadow = true; m.visible = i === 2; g.add(m); return m; });
+    scene.add(g); g.updateMatrixWorld(true);
+    const c = a.centre, cw = [a.O[0] + c[2] * A[0] + c[0] * VV[0], a.O[1] + c[2] * A[1] + c[0] * VV[1]];
+    sigs.push({ k, a, g, ms, geos, cw, lod: 2, bytes: asset.bytes }); tris += geos[2].tris;
+  }
+  stats.sig = sigs.map((s) => ({ k: s.k, tris: s.geos.map((q) => q.tris), bytes: s.bytes }));
   scene.add(group);
   stats.chunks = list.length; stats.tris = Math.round(tris); stats.buildMs = Math.round(performance.now() - t0); stats.loadMs = Math.round(tLoad);
-  let hiDist = phone ? 95 : 130;
+  let hiDist = phone ? 95 : 130; const sigK = phone ? 0.65 : 1;
   return {
-    group, stats, list,
+    group, stats, list, sigs,
     setHiDistance(d) { hiDist = d; },
     /** assertion helper: no city geometry below 4.6 m within `clear` metres of any track centre line (raw OSM track of every route of this map). Returns { checked, violations, worst } */
     checkClearance(clear = 1.6) {
       let checked = 0, violations = 0, worst = 1e9, where = null;
+      for (const s of sigs) { const g = s.geos[0].geo, P0 = g.attributes.position.array, M = s.g.matrix.elements; for (let i = 0; i < P0.length; i += 3) { const y = P0[i + 1]; if (y > 4.6 || y < 0.15) continue; const x = M[0] * P0[i] + M[8] * P0[i + 2] + M[12], z = M[2] * P0[i] + M[10] * P0[i + 2] + M[14], d = trackDist(x, z); checked++; if (d < clear) { violations++; if (d < worst) { worst = d; where = [Math.round(x), Math.round(z), +y.toFixed(1), s.k]; } } } }
       for (const e of list) for (const m of [e.lo, e.hi]) {
         if (!m) continue; const P = m.geometry.attributes.position.array;
         for (let i = 0; i < P.length; i += 3) { const y = P[i + 1]; if (y > 4.6 || y < 0.15) continue; const d = trackDist(P[i], P[i + 2]); checked++; if (d < clear) { violations++; if (d < worst) { worst = d; where = [Math.round(P[i]), Math.round(P[i + 2])]; } } }
@@ -210,6 +246,7 @@ export async function buildTramCity({ scene, world, slug, routes = [], phone = f
     /** per frame: relief geometry only within hiDist of the camera (chunk box distance); no allocation */
     update(camera) {
       const cx = camera.position.x, cz = camera.position.z, d2 = hiDist * hiDist;
+      for (const s of sigs) { const d = Math.hypot(cx - s.cw[0], cz - s.cw[1]) - s.a.radius, want = SIGLOD != null && SIGLOD !== '' ? +SIGLOD : d < s.a.dist[0] * sigK ? 0 : d < s.a.dist[1] * sigK ? 1 : 2; if (want !== s.lod) { s.ms[s.lod].visible = false; s.ms[want].visible = true; s.lod = want; } }
       for (let i = 0; i < list.length; i++) {
         const e = list[i]; if (!e.hi) continue;
         const dx = Math.max(e.x0 - cx, 0, cx - (e.x0 + CH)), dz = Math.max(e.z0 - cz, 0, cz - (e.z0 + CH));

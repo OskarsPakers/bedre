@@ -122,6 +122,12 @@ for (const vp of VPS) {
     await page.evaluate(() => window.__meta.wd.showAward({ total: 182, base: 80, place: 40, score: 62, goals: 0, streak: 0, levelUp: true, items: [[0, 1], [2, 1]], before: { level: 7 }, after: { level: 8, frac: 0.4 } }));
     await sleep(900);
     await A('results-levelup');
+    // private-room results: "Rematch with friends" + the longer "Main menu · leave room" (stacked on portrait, in a row on short landscape screens), also with share buttons present
+    await page.evaluate(() => window.__ui.showTab('score'));
+    await page.evaluate(() => window.__online.againLabel(true));
+    await sleep(300);
+    await A('results-private');
+    await page.evaluate(() => window.__online.againLabel(false));
     await page.evaluate(() => { window.__meta.wd.extras(document.getElementById('rt-ach')); window.__ui.showTab('ach'); });
     await sleep(300);
     await A('results-levelup-progress');

@@ -202,10 +202,10 @@ export function buildStreet({ THREE: _T, scene, S, tracks, mapTracks, phone = fa
     }
     flush(0); flush(1);
   }
-  if (kp.length) {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(kp, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(kcol.map((v) => lin1(v)), 3)); g.setIndex(kidx); g.computeVertexNormals();
-    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); m.receiveShadow = true; m.frustumCulled = false; m.name = 'kerbs'; group.add(m);
+  if (kp.length) {   // kerbs: split into 160 m cells so that the frustum culls them (one route-long mesh was drawn whole, 25 k triangles, every frame)
+    const kc = kcol.map((v) => lin1(v)), mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), cellsK = new Map();
+    for (let t = 0; t < kidx.length; t += 3) { const v = kidx[t]; const k = Math.floor(kp[v * 3] / 160) + ',' + Math.floor(kp[v * 3 + 2] / 160); let c = cellsK.get(k); if (!c) cellsK.set(k, (c = { map: new Map(), p: [], c: [], i: [] })); for (let q = 0; q < 3; q++) { const o = kidx[t + q]; let n = c.map.get(o); if (n == null) { n = c.p.length / 3; c.map.set(o, n); c.p.push(kp[o * 3], kp[o * 3 + 1], kp[o * 3 + 2]); c.c.push(kc[o * 3], kc[o * 3 + 1], kc[o * 3 + 2]); } c.i.push(n); } }
+    for (const c of cellsK.values()) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(c.p, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(c.c, 3)); g.setIndex(c.i); g.computeVertexNormals(); g.computeBoundingSphere(); const m = new THREE.Mesh(g, mat); m.receiveShadow = true; m.name = 'kerbs'; group.add(m); }
   }
   if (mp.length) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(mp, 3)); g.setIndex(mi); g.computeVertexNormals();

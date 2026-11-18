@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const [out, x, y, z, lx, ly, lz, fov = '60', route = 'centrs-3', theme = 'day'] = process.argv.slice(2);
 const b = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
-await p.goto(`http://localhost:5193/tramvajs/?route=${route}&lang=en&quality=high`);
+await p.goto(`http://localhost:5198/tramvajs/?route=${route}&lang=en&quality=high`);
 await p.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 120000 });
 if (theme !== 'day') await p.evaluate((t) => window.__tram.setTheme(t), theme);
 await p.addStyleTag({ content: '#start,#hud,.hud,#menu,#loading{display:none!important}' });

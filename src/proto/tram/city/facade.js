@@ -5,7 +5,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const lin = (hex) => { const f = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return [f((hex >> 16) & 255), f((hex >> 8) & 255), f(hex & 255)]; };
 const mul = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 const AWN = [0x9a3b32, 0x2f6b4f, 0x2f4f7d, 0xb98a36, 0x6a4a7a, 0xc9c2b0].map(lin);
-const SIGN = [0x2b2f33, 0xd9d2c0, 0x4a5a52, 0x7a2f2f, 0x354764, 0xe6d9a8].map(lin);
+const SIGN = [0x2b2f33, 0xd9d2c0, 0x4a5a52, 0x7a2f2f, 0x354764, 0xe6d9a8, 0x8f2a2a, 0x1f5a45, 0x23405f, 0xc4962d, 0x2f7f86, 0xe9e4da, 0x6b3a2a, 0x9a6a8a].map(lin);
 const RAIL = lin(0x4a4d52), DARK = lin(0x2a2c30), WOOD = lin(0x4a3424);
 
 /** edge geometry helper: point at (u metres along, y, off metres out) */
@@ -176,7 +176,7 @@ export function emitFromPlan(lo, hi, E, B, plan, rnd, relief) {
     const gl = plan.ground || [];
     const sgn = SIGN[Math.floor(rnd() * SIGN.length)];
     for (const g of gl) { const u0 = g.u - g.w / 2, u1 = g.u + g.w / 2; plane(hi, E, u0 - 0.2, u0, E.y0, E.y0 + gh - 0.45, 0.08, B.shopTrim); plane(hi, E, u1, u1 + 0.2, E.y0, E.y0 + gh - 0.45, 0.08, B.shopTrim); box(hi, E, u0 - 0.2, u1 + 0.2, E.y0 + gh - 0.62, E.y0 + gh - 0.12, 0.12, sgn); box(hi, E, u0, u1, E.y0, E.y0 + 0.45, 0.06, B.stone);
-      if (B.shopAwn && rnd() < 0.2 && g.w > 1.6) { const col = AWN[Math.floor(rnd() * AWN.length)], yT = E.y0 + gh - 0.7; hi.quad([pt(E, u0, yT, 0.05), pt(E, u1, yT, 0.05), pt(E, u1, yT - 0.55, 1.15), pt(E, u0, yT - 0.55, 1.15)], [E.nx * 0.55, 0.83, E.nz * 0.55], col, [1, 1, 1, 1]); plane(hi, E, u0, u1, yT - 0.8, yT - 0.55, 1.15, col, 0.9); } }
+      if (B.shopAwn && rnd() < 0.3 && g.w > 1.6) { const col = AWN[Math.floor(rnd() * AWN.length)], yT = E.y0 + gh - 0.7; hi.quad([pt(E, u0, yT, 0.05), pt(E, u1, yT, 0.05), pt(E, u1, yT - 0.55, 1.15), pt(E, u0, yT - 0.55, 1.15)], [E.nx * 0.55, 0.83, E.nz * 0.55], col, [1, 1, 1, 1]); plane(hi, E, u0, u1, yT - 0.8, yT - 0.55, 1.15, col, 0.9); } }
     if (E.len > 5) { const gu = gl.length ? gl[0].u + gl[0].w / 2 + 0.6 : E.len * 0.2; if (gu + 0.7 < E.len) { plane(hi, E, gu - 0.55, gu + 0.55, E.y0, E.y0 + 2.3, 0.12, WOOD); plane(hi, E, gu - 0.68, gu + 0.68, E.y0 + 2.3, E.y0 + 2.5, 0.14, trim); top(hi, E, gu - 0.7, gu + 0.7, E.y0 + 0.12, 0.05, 0.6, B.stone); } }
   }
   if (B.balc && plan.nUp >= 3) { const r1 = plan.wins.filter((w) => w.f === 1); const yS = r1.length ? r1[0].v0 - 0.0 : E.y0 + gh + plan.fh;
@@ -272,4 +272,28 @@ export function grandFacade(lo, E, B, o = {}) {
   bx(0, L, E.top - corn, E.top - 0.35, 0.75, trim); bx(0, L, E.top - 0.35, E.top + 0.25, 0.95, trim);
   // acroteria: a statue block on the corners and over every 3rd pilaster
   for (let b = 0; b <= nb; b += 3) { const u = Math.max(0.7, Math.min(L - 0.7, b * bay)); bx(u - 0.5, u + 0.5, E.top + 0.25, E.top + 1.1, 0.7, trim); bx(u - 0.28, u + 0.28, E.top + 1.1, E.top + 2.3, 0.45, trim); }
+}
+
+export { pt, plane, top, bottom, side, box, N3 };
+
+/** archetype relief on top of a plan-based facade: 'nouveau' = oriels (bay windows over floors 1..n-1) + hooded / arched window heads on the top floor; 'eclectic' = pedimented hoods on the first upper floor, segmental heads above;
+ *  'func' = bold floor bands (interwar / Soviet modernist). Cheap: hi layer only. */
+export function archExtras(hi, E, B, plan, arch, rnd) {
+  const trim = B.trim, wins = plan.wins; if (!wins.length) return;
+  const nUp = plan.nUp || 1;
+  if (arch === 'nouveau' && E.len > 7 && nUp >= 3) {
+    const cols = wins.filter((w) => w.f === 1).map((w) => w.u).filter((u) => u > 2.2 && u < E.len - 2.2); if (cols.length) {
+      const picks = [cols[Math.floor(cols.length * 0.25)], cols[Math.floor(cols.length * 0.75)]].filter((v, i, a) => v != null && a.indexOf(v) === i);
+      for (const uc of picks) { const w1 = wins.find((w) => w.f === 1 && w.u === uc), ow = (w1 ? w1.w : 1.2) + 0.9, d = 0.85, f1 = Math.max(1, nUp - 2), wa = wins.find((w) => w.f === 1), wb = wins.find((w) => w.f === f1); if (!wa || !wb) continue; const ya = wa.v0 - 0.2, yb = wb.v1 + 0.45;
+        box(hi, E, uc - ow / 2, uc + ow / 2, ya, yb, d, B.wall); for (let f = 1; f <= f1; f++) { const ww = wins.find((w) => w.f === f && w.u === uc) || wins.find((w) => w.f === f); if (ww) plane(hi, E, uc - ow / 2 + 0.28, uc + ow / 2 - 0.28, ww.v0, ww.v1, d + 0.03, [0.09, 0.12, 0.16]); }
+        box(hi, E, uc - ow / 2 - 0.1, uc + ow / 2 + 0.1, yb, yb + 0.22, d + 0.1, trim); hi.quad([pt(E, uc - ow / 2 - 0.12, yb + 0.22, d + 0.12), pt(E, uc + ow / 2 + 0.12, yb + 0.22, d + 0.12), pt(E, uc + ow / 2, yb + 1.3, 0.05), pt(E, uc - ow / 2, yb + 1.3, 0.05)], [E.nx * 0.5, 0.85, E.nz * 0.5], B.roofCol, [1, 1, 1, 1]); }
+    }
+    for (const w of wins) if (w.f === nUp - 1) { const u0 = w.u - w.w / 2, u1 = w.u + w.w / 2; hi.tri([pt(E, u0 - 0.15, w.v1 + 0.14, 0.1), pt(E, u1 + 0.15, w.v1 + 0.14, 0.1), pt(E, w.u, w.v1 + 0.62, 0.1)], N3(E), trim, 1); }
+  } else if (arch === 'eclectic' && nUp >= 2) {
+    for (const w of wins) { const u0 = w.u - w.w / 2, u1 = w.u + w.w / 2;
+      if (w.f === 1) { hi.tri([pt(E, u0 - 0.25, w.v1 + 0.3, 0.12), pt(E, u1 + 0.25, w.v1 + 0.3, 0.12), pt(E, w.u, w.v1 + 0.95, 0.12)], N3(E), trim, 1); box(hi, E, u0 - 0.22, u1 + 0.22, w.v1 + 0.14, w.v1 + 0.3, 0.16, trim); }
+      else if (w.f > 1 && w.f < nUp - 1) box(hi, E, u0 - 0.18, u1 + 0.18, w.v1 + 0.12, w.v1 + 0.3, 0.14, mul(trim, 0.95)); }
+  } else if (arch === 'func' && nUp >= 2) {
+    const ys = new Set(wins.map((w) => w.f)); for (const f of ys) { const w = wins.find((q) => q.f === f); box(hi, E, 0, E.len, w.v0 - 0.2, w.v0 - 0.05, 0.1, trim); }
+  }
 }

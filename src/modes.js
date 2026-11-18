@@ -221,6 +221,8 @@ export function initModes(g, { params: p = new URLSearchParams(location.search) 
   if (ids.includes(urlMode) && allowed(urlMode)) state.id = urlMode;
   if (!p.has('bots')) setBots(g, CFG.bots.count);          // main.js builds BOT_CAPACITY bots; classic uses the usual 7
   bus.on('modeSetup', setup);
+  bus.on('menuReset', (gm) => { if (!params.has('bots')) setBots(gm, CFG.bots.count); });
+  bus.on('menu', refreshUi);   // back on the start screen: Play label, mode / daily-used text
   bus.on('roundGo', () => { if (state.id === 'daily' && state.ranked) markDailyUsed(state.daily.day); });
   for (const b of document.querySelectorAll('#modesw [data-mode]')) b.addEventListener('click', () => setMode(b.dataset.mode));
   for (const b of document.querySelectorAll('#diffsw [data-diff]')) b.addEventListener('click', () => setDifficulty(b.dataset.diff));

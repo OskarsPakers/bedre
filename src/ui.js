@@ -87,7 +87,7 @@ export function initUi() {
     body.addEventListener('click', () => setTimeout(summary, 0));
     body.addEventListener('change', () => setTimeout(summary, 0));
     onLang(() => setTimeout(summary, 0));
-    bus.on('modeChange', summary); bus.on('difficultyChange', summary);
+    bus.on('modeChange', summary); bus.on('difficultyChange', summary); bus.on('menu', summary);
     summary(); setTimeout(summary, 400); setTimeout(summary, 1500);
     // graphics: remembered, applied on the next load (the ground textures are built before the first frame)
     for (const b of document.querySelectorAll('#qualsw [data-quality]')) b.addEventListener('click', () => {

@@ -10,6 +10,15 @@ export const PHYS = {
   rateUp: 1.5, rateDown: 2.2, rateBrake: 1.9,                                        // keyboard lever ramp speeds (per second)
   capacity: 110,                                                                      // passengers
 };
+/** door schedule of one stop: alighting person i steps out at alT(i), boarding person j starts walking at bT(j) and is aboard BWALK s later; everything in seconds after the doors are fully open */
+export const BWALK = 1.7;
+export function doorSchedule(alight, board) {
+  const ia = Math.min(0.55, 3.6 / Math.max(1, alight)), ib = Math.min(0.85, 6 / Math.max(1, board));
+  const tB = Math.max(1.0, 0.6 + Math.min(alight, 6) * ia * 0.7);
+  const alT = (i) => 0.6 + i * ia, bT = (j) => tB + j * ib;
+  const end = Math.max(alight ? alT(alight - 1) + 0.4 : 0, board ? bT(board - 1) + BWALK : 0);
+  return { alT, bT, need: Math.max(3, Math.min(26, end + 0.8)) };
+}
 export const ZONE = { behind: -26, ahead: 10 };    // door-to-marker error window in which the doors may open: -26 m (short) .. +10 m (overshoot)
 export const SCORE = { acc: 40, time: 30, smooth: 20, speed: 10 };
 export const PEN = { redPass: 15, atp: 10, pedHit: 12 };   // points off the run total
@@ -220,6 +229,8 @@ export class Run {
     } else if (this.doorState === 'open') {
       if (this.dwell) {
         this.dwell.t += dt;
+        { const D = this.dwell, t = D.t; let a = 0, b = 0; while (a < D.alight && t >= D.sch.alT(a) + 0.3) a++; while (b < D.board && t >= D.sch.bT(b) + BWALK) b++;
+          D.alN = a; D.boN = b; D.waitLeft = Math.max(0, (D.waitLeft0 ?? (D.waitLeft0 = D.waitLeft)) - b); if (!D.done) this.pax = D.pax0 - a + b; }
         if (!this.dwell.done && this.dwell.t >= this.dwell.need) { this.dwell.done = true; this.pax = this.dwell.paxAfter; this.events.push({ type: 'boarded', pax: this.pax }); }
         // doors close when boarding is over AND the scheduled departure time has come (no early departure); the button asks for it, it never skips the time
         const timeOk = this.ref || this.dwell.last || this.time >= this.dwell.departAt + this.excused - 1.1;
@@ -266,8 +277,8 @@ export class Run {
     const pax = this.pax;
     const alight = st.last ? pax : Math.min(pax, Math.round(pax * st.alight)), board = Math.min(st.board, PHYS.capacity - (pax - alight));
     // boarding takes longer the more people use the doors (a crowded door is slower); the last stop is always a plain alighting
-    const need = clamp(2.6 + 0.42 * (alight + board) + (st.last ? 0.5 : 0.5), 3, 26);
-    this.dwell = { stopIdx: st.idx, t: 0, need, alight, board, done: false, paxAfter: pax - alight + board, departAt: st.depart, last: st.last };
+    const sch = doorSchedule(alight, board), need = sch.need;
+    this.dwell = { stopIdx: st.idx, t: 0, need, alight, board, done: false, paxAfter: pax - alight + board, pax0: pax, alN: 0, boN: 0, waitLeft: st.waitingAt, departAt: st.depart, last: st.last, sch };
     this.servedStop = st; this.pendingOpen = true; this._standT = 0;
     this.next++;
     if (this.next >= this.stops.length) this.finishAfterDoors = true;

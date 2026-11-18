@@ -1,0 +1,381 @@
+{
+ "note": "Metadata only (no images). Reference images live in tools/.cache/onebuilding/ref (never committed/shipped).",
+ "commons": [
+  {
+   "file": "Latvian_National_Opera_in_2019.01.jpg",
+   "title": "File:Latvian National Opera in 2019.01.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.01.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:46:29"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.03.jpg",
+   "title": "File:Latvian National Opera in 2019.03.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.03.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:46:33"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.05.jpg",
+   "title": "File:Latvian National Opera in 2019.05.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.05.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:46:58"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.07.jpg",
+   "title": "File:Latvian National Opera in 2019.07.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.07.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:47:12"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.09.jpg",
+   "title": "File:Latvian National Opera in 2019.09.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.09.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:47:39"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.11.jpg",
+   "title": "File:Latvian National Opera in 2019.11.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.11.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:47:44"
+  },
+  {
+   "file": "Latvian_National_Opera_in_2019.13.jpg",
+   "title": "File:Latvian National Opera in 2019.13.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_in_2019.13.jpg",
+   "author": "CAPTAIN RAJU",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4032,
+    3024
+   ],
+   "date": "Taken on 24 August 2019, 18:48:15"
+  },
+  {
+   "file": "Opera_Nacional_Riga_Letonia_2012-08-07_DD_04.JPG",
+   "title": "File:Opera Nacional, Riga, Letonia, 2012-08-07, DD 04.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Opera_Nacional,_Riga,_Letonia,_2012-08-07,_DD_04.JPG",
+   "author": "Diego Delso",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "orig": [
+    5209,
+    2817
+   ],
+   "date": "2012-08-07 20:49:48"
+  },
+  {
+   "file": "Opera_Nacional_Riga_Letonia_2012-08-07_DD_09.JPG",
+   "title": "File:Opera Nacional, Riga, Letonia, 2012-08-07, DD 09.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Opera_Nacional,_Riga,_Letonia,_2012-08-07,_DD_09.JPG",
+   "author": "Diego Delso",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "orig": [
+    4437,
+    2756
+   ],
+   "date": "2012-08-07 21:13:00"
+  },
+  {
+   "file": "Opera_Nacional_Riga_Letonia_2012-08-07_DD_16.JPG",
+   "title": "File:Opera Nacional, Riga, Letonia, 2012-08-07, DD 16.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Opera_Nacional,_Riga,_Letonia,_2012-08-07,_DD_16.JPG",
+   "author": "Diego Delso",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "orig": [
+    5368,
+    3453
+   ],
+   "date": "2012-08-08 12:04:38"
+  },
+  {
+   "file": "Opera_Nacional_Riga_Letonia_2012-08-07_DD_26.JPG",
+   "title": "File:Opera Nacional, Riga, Letonia, 2012-08-07, DD 26.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Opera_Nacional,_Riga,_Letonia,_2012-08-07,_DD_26.JPG",
+   "author": "Diego Delso",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "orig": [
+    4627,
+    2674
+   ],
+   "date": "2012-08-08 12:10:58"
+  },
+  {
+   "file": "Te_tra_ka_Aspazijas_bulv_ris_3_R_ga_I.JPG",
+   "title": "File:Teātra ēka, Aspazijas bulvāris 3, Rīga I.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Te%C4%81tra_%C4%93ka,_Aspazijas_bulv%C4%81ris_3,_R%C4%ABga_I.JPG",
+   "author": "Evita wiki",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4209,
+    2361
+   ],
+   "date": "2015-09-25 07:19:16"
+  },
+  {
+   "file": "Te_tra_ka_Aspazijas_bulv_ris_3_R_ga_II.JPG",
+   "title": "File:Teātra ēka, Aspazijas bulvāris 3, Rīga II.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Te%C4%81tra_%C4%93ka,_Aspazijas_bulv%C4%81ris_3,_R%C4%ABga_II.JPG",
+   "author": "Evita wiki",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    4447,
+    3218
+   ],
+   "date": "2015-09-25 07:19:43"
+  },
+  {
+   "file": "Latvian_national_opera_Riga_001.JPG",
+   "title": "File:Latvian national opera Riga 001.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_national_opera_Riga_001.JPG",
+   "author": "User: (WT-shared) Riggwelter at  wts wikivoyage",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    2048,
+    1536
+   ],
+   "date": "2007-08-25"
+  },
+  {
+   "file": "Latvian_National_Opera_viewed_from_the_City_Canal.JPG",
+   "title": "File:Latvian National Opera viewed from the City Canal.JPG",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_viewed_from_the_City_Canal.JPG",
+   "author": "Андрей Романенко",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    2592,
+    1944
+   ],
+   "date": "2015-05-24 14:50:27"
+  },
+  {
+   "file": "Stadt-Theater_zu_Riga_-_187x_-_Bohnstedt.jpg",
+   "title": "File:Stadt-Theater zu Riga - 187x - Bohnstedt.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Stadt-Theater_zu_Riga_-_187x_-_Bohnstedt.jpg",
+   "author": "Unknown authorUnknown author",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "orig": [
+    2961,
+    2768
+   ],
+   "date": "1879"
+  },
+  {
+   "file": "Riga_Theater_Promenade_1890-1900.jpg",
+   "title": "File:Riga Theater Promenade 1890-1900.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Riga_Theater_Promenade_1890-1900.jpg",
+   "author": "?",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "orig": [
+    3196,
+    2300
+   ],
+   "date": "between ca. 1890 and ca. 1900"
+  },
+  {
+   "file": "Latvian_National_Opera_07.09.2022_.jpg",
+   "title": "File:Latvian National Opera (07.09.2022).jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvian_National_Opera_(07.09.2022).jpg",
+   "author": "Nenea hartia",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "orig": [
+    5472,
+    3648
+   ],
+   "date": "2022-09-07 16:20:06"
+  }
+ ],
+ "street_level_open_apis": [
+  {
+   "source": "Panoramax",
+   "id": "926ab9ab-0632-4d08-a110-98e95a251c3b",
+   "file": "street/pnx_926ab9ab.jpg",
+   "datetime": "2026-06-18T09:17:55.456000+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.114426171,
+    56.949944673
+   ],
+   "azimuth": 82
+  },
+  {
+   "source": "Panoramax",
+   "id": "2b9b0fb3-9de3-446c-98aa-100999c37b41",
+   "file": "street/pnx_2b9b0fb3.jpg",
+   "datetime": "2026-06-18T09:20:40+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.11484217,
+    56.950001525
+   ],
+   "azimuth": 356
+  },
+  {
+   "source": "Panoramax",
+   "id": "2f345671-29bb-40c2-a6cf-aa3c79976344",
+   "file": "street/pnx_2f345671.jpg",
+   "datetime": "2026-06-18T09:20:32+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.11484217,
+    56.950001525
+   ],
+   "azimuth": null
+  },
+  {
+   "source": "Panoramax",
+   "id": "f99296bf-ad84-42b8-bc97-ab8c200c3bd8",
+   "file": "street/pnx_f99296bf.jpg",
+   "datetime": "2026-06-18T09:16:56.564000+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.114016656,
+    56.950132906
+   ],
+   "azimuth": 114
+  },
+  {
+   "source": "Panoramax",
+   "id": "144a9634-a811-4663-9d93-27c8171f0791",
+   "file": "street/pnx_144a9634.jpg",
+   "datetime": "2026-06-18T09:10:20.243000+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.114238278,
+    56.950709907
+   ],
+   "azimuth": 241
+  },
+  {
+   "source": "Panoramax",
+   "id": "52aee5a2-08a7-478e-a6c8-16db208af23e",
+   "file": "street/pnx_52aee5a2.jpg",
+   "datetime": "2026-06-18T09:14:55.473000+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.113002164,
+    56.95004899
+   ],
+   "azimuth": 85
+  },
+  {
+   "source": "Panoramax",
+   "id": "7aa842e6-6b49-47ab-93ab-e3749f54810d",
+   "file": "street/pnx_7aa842e6.jpg",
+   "datetime": "2026-07-29T12:16:10+00:00",
+   "licence": "CC-BY-SA-4.0",
+   "author": "mapcomplete",
+   "lonlat": [
+    24.1119797,
+    56.9504421
+   ],
+   "azimuth": 81
+  },
+  {
+   "source": "KartaView",
+   "id": "90796275",
+   "file": "street/kv_90796275.jpg",
+   "datetime": "2017-08-08 18:20:01.000",
+   "licence": "CC BY-SA 4.0 per KartaView terms (re-verify)",
+   "author": "KartaView contributor",
+   "lonlat": [
+    24.115209,
+    56.948364
+   ],
+   "azimuth": "230.43"
+  },
+  {
+   "source": "KartaView",
+   "id": "279139969",
+   "file": "street/kv_279139969.jpg",
+   "datetime": "2018-07-06 16:49:27.000",
+   "licence": "CC BY-SA 4.0 per KartaView terms (re-verify)",
+   "author": "KartaView contributor",
+   "lonlat": [
+    24.113776,
+    56.949098
+   ],
+   "azimuth": "298.2"
+  },
+  {
+   "source": "KartaView",
+   "id": "1070672502",
+   "file": "street/kv_1070672502.jpg",
+   "datetime": "2018-06-05 17:21:40.000",
+   "licence": "CC BY-SA 4.0 per KartaView terms (re-verify)",
+   "author": "KartaView contributor",
+   "lonlat": [
+    24.115188,
+    56.948346
+   ],
+   "azimuth": "228.21"
+  }
+ ],
+ "not_used": [
+  {
+   "source": "Mapillary",
+   "reason": "Graph API needs an access token (HTTP 500/401 without one); no account created. Would unlock CC BY-SA 4.0 street-level images; owner needs a Mapillary client token."
+  },
+  {
+   "source": "Google Street View / Apple Look Around / Bing Streetside / Yandex",
+   "reason": "terms forbid derivation; may only be looked at by a human"
+  }
+ ]
+}

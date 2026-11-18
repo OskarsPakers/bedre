@@ -44,6 +44,9 @@ export async function startRound() {
   return { roundId: round.roundId, roundSeconds: data.roundSeconds, mode: round.mode, seed: data.seed };
 }
 
+/** The round in progress is abandoned (pause -> main menu): its server round id is dropped and a late answer to a pending startRound() is ignored. A result that is being submitted is untouched. */
+export function abandonRound() { startSeq++; round = null; }
+
 // ---- Cloudflare Turnstile (only when the server reports a site key) ---------------------------------------------
 // https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/ -- loaded lazily, at submit time.
 // A widget that cannot load / errors / times out NEVER loses the round: the result stays pending (`hasPending()`), nothing is sent unverified,

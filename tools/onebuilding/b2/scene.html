@@ -1,0 +1,27 @@
+<!doctype html><meta charset=utf-8><title>scene</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script>
+<style>html,body{margin:0;background:#9cc3e6;overflow:hidden}canvas{display:block}</style>
+<script type="module">
+import * as THREE from 'three'; import { loadDense } from '/meshload.js';
+const Q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setSize(innerWidth, innerHeight); document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x9cc3e6); const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.3, 2000);
+const box = { x0: +Q.get('x0'), x1: +Q.get('x1'), z0: +Q.get('z0'), z1: +Q.get('z1') };
+const { group, stats } = await loadDense(box); scene.add(group);
+const D = window.__d = { stats, THREE, scene, camera, renderer, group, ready: true };
+D.view = (p, l, fov = 45, w = 1600, h = 900, far = 2000) => { renderer.setSize(w, h); camera.aspect = w / h; camera.fov = fov; camera.far = far; camera.position.set(...p); camera.up.set(0, 1, 0); camera.lookAt(...l); camera.updateProjectionMatrix(); scene.background = new THREE.Color(0x9cc3e6); renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); };
+const depthMat = new THREE.ShaderMaterial({ side: THREE.DoubleSide, vertexShader: 'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}', fragmentShader: 'void main(){float z=gl_FragCoord.z*255.;gl_FragColor=vec4(floor(z)/255.,fract(z),0.,1.);}' });
+// elevation: look along horizontal direction (dx,dz) at the plane through (cx,cz); width w m (centred), vertical y0..y1; keep slab [off-clip, off+range] along the view dir from the plane
+D.elev = (o) => { const W = o.w, H = o.y1 - o.y0, pw = Math.round(W * o.ppm), ph = Math.round(H * o.ppm); renderer.setSize(pw, ph); camera.aspect = 1;
+  const cam = new THREE.OrthographicCamera(-W / 2, W / 2, H / 2, -H / 2, 0.01, 400), d = new THREE.Vector3(o.dx, 0, o.dz).normalize(); const yc = (o.y0 + o.y1) / 2;
+  cam.position.set(o.cx - d.x * 100, yc, o.cz - d.z * 100); cam.lookAt(o.cx, yc, o.cz); cam.near = 100 - (o.clip ?? 2); cam.far = 100 + (o.range ?? 12); cam.updateProjectionMatrix();
+  scene.background = new THREE.Color(0xffffff); renderer.render(scene, cam); const c = renderer.domElement.toDataURL('image/png');
+  scene.background = new THREE.Color(0x0000ff); scene.overrideMaterial = depthMat; renderer.render(scene, cam); scene.overrideMaterial = null; scene.background = new THREE.Color(0x9cc3e6); return [c, renderer.domElement.toDataURL('image/png')]; };
+D.top = (o) => { const W = o.x1 - o.x0, H = o.z1 - o.z0, pw = Math.round(W * o.ppm), ph = Math.round(H * o.ppm); renderer.setSize(pw, ph);
+  const cam = new THREE.OrthographicCamera(-W / 2, W / 2, H / 2, -H / 2, 1, 500); const cx = (o.x0 + o.x1) / 2, cz = (o.z0 + o.z1) / 2; cam.position.set(cx, 250, cz); cam.up.set(0, 0, -1); cam.lookAt(cx, 0, cz);
+  scene.background = new THREE.Color(0xffffff); renderer.render(scene, cam); const c = renderer.domElement.toDataURL('image/png'); scene.background = new THREE.Color(0x9cc3e6); return c; };
+// max-height grid (cell m) from vertices; returns {x0,z0,cell,nx,nz,max[],p?}
+D.hgrid = (x0, z0, x1, z1, cell) => { const nx = Math.ceil((x1 - x0) / cell), nz = Math.ceil((z1 - z0) / cell), mx = new Float32Array(nx * nz).fill(-1e9), mn = new Float32Array(nx * nz).fill(1e9);
+  group.traverse(m => { if (!m.isMesh) return; const a = m.geometry.attributes.position.array; for (let i = 0; i < a.length; i += 3) { const ix = Math.floor((a[i] - x0) / cell), iz = Math.floor((a[i + 2] - z0) / cell); if (ix < 0 || iz < 0 || ix >= nx || iz >= nz) continue; const k = iz * nx + ix, y = a[i + 1]; if (y > mx[k]) mx[k] = y; if (y < mn[k]) mn[k] = y; } });
+  return { nx, nz, cell, x0, z0, max: Array.from(mx), min: Array.from(mn) }; };
+</script>

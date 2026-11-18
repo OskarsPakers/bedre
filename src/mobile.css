@@ -166,7 +166,8 @@ body.touch .about-list li, body.touch .credits { line-height: 1.7; }
   .results-card .rpanes { min-height: 150px; margin-bottom: 6px; }
   .results-card .rank td { padding: 2px 5px; }
   .results-card .r-actions { gap: 4px; }
-  .results-card .r-actions > .btn { padding: 8px 20px; font-size: 18px; min-height: 44px; }
+  .results-card .r-main .btn { padding: 8px 8px; font-size: 16px; min-height: 44px; }
+  .results-card .r-main #again { flex: 1.15 1 0; }   /* 320 px: "Uz sākumu" stays on one line */
   .results-card .r-share .btn-mini, .results-card .r-share button { min-height: 44px; }
   .results-card > .linkrow { display: none; }   /* Top scores stays one tap away on the start screen */
 }

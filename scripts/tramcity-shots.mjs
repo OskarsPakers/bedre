@@ -1,12 +1,12 @@
 // Screenshots of the tram game at fixed viewpoints (before = ?city=0 / after), via the game's own test hooks.
-//   node scripts/tramcity-shots.mjs [--url http://localhost:5193] [--route centrs-3] [--s 1200,1250] [--view cab|chase] [--city 0|1] [--theme day|evening|winter] [--tag after] [--out scripts/out/tramcity] [--w 1280 --h 720]
+//   node scripts/tramcity-shots.mjs [--url http://localhost:5198] [--route centrs-3] [--s 1200,1250] [--view cab|chase] [--city 0|1] [--theme day|evening|winter] [--tag after] [--out scripts/out/tramcity] [--w 1280 --h 720]
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildTrack } from '../src/proto/tram/track.js';
 import { poseAt } from '../tools/realistic/poses.mjs';
 const A = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, r) => (v.startsWith('--') ? [...a, [v.slice(2), r[i + 1]]] : a), []));
-const url = A.url || 'http://localhost:5193', route = A.route || 'centrs-3', view = A.view || 'cab', city = A.city ?? '1', theme = A.theme || 'day', tag = A.tag || (city === '0' ? 'before' : 'after');
+const url = A.url || 'http://localhost:5198', route = A.route || 'centrs-3', view = A.view || 'cab', city = A.city ?? '1', theme = A.theme || 'day', tag = A.tag || (city === '0' ? 'before' : 'after');
 const out = A.out || 'scripts/out/tramcity'; fs.mkdirSync(out, { recursive: true });
 const W = +(A.w || 1280), H = +(A.h || 720);
 const rj = JSON.parse(fs.readFileSync(`src/proto/tram/routes/${route}.json`, 'utf8')); const T = buildTrack(rj);

@@ -109,6 +109,22 @@ export function auditLayout(opts) {
   if (res && vis(res)) {
     const again = document.getElementById('again');
     if (!vis(again) || rect(again).b > vh + 0.5) out.push({ kind: 'results', msg: 'Play again not fully visible' });
+    // the "Main menu" button (secondary) next to Play again: visible, inside the viewport, not clipped, not over Play again / the share buttons, >= 44 px on touch layouts
+    const menu = document.getElementById('to-menu');
+    if (!vis(menu)) out.push({ kind: 'results', msg: 'Main menu button not visible' });
+    else {
+      const m = rect(menu), a2 = rect(again);
+      if (m.l < -0.5 || m.r > vw + 0.5 || m.t < -0.5 || m.b > vh + 0.5) out.push({ kind: 'results', msg: `Main menu off-screen (${Math.round(m.l)},${Math.round(m.t)} ${Math.round(m.r)},${Math.round(m.b)} in ${vw}x${vh})` });
+      if (hit(m, a2, 1)) out.push({ kind: 'results', msg: 'Main menu overlaps Play again' });
+      if (menu.scrollWidth > menu.clientWidth + 1 || menu.scrollHeight > menu.clientHeight + 1) out.push({ kind: 'results', msg: `Main menu label clipped (${menu.scrollWidth}x${menu.scrollHeight} in ${menu.clientWidth}x${menu.clientHeight})` });
+      if (again.scrollWidth > again.clientWidth + 1 || again.scrollHeight > again.clientHeight + 1) out.push({ kind: 'results', msg: 'Play again label clipped' });
+      if (touch && m.h < 43.5) out.push({ kind: 'results', msg: `Main menu only ${Math.round(m.h)} px high` });
+      if (touch && a2.h < 43.5) out.push({ kind: 'results', msg: `Play again only ${Math.round(a2.h)} px high` });
+      for (const sb of res.querySelectorAll('#r-share button, #r-share a')) if (vis(sb) && (hit(rect(sb), m, 1) || hit(rect(sb), a2, 1))) out.push({ kind: 'results', msg: `share button ${name(sb)} overlaps the main buttons` });
+      if (!vis(res.querySelector('.rtabs'))) out.push({ kind: 'results', msg: 'tab row missing' });
+      const pr = rect(res.querySelector('.panel-inner'));
+      if (m.b > pr.b + 0.5 || a2.b > pr.b + 0.5) out.push({ kind: 'results', msg: 'main buttons outside the results card' });
+    }
     const tabs = [...res.querySelectorAll('[role=tab], .tabs button')].filter(vis);
     if (tabs.length > 1) { const tops = new Set(tabs.map((b) => Math.round(rect(b).t))); if (tops.size > 1) out.push({ kind: 'results', msg: 'tab row wraps to a second line' }); }
     const tbl = res.querySelector('#r-table');

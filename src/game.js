@@ -5,7 +5,7 @@ import { Hole, updateSwallow, pullObjects, restoreMoved } from './holes.js';
 import { PowerupField, PU, PU_TYPES, puCountFor, pickRadius, candidatesFromSpawn, candidatesFromPoints } from './powerups.js';
 import { comboRound, resetComboRound } from './combo.js';
 import { PowerupView } from './powerupView.js';
-import { modeState } from './modes.js';
+import { modeState, playLabel } from './modes.js';
 import { HoleViews } from './holeView.js';
 import { FollowCamera } from './camera.js';
 import { Lighting } from './lighting.js';
@@ -17,7 +17,7 @@ import { Bots } from './bots.js';
 import { Minimap } from './minimap.js';
 import { bus } from './events.js';
 import { t, kindName, fmt, onLang } from './i18n.js';
-import { startRound, submitScore, retrySubmit, hasPending, lastFailure } from './scores.js';
+import { startRound, submitScore, retrySubmit, hasPending, lastFailure, abandonRound } from './scores.js';
 import { placeText } from './hud.js';
 import { isTouchUi, prefs } from './mobile.js';
 
@@ -226,6 +226,44 @@ export class Game {
     this.hud.showPause(v);
     if (v) { this.input.keys.clear(); this.input.releaseTouches(); }
     bus.emit(v ? 'pause' : 'resume');
+  }
+
+  // ---- back to the start screen ---------------------------------------------------------------------------------
+  /** The one way back to the start screen (results "Main menu", the pause panel's abandon, Esc on the results). Online rooms are left first
+   *  (src/net/online.js leave() -> _resetToMenu()). A result that is being submitted keeps being submitted; an unfinished round is abandoned
+   *  (never submitted, no streak / goals / XP: roundEnd never fires) and its server round id is dropped. */
+  toMenu() {
+    if (this.online) { this.online.leave(); return; }
+    this._resetToMenu();
+  }
+
+  /** Reset everything a round leaves behind and show the start screen exactly as after a fresh load (solo state; online.leave() restores the solo hole list first). */
+  _resetToMenu() {
+    const wasPaused = this.paused || this.resumeT > 0;
+    if (this.phase === 'intro' || this.phase === 'playing') abandonRound();   // an unfinished round: its id must never be reused for a later submit
+    this._roundToken = null;
+    this.phase = 'menu'; this.intro = null; this.paused = false; this.resumeT = 0; this.introFade = 1;
+    this.unranked = this.urlUnranked || null; this.modeUnranked = null; this._global = null; this._res = null;
+    this.killer = null; this.playT = 0; this.timeLeft = this.roundSeconds; this.pop = { sum: 0, x: 0, z: 0, n: 0, t: 0, big: false, hot: false };
+    this.field = null; this.bots.field = null; this.puView.clear(); resetComboRound();
+    this.holeViews.clearTrails();
+    this.input.keys.clear(); this.input.releaseTouches(); this.input.enabled = false;
+    this.world.reset(); restoreMoved(this.world);
+    bus.emit('menuReset', this);            // src/modes.js: the usual bot line-up of a fresh load (a free-roam round had none)
+    this._placeAll();
+    this.player.control = { mode: 'none', x: 0, z: 0 };
+    const h = this.hud;
+    h.clearTransient(); h.showResume(0); h.showPause(false); h.setRetry(null); h.setGlobal('');
+    h.showResults(false); h.showHud(false); h.showTags(false); h.showMarkers(false);
+    const di = document.getElementById('daily-intro'); if (di) di.className = '';
+    document.body.classList.remove('mode-practice');
+    this.cam.snap(this.player);
+    this._rank(); this._hudSync();
+    this._syncVisuals(0);
+    h.showStart(true); h.setReady(true, playLabel());
+    bus.emit('menu');                       // meta / modes / ui refresh their start-screen state (streak + goals chip, daily dot, Advanced summary)
+    if (wasPaused) bus.emit('resume');      // audio + radio were suspended by the pause
+    setTimeout(() => { try { document.getElementById('play').focus({ preventScroll: true, focusVisible: false }); } catch { /* ignore */ } }, 0);
   }
 
   _introStep(dt) {
@@ -685,6 +723,7 @@ export class Game {
       get unranked() { return g.unranked; },
       get paused() { return g.paused; },
       pause: (v) => g.pause(v),
+      toMenu: () => g.toMenu(),
       get cam() { return { focus: { x: g.cam.focus.x, z: g.cam.focus.z }, dist: g.cam.dist, zoom: g.cam.zoom }; },
       zoomBy: (f) => g.cam.zoomBy(f),
       get botCount() { return g.bots.holes.length; },

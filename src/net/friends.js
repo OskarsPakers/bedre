@@ -91,7 +91,8 @@ export class FriendsUi {
     if (v) { this.fCreate.focus({ preventScroll: true, focusVisible: false }); }
   }
   friendsError(msg) { this._buildFriends(); this.fErr.textContent = msg; }
-  friendsBusy(v) { this._buildFriends(); this.fCreate.disabled = this.fJoin.disabled = v; }
+  /** Create / Join disabled while a request is in flight; `msg` ("Connecting…") is shown meanwhile. */
+  friendsBusy(v, msg = '') { this._buildFriends(); this.fCreate.disabled = this.fJoin.disabled = v; this.fp.classList.toggle('busy', v); if (v) this.fErr.textContent = msg; else if (this._busyMsg && this.fErr.textContent === this._busyMsg) this.fErr.textContent = ''; this._busyMsg = v ? msg : ''; }
 
   // ---- "room is not active" offer ---------------------------------------------------------------------------------------
   showNoRoom(v, { onNew, onClose } = {}) {

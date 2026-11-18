@@ -1,0 +1,12 @@
+// Count what the CURRENT live game spends on the Opera: triangles of every scene mesh whose triangle centroid lies inside the Opera's frame box. node gcount.mjs
+import { chromium } from 'playwright'; import { O, TH } from './frame.js';
+const b = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] }); const p = await (await b.newContext({ viewport: { width: 800, height: 450 } })).newPage();
+await p.goto('https://bedre.pakers.lv/tramvajs/?route=centrs-3&theme=day&quality=high'); await p.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 180000 });
+await p.evaluate(() => window.__tram.start('short', 'centrs-3')); await p.waitForTimeout(3000);
+const r = await p.evaluate(([O, TH]) => { const t = window.__tram; const sc = t.S.scene; const out = { meshes: 0, tris: 0, bytes: 0, parts: [] }; const cs = Math.cos(TH), sn = Math.sin(TH); const inbox = (x, z) => { const dx = x - O[0], dz = z - O[1], u = dx * cs + dz * sn, v = dx * sn - dz * cs; return u > -16 && u < 110 && v > -2.5 && v < 44; };
+  sc.updateMatrixWorld(true); sc.traverse(o => { if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return; const g = o.geometry, pos = g.attributes.position, idx = g.index, m = o.matrixWorld.elements; const n = idx ? idx.count : pos.count; let cnt = 0; const vtx = new Set();
+    const P = (i) => { const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i); return [m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]]; };
+    for (let k = 0; k < n; k += 3) { const a = idx ? idx.getX(k) : k, b = idx ? idx.getX(k + 1) : k + 1, c = idx ? idx.getX(k + 2) : k + 2; const A = P(a), B = P(b), C = P(c); const cx = (A[0] + B[0] + C[0]) / 3, cz = (A[2] + B[2] + C[2]) / 3, cy = (A[1] + B[1] + C[1]) / 3; if (cy > -1 && cy < 45 && inbox(cx, cz)) { cnt++; vtx.add(a); vtx.add(b); vtx.add(c); } }
+    if (cnt) { let bpv = 0; for (const k in g.attributes) { const at = g.attributes[k]; bpv += at.itemSize * at.array.BYTES_PER_ELEMENT; } const verts = idx ? vtx.size : cnt * 3; out.meshes++; out.tris += cnt; out.bytes += verts * bpv + (idx ? cnt * 3 * idx.array.BYTES_PER_ELEMENT : 0); out.parts.push({ name: o.name || o.type, tris: cnt, verts, bpv, mat: o.material && (o.material.name || o.material.type) }); } });
+  return out; }, [O, TH]);
+console.log(JSON.stringify(r, null, 1)); await b.close();

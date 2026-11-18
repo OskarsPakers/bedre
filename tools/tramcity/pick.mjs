@@ -8,7 +8,7 @@ const T = buildTrack(JSON.parse(fs.readFileSync(`src/proto/tram/routes/${route}.
 const c = poseAt(T, +s, 9).cab;
 const b = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
 const pg = await b.newPage({ viewport: { width: 1280, height: 720 } });
-await pg.goto(`http://localhost:5193/tramvajs/?route=${route}&lang=en`);
+await pg.goto(`http://localhost:5198/tramvajs/?route=${route}&lang=en`);
 await pg.waitForFunction(() => document.body.dataset.ready === '1', null, { timeout: 120000 });
 await pg.evaluate((o) => window.__tram.setCamera(o), { x: c.x, y: c.up, z: c.z, lx: c.lx, ly: c.lup, lz: c.lz, fov: 78 });
 await pg.waitForTimeout(800);

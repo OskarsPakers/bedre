@@ -1,0 +1,96 @@
+{
+ "building": "stockmann",
+ "note": "Open Wikimedia Commons photos, read by a human/agent only to write the facade grammar. No pixel of them is in any output. Reality-mesh (City of Riga) views were used for measuring only.",
+ "images": [
+  {
+   "file": "Stockmann-Riga-4608.jpg",
+   "title": "File:Stockmann, Riga.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Stockmann,_Riga.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Stockmann%2C_Riga.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Stockmann%2C%20Riga.jpg?width=1280",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "date": "2019-06-21",
+   "original_px": [
+    4608,
+    3456
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 290955
+  },
+  {
+   "file": "Stockmann-Riga-5520.jpg",
+   "title": "File:Stockmann Riga.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Stockmann_Riga.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Stockmann_Riga.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Stockmann%20Riga.jpg?width=1280",
+   "author": "Stryn",
+   "licence": "CC BY-SA 4.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "date": "2016-08-18 22:06:45",
+   "original_px": [
+    5520,
+    4140
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 290262
+  },
+  {
+   "file": "Stockmann-shopping-Parex-Plaza-Forum-cinemas-13-ja-2816.jpg",
+   "title": "File:Stockmann shopping, Parex Plaza, Forum cinemas, 13.janvāra iela 8, Rīga, Latvia - M.Strīķis - Panoramio.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Stockmann_shopping,_Parex_Plaza,_Forum_cinemas,_13.janv%C4%81ra_iela_8,_R%C4%ABga,_Latvia_-_M.Str%C4%AB%C4%B7is_-_Panoramio.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Stockmann_shopping%2C_Parex_Plaza%2C_Forum_cinemas%2C_13.janv%C4%81ra_iela_8%2C_R%C4%ABga%2C_Latvia_-_M.Str%C4%AB%C4%B7is_-_Panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Stockmann%20shopping%2C%20Parex%20Plaza%2C%20Forum%20cinemas%2C%2013.janv%C4%81ra%20iela%208%2C%20R%C4%ABga%2C%20Latvia%20-%20M.Str%C4%AB%C4%B7is%20-%20Panoramio.jpg?width=1280",
+   "author": "M.Strīķis",
+   "licence": "CC BY-SA 3.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "date": "16 August 2009 (upload date)",
+   "original_px": [
+    2816,
+    2112
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 371366
+  },
+  {
+   "file": "T-C-Stockmann-panoramio-4000.jpg",
+   "title": "File:T-C Stockmann - panoramio.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:T-C_Stockmann_-_panoramio.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/T-C_Stockmann_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/T-C%20Stockmann%20-%20panoramio.jpg?width=1280",
+   "author": "Dmitrijs Purgalvis",
+   "licence": "CC BY 3.0",
+   "licence_url": "https://creativecommons.org/licenses/by/3.0",
+   "date": "Taken on 11 October 2010",
+   "original_px": [
+    4000,
+    3000
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 290682
+  },
+  {
+   "file": "UV-Stockmann-R-g-2025-4000.jpg",
+   "title": "File:UV Stockmann Rīgā, 2025.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:UV_Stockmann_R%C4%ABg%C4%81,_2025.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/c/cf/UV_Stockmann_R%C4%ABg%C4%81%2C_2025.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/UV%20Stockmann%20R%C4%ABg%C4%81%2C%202025.jpg?width=1280",
+   "author": "",
+   "licence": "CC BY-SA 4.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "date": "",
+   "original_px": [
+    4000,
+    2250
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 224311
+  }
+ ],
+ "not_retrieved": [
+  "File:Stockmann Riga Winter.jpg (HTTP 429 from Commons, not retrieved)",
+  "File:StockmannRiga.jpg (only 348 px, not used)"
+ ],
+ "mesh_source": "City of Riga reality mesh (I3S), measuring only; redistribution licence not settled; no municipal pixels in any shipped file"
+}

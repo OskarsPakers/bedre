@@ -19,14 +19,22 @@ export function sessionToken() {
   }
 }
 
-async function fetchJson(path, init, timeoutMs = 5000) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(path, { ...init, signal: ctrl.signal });
-    if (!res.ok) { const e = new Error('http' + res.status); e.status = res.status; throw e; }
-    return await res.json();
-  } finally { clearTimeout(timer); }
+/** One JSON request. `retries`: transient failures (no answer / timeout / 5xx: a cold Worker, a cold D1 or Durable Object, a flaky mobile network) are tried again after a short
+ *  pause; an answer that means something (4xx: rate limit, unknown room, cross-origin) never is. */
+async function fetchJson(path, init, timeoutMs = 5000, { retries = 0 } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(path, { ...init, signal: ctrl.signal });
+      if (!res.ok) { const e = new Error('http' + res.status); e.status = res.status; throw e; }
+      return await res.json();
+    } catch (e) {
+      const transient = !e || !e.status || e.status >= 500;
+      if (!transient || attempt >= retries) throw e;
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+    } finally { clearTimeout(timer); }
+  }
 }
 
 export const fetchStatus = () => fetchJson('/api/mp/status', { cache: 'no-store' }, 4000).catch(() => null);
@@ -54,12 +62,12 @@ export class MpClient {
   serverNow() { return Date.now() + this.offset; }
 
   /** Ask the matchmaker for the open lobby. */
-  matchmake(badRoom) { return fetchJson('/api/mp/join' + (badRoom ? '?bad=' + encodeURIComponent(badRoom) : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }); }
+  matchmake(badRoom) { return fetchJson('/api/mp/join' + (badRoom ? '?bad=' + encodeURIComponent(badRoom) : ''), { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }, 6000, { retries: 1 }); }
 
   /** Friend rooms: create a private room (the token binds the host to this tab's session) -> {code, max}; rejects with .status 429 when rate limited. */
-  createRoom() { return fetchJson('/api/mp/room', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: this.token }) }); }
+  createRoom() { return fetchJson('/api/mp/room', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: this.token }) }, 7000, { retries: 2 }); }
   /** Look a private room up: {ok, phase, humans, max}; rejects with .status 404 (no such / expired room) or 429. */
-  roomInfo(code) { return fetchJson('/api/mp/room?code=' + encodeURIComponent(code), { cache: 'no-store' }, 5000); }
+  roomInfo(code) { return fetchJson('/api/mp/room?code=' + encodeURIComponent(code), { cache: 'no-store' }, 7000, { retries: 2 }); }
 
   /** Open the socket and send the hello frame. Resolves when open, rejects (Error code) on failure. `priv` = a private room code (friend rooms). */
   connect(room, { name, hash, sk, priv }) {

@@ -78,6 +78,8 @@ async function testDevice(D) {
   // ======== session A: the city centre ========================================================================================================================
   check(`${D.name}: boots (centre map)`, await open('/tramvajs/?route=centrs-1&lang=' + D.lang));
   { const cl = await T(() => window.__tram.S.city && window.__tram.S.city.checkClearance ? window.__tram.S.city.checkClearance(1.6) : null); check(`${D.name}: tram city: no building geometry (below 4.6 m) within 1.6 m of any track on the centre map`, !cl || cl.violations === 0, JSON.stringify(cl)); }
+  { const sg = await T(() => { const c = window.__tram.S.city; if (!c || !c.sigs) return null; const cam = window.__tram.camera; return { n: c.sigs.length, hidden: (c.stats && c.stats.sigHidden) || 0, tris: c.sigs.map((s) => s.geos.map((g) => g.tris)), kb: c.sigs.map((s) => Math.round(s.bytes / 1024)), lod: c.sigs.map((s) => s.lod), nameOk: c.sigs.every((s) => s.ms.length === 3) }; });
+    check(`${D.name}: signature assets (packed, photo-free) loaded for the centre map: every asset has 3 LOD meshes and replaces its cadastre buildings`, sg && sg.n >= 1 && sg.nameOk && sg.hidden >= 2 && sg.tris.every((t) => t[0] <= 15200 && t[1] <= 5600 && t[2] <= 600), JSON.stringify(sg)); }
   { const cl = await T(() => (window.__streetCheck ? window.__streetCheck(1.6) : null)); check(`${D.name}: tram street layer (cars, trees, kerbs): nothing below 4.6 m within 1.6 m of any track (centre map)`, !cl || cl.violations === 0, JSON.stringify(cl)); }
   check(`${D.name}: language`, (await T(() => document.documentElement.lang)) === D.lang, await T(() => document.documentElement.lang));
   check(`${D.name}: start card: 4 route cards, short / full, themes, credits + link back`, await T(() => document.querySelectorAll('#routes .rcard').length === 4 && document.querySelectorAll('#runsel button').length === 2 && document.querySelectorAll('#themesel button').length === 3 && !!document.querySelector('#start:not(.hidden)') && document.querySelector('#foot a[href="/"]') != null && /OpenStreetMap/.test(document.getElementById('foot').textContent) && /LĢIA/.test(document.getElementById('foot').textContent)));
@@ -161,6 +163,32 @@ async function testDevice(D) {
   const sDone = await st();
   check(`${D.name}: boarding finished, doors closed, bell asked for`, sDone.doorState === 'closed' && sDone.awaitBell === true && sDone.pax !== 14, `passengers ${sDone.pax}`);
   // early departure is not allowed: the doors stayed open until the scheduled departure time
+
+  // ---- boarding is visible and the numbers agree: waiting people exist before arrival, alighters step out and leave, waiting people reach a door and are removed, load / waiting counts match
+  {
+    const B = await T(() => {
+      const t = window.__tram; localStorage.removeItem('tramvajs.intro'); t.setManual(true); t.start('short', 'centrs-3'); t.setAuto('perfect'); t.run.awaitBell = false;
+      const r = t.run; let g = 0, k = 0; const o = { waitBefore: null, opened: false, minDeadX: 0, alMax: 0, pax0: 0, maxVisWait: 0 };
+      // go to the first stop with waiting people (not the first stop of the run)
+      while (!r.dwell && g++ < 60000) { t.advance(0.1); if (r.next >= 1 && o.waitBefore == null) { const st = t.plan.stops[r.next]; if (st && !st.last && r.distToStop < 90) o.waitBefore = { n: st.waitingAt, vis: t.pax.waiting[r.next].filter((m) => m.visible).length, name: st.name }; } }
+      if (!r.dwell) return { fail: 'no dwell' };
+      const D = r.dwell, k0 = t.plan.stops.indexOf(r.servedStop); o.A = D.alight; o.Bd = D.board; o.pax0 = D.pax0; o.paxAfter = D.paxAfter; o.wait0 = r.servedStop.waitingAt; o.last = D.last;
+      o.visBefore = t.pax.waiting[k0].filter((m) => m.visible).length;
+      let seq = [];
+      while (r.doorState !== 'closed' && k++ < 4000) { t.advance(0.1); const act = t.pax.active.length; o.alMax = Math.max(o.alMax, act); if (r.dwell) { const d = r.dwell; seq.push([d.alN, d.boN, r.pax, d.waitLeft]); const vis = t.pax.waiting[k0].filter((m) => m.visible).length; o.maxVisWait = Math.max(o.maxVisWait, vis); if (d.done) o.doneT = d.t; } }
+      o.paxEnd = r.pax; o.visAfter = t.pax.waiting[k0].filter((m) => m.visible).length; o.stats = t.pax.stats; o.doorsClosedAt = k; o.seq = seq.filter((_, i) => i % 15 === 0).slice(0, 14);
+      let mono = true; for (let i = 1; i < seq.length; i++) if (seq[i][1] < seq[i - 1][1] || seq[i][0] < seq[i - 1][0]) mono = false; o.mono = mono;
+      // nobody stands within the track clearance after departure
+      o.near = t.pax.waiting[k0].filter((m) => m.visible).length;
+      return o;
+    });
+    check(`${D.name}: waiting people exist before arrival (count = sim waiting)`, B.waitBefore && B.waitBefore.n > 0 && B.waitBefore.vis === B.waitBefore.n, JSON.stringify(B.waitBefore));
+    check(`${D.name}: alighting figures appear and walk off (${B.stats && B.stats.alighted} figures for ${B.A} alighting)`, B.A > 0 && B.stats && B.stats.alighted >= Math.min(B.A, 1) && B.alMax > 0, JSON.stringify({ A: B.A, al: B.stats && B.stats.alighted, alMax: B.alMax }));
+    check(`${D.name}: waiting people board one after another and are removed (${B.stats && B.stats.boarded} of ${B.Bd}), the rest stay`, B.stats && B.stats.boarded === B.Bd && B.visAfter === B.visBefore - B.Bd && B.mono, JSON.stringify({ boarded: B.stats && B.stats.boarded, Bd: B.Bd, visBefore: B.visBefore, visAfter: B.visAfter, mono: B.mono }));
+    check(`${D.name}: load = before - alighted + boarded, waiting count falls to the remainder`, B.paxEnd === B.pax0 - B.A + B.Bd, JSON.stringify({ pax0: B.pax0, A: B.A, Bd: B.Bd, paxEnd: B.paxEnd, seq: B.seq }));
+    check(`${D.name}: boarding did not block the departure (doors closed after ${B.doorsClosedAt / 10} s)`, B.doorsClosedAt < 4000 && B.doorsClosedAt > 0, `${B.doorsClosedAt}`);
+  }
+  await T(() => window.__tram.setAuto(null));
 
   // ---- phone HUD: no overlaps (portrait + landscape) -----------------------------------------------------------------------------------------------------
   const overlapJs = () => { const ids = ['lever', 'btn-eb', 'btn-doors', 'btn-bell', 'btn-cam', 'speedo', 'btn-pause', 'btn-mute', 'strip', 'sig', 'sbar', 'state', 'coach', 'align']; const R = ids.map((id) => [id, id === 'strip' ? document.querySelector('#strip .in') : document.getElementById(id)]).filter(([, el]) => el && !el.classList.contains('hidden') && el.offsetParent !== null).map(([id, el]) => [id, el.getBoundingClientRect()]); const hit = (x, y) => !(x.right <= y.left + 1 || y.right <= x.left + 1 || x.bottom <= y.top + 1 || y.bottom <= x.top + 1); const bad = []; for (let i = 0; i < R.length; i++) for (let j = i + 1; j < R.length; j++) if (hit(R[i][1], R[j][1])) bad.push(R[i][0] + '/' + R[j][0]); const vw = innerWidth, vh = innerHeight; const off = R.filter(([, r]) => r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1).map(([id]) => id); return { shown: R.map((r) => r[0]), bad, off }; };
@@ -375,7 +403,7 @@ async function testDevice(D) {
     await main.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 180000 });
     check(`${D.name}: main game still loads at "/"`, !(await main.evaluate(() => document.body.dataset.error)) && (await main.title()).includes('BEDRE') && merr.length === 0, merr.join('|'));
     await main.close();
-    const kp = await ctx.newPage(); const kerr = []; kp.on('pageerror', (e) => kerr.push(e.message)); kp.on('console', (m) => { if (m.type() === 'error') kerr.push(m.text()); });
+    const kp = await ctx.newPage(); const kerr = []; kp.on('pageerror', (e) => kerr.push(e.message)); kp.on('console', (m) => { if (m.type() === 'error' && !/\/api\//.test(m.location().url || '')) kerr.push(m.text()); });   // the main game's own /api/ calls hit the preview's proxy with no backend behind it (502): not a tram-side error; every other console error still fails the check
     await ensureServer(); await kp.goto(`${base}/kur/`);
     await kp.waitForFunction(() => document.body.dataset.ready === '1' || document.body.dataset.error, null, { timeout: 180000 }).catch(() => {});
     const kinfo = await kp.evaluate(() => ({ path: location.pathname, title: document.title, game: !!window.__game, err: document.body.dataset.error || '' }));

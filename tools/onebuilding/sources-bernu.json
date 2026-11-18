@@ -1,0 +1,44 @@
+{
+ "building": "bernu",
+ "note": "Open Wikimedia Commons photos, read by a human/agent only to write the facade grammar. No pixel of them is in any output. Reality-mesh (City of Riga) views were used for measuring only.",
+ "images": [
+  {
+   "file": "B-rnu-pasaule-2023-2797.jpg",
+   "title": "File:Bērnu pasaule 2023.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:B%C4%93rnu_pasaule_2023.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/B%C4%93rnu_pasaule_2023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/B%C4%93rnu%20pasaule%202023.jpg?width=1280",
+   "author": "Olgerts V",
+   "licence": "CC BY-SA 4.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "date": "2023-10-03 16:58:28",
+   "original_px": [
+    2797,
+    2098
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 354982
+  },
+  {
+   "file": "Latvia-Riga-R-ga-Mat-sa-iela-25-Tirdzniec-bas-cent-1920.jpg",
+   "title": "File:Latvia, Riga, Rīga, Matīsa iela, 25 - Tirdzniecības centrs Bērnu pasaule (Rīga) WMID4496475.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Latvia,_Riga,_R%C4%ABga,_Mat%C4%ABsa_iela,_25_-_Tirdzniec%C4%ABbas_centrs_B%C4%93rnu_pasaule_(R%C4%ABga)_WMID4496475.jpg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Latvia%2C_Riga%2C_R%C4%ABga%2C_Mat%C4%ABsa_iela%2C_25_-_Tirdzniec%C4%ABbas_centrs_B%C4%93rnu_pasaule_%28R%C4%ABga%29_WMID4496475.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Latvia%2C%20Riga%2C%20R%C4%ABga%2C%20Mat%C4%ABsa%20iela%2C%2025%20-%20Tirdzniec%C4%ABbas%20centrs%20B%C4%93rnu%20pasaule%20%28R%C4%ABga%29%20WMID4496475.jpg?width=1280",
+   "author": "Imants",
+   "licence": "CC BY-SA 3.0",
+   "licence_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "date": "2014-11-15",
+   "original_px": [
+    1920,
+    1272
+   ],
+   "used_for": "reading only (facade grammar, colours, storeys), no pixels shipped",
+   "bytes": 241876
+  }
+ ],
+ "not_retrieved": [
+  "File:Latvia, Riga, Rīga, Matīsa iela, 25 - Tirdzniecības centrs Bērnu pasaule (Rīga) WMID326413.jpg (HTTP 429, not retrieved)"
+ ],
+ "mesh_source": "City of Riga reality mesh (I3S), measuring only; redistribution licence not settled; no municipal pixels in any shipped file"
+}

@@ -173,7 +173,10 @@
         <section class="rpane" id="rt-ach" data-pane="ach" hidden></section>
       </div>
       <div class="r-actions">
-        <button id="again" class="btn" data-i18n="playAgain">Play again</button>
+        <div class="r-main">
+          <button id="again" class="btn" type="button" data-i18n="playAgain">Play again</button>
+          <button id="to-menu" class="btn sec" type="button" data-i18n="toMenu">Main menu</button>
+        </div>
         <div class="r-share" id="r-share"></div>
       </div>
       <div class="linkrow"><button id="open-scores2" class="link" type="button" data-i18n="topScores">Top scores</button></div>
@@ -183,8 +186,17 @@
   <div id="pause" class="panel hidden" role="dialog" aria-modal="true">
     <div class="panel-inner small">
       <div class="place" data-i18n="pause">Paused</div>
-      <button id="resume" class="btn" type="button" data-i18n="resume">Resume</button>
-      <p class="how" data-i18n="pauseHint"></p>
+      <div id="pause-main">
+        <button id="resume" class="btn" type="button" data-i18n="resume">Resume</button>
+        <button id="pause-menu" class="btn sec" type="button" data-i18n="toMenu">Main menu</button>
+        <p class="how" data-i18n="pauseHint"></p>
+      </div>
+      <div id="pause-confirm" role="alertdialog" aria-labelledby="pc-title" aria-describedby="pc-text" hidden>
+        <div class="pc-title" id="pc-title" data-i18n="abandonTitle"></div>
+        <p class="how" id="pc-text" data-i18n="abandonText"></p>
+        <button id="pc-no" class="btn" type="button" data-i18n="abandonNo">Keep playing</button>
+        <button id="pc-yes" class="btn sec" type="button" data-i18n="abandonYes">Main menu</button>
+      </div>
     </div>
   </div>
 

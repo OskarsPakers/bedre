@@ -886,6 +886,7 @@ function validateV2(p, m, ML, L2, hard, soft, out) {
     if (!KIND_RE.test(k) || !Number.isInteger(v) || v < 0 || v > 1e6) return { verdict: "reject", reasons: ["trace_format"] };
     kindTotal += v;
   }
+  if (tr.fm === 1 && Number(kinds.freedom) > 0) return { verdict: "reject", reasons: ["freedom_protected"] };
   const tf = tr.t[n - 1];
   const sF = tr.s[n - 1], eF = tr.e[n - 1], kF = tr.k[n - 1], mF = tr.m[n - 1], wF = tr.w[n - 1], pF = tr.p[n - 1];
   if (n !== expectedSamples(tf)) hard.push("time_slots");
@@ -1244,6 +1245,8 @@ function mpConfig(env) {
     removeAfterMs: num(e.MP_REMOVE_AFTER_MS, MP.removeAfterMs, 1e3, 3e5),
     silentAfterMs: num(e.MP_SILENT_AFTER_MS, MP.silentAfterMs, 3e3, 12e4),
     privTtlMs: num(e.MP_PRIV_TTL_MS, MP.privTtlMs, 1e3, 36e5),
+    testDate: /^\d{4}-\d\d-\d\d$/.test(String(e.MP_TEST_DATE || "")) ? String(e.MP_TEST_DATE) : null,
+    // tests only: the Riga calendar day the Freedom Monument rule sees (YYYY-MM-DD)
     testCloseSpawn: e.MP_TEST_CLOSE_SPAWN === "1" || e.MP_TEST_CLOSE_SPAWN === 1,
     testPowerups: e.MP_TEST_PU === "1" || e.MP_TEST_PU === 1,
     // tests only: the first pickups appear next to the humans' starts (scripts/smoke-mp.mjs)
@@ -1895,6 +1898,10 @@ function makeHole({ id, slot, name, bot, token, sk }) {
   };
 }
 __name(makeHole, "makeHole");
+var fmDay = /* @__PURE__ */ __name((day) => {
+  const m = /^\d{4}-(\d\d)-(\d\d)$/.exec(day || "");
+  return !!m && m[1] === "11" && +m[2] >= 11 && +m[2] <= 18;
+}, "fmDay");
 var RoomSim = class {
   static {
     __name(this, "RoomSim");
@@ -1905,6 +1912,7 @@ var RoomSim = class {
     this.cfg = cfg;
     this.rng = mulberry32(seed);
     this.index = table.index || (table.index = new StaticIndex(table));
+    this.fmId = -1;
     this.eaten = new Uint8Array(table.n);
     this.coarse = Float32Array.from(this.index.coarse0);
     this.holes = [];
@@ -2235,6 +2243,18 @@ var RoomSim = class {
     }
     h.rejected += bad.length;
     return { bad, ok };
+  }
+  /** The monument cannot be swallowed by anybody in this room: a private copy of the table's fit column with an infinite fit at its id (the shared table stays untouched). */
+  protectFreedom() {
+    const t = this.table, ki = t.kinds.indexOf("freedom");
+    if (ki < 0) return;
+    for (let i = 0; i < t.n; i++) if (t.kind[i] === ki) {
+      const fit = new Float32Array(t.fit);
+      fit[i] = 1e9;
+      this.table = { ...t, fit };
+      this.fmId = i;
+      return;
+    }
   }
   /** `ms` = the time the swallow counts at (claim time for humans, server time for bots). */
   eat(h, id, ms) {
@@ -3247,6 +3267,7 @@ var MpRoom = class {
     const priv = !!this.meta.priv;
     const secs = priv ? this.privSeconds(this.meta.cfgLen) : this.cfg.roundSeconds;
     const sim = new RoomSim(table, priv && !this.meta.cfgBots ? { ...this.cfg, totalHoles: 0 } : this.cfg, Math.random() * 2 ** 31 | 0);
+    if (fmDay(this.cfg.testDate || rigaDay(Math.floor(now2 / 1e3)))) sim.protectFreedom();
     for (const p of players) sim.addHuman(p.name, p.token, p.id, p.slot, p.sk);
     sim.start(now2, this.cfg.introMs, secs * 1e3);
     this.sim = sim;
@@ -3274,6 +3295,7 @@ var MpRoom = class {
       hash: s.table.hash,
       holes: s.holes.map((o) => ({ id: o.id, name: o.name, slot: o.slot, bot: o.bot, x: round12(o.x), z: round12(o.z), sk: o.sk })),
       pu: s.puList(),
+      ...s.fmId >= 0 ? { fm: 1 } : null,
       ...this.meta.priv ? { priv: { code: this.meta.code, len: this.meta.cfgLen, ranked: this.meta.cfgLen === 300 } } : null
     };
   }

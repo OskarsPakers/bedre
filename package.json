@@ -12,7 +12,6 @@
     "smoke:tram": "node scripts/smoke-tram.mjs",
     "smoke:world": "node scripts/smoke-world.mjs",
     "smoke:matrix": "node scripts/smoke-matrix.mjs",
-    "smoke:freedom": "node scripts/smoke-freedom.mjs",
     "smoke:mobile": "node scripts/smoke-mobile.mjs",
     "measure:load": "node scripts/measure-load.mjs",
     "perf": "node scripts/perf-matrix.mjs",
@@ -32,6 +31,7 @@
     "test:mp": "node scripts/test-mp-sim.mjs && node scripts/test-f45.mjs && node scripts/test-freedom.mjs",
     "smoke:resume": "node scripts/smoke-resume.mjs",
     "smoke:layout": "node scripts/smoke-layout.mjs",
+    "smoke:freedom": "node scripts/smoke-freedom.mjs",
     "smoke:friends": "node scripts/smoke-friends.mjs",
     "check:spawns": "node scripts/spawn-check-online.mjs",
     "deploy": "npm run build:mp && node tools/mp/check-objects.mjs && npm run build:web && node tools/mp/check-objects.mjs --dist dist && wrangler d1 migrations apply bedre-scores --remote && wrangler deploy"

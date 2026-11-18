@@ -2,7 +2,8 @@
 // 100 / 50 / 20 m countdown markers, waiting passengers. (The tram itself: tramModel.js; wires / signals / speed boards: furniture.js; street life: life.js.)
 import * as THREE from 'three';
 import { PROP_DEFS } from '../../propModels.js';
-import { TRAM } from './sim.js';
+import { TRAM, BWALK } from './sim.js';
+const k_of = (self, st) => self.stops.indexOf(st);
 
 const lam = (c, extra = {}) => new THREE.MeshLambertMaterial({ color: c, ...extra });
 const bas = (c, extra = {}) => new THREE.MeshBasicMaterial({ color: c, ...extra });
@@ -160,53 +161,59 @@ export class Passengers {
     const p = {}; const out = [];
     const n = st.first ? 0 : st.waitingAt;
     for (let i = 0; i < n; i++) {
-      const s = st.s - 19 + this._rnd() * 18, lat = 3.2 + this._rnd() * 1.3;
+      // waiting people cluster at the four door positions of the tram that will stop here (door i at st.s + TRAM.doors[i]), on the platform, facing the track
+      const di = i % TRAM.doors.length, s = st.s + TRAM.doors[di] + (this._rnd() - 0.5) * 2.6, lat = 2.7 + this._rnd() * 0.9;
       this.track.at(s, p); const [rx, rz] = rightOf(p.yaw);
-      const m = this._person(); m.position.set(p.x + rx * lat, 0.24, p.z + rz * lat); m.rotation.y = -p.yaw + (this._rnd() - 0.5) * 2.4 - Math.PI / 2;
+      const m = this._person(); m.position.set(p.x + rx * lat, 0.24, p.z + rz * lat); m.rotation.y = -p.yaw + Math.PI / 2 + (this._rnd() - 0.5) * 0.9;
+      m.userData.stop = k_of(this, st); m.userData.di = di; m.userData.waiting = true;
       out.push(m);
     }
     return out;
   }
-  /** doors opened at stop k with the tram standing with its first door at arc length s */
-  startDwell(k, s, alight, board) {
-    this.dwellK = k; this.dwellS = s; this.dwellT = 0; this.plan = { alight, board, boarders: this.waiting[k].slice(0, board), alighters: [] };
+  /** doors opened at stop k with the tram standing with its first door at arc length s: boarders = the first `board` waiting people (nearest door first) */
+  startDwell(k, s, alight, board, sch) {
+    const w = this.waiting[k].slice().sort((a, b) => a.userData.di - b.userData.di);
+    this.dwellK = k; this.dwellS = s; this.dwellT = 0; this.plan = { alight, board, boarders: w.slice(0, board), alighters: [], sch, shown: 0, skip: Math.max(1, Math.ceil(alight / 12)), live: 0 };
+    this.stats = { alighted: 0, boarded: 0 };
   }
-  /** doors closing: whoever has not boarded yet gets on anyway (hidden) */
-  endDwell() { if (this.plan) for (const m of this.plan.boarders) m.visible = false; this.plan = null; }
-  update(dt, door) {
+  /** doors closing: whoever has not boarded yet is hidden (they are aboard in the sim) */
+  endDwell() { if (this.plan) for (const m of this.plan.boarders) if (!m.userData.go) { m.visible = false; m.userData.go = true; } this.plan = null; }
+  update(dt, door, dwell) {
     const p = {};
     const pl = this.plan;
-    if (pl) {
-      this.dwellT += dt;
-      const t = this.dwellT - 0.9;   // the doors need a moment to open
-      // boarders walk to the nearest door and vanish
+    if (pl && dwell && dwell.sch) {
+      const t = dwell.t;
+      // boarders: person j starts at bT(j), walks to the nearest door on the platform side at 1.4 m/s... (BWALK seconds), then disappears into the doorway
       pl.boarders.forEach((m, j) => {
-        if (!m.visible || t < 0.4 + j * 0.55) return;
-        if (!m.userData.go) { m.userData.go = true; let best = 0, bd = 1e9; for (let i = 0; i < TRAM.doors.length; i++) { const d = Math.abs((this.dwellS + TRAM.doors[i]) - this.track.nearest(m.position.x, m.position.z, this.dwellS - 40, this.dwellS + 20).s); if (d < bd) { bd = d; best = i; } } m.userData.door = this.dwellS + TRAM.doors[best]; }
-        this.track.at(m.userData.door, p); const [rx, rz] = rightOf(p.yaw);
-        const tx = p.x + rx * 1.0, tz = p.z + rz * 1.0, dx = tx - m.position.x, dz = tz - m.position.z, l = Math.hypot(dx, dz);
-        if (l < 0.35) { m.visible = false; return; }
-        const sp = 1.5 * dt; m.position.x += dx / l * sp; m.position.z += dz / l * sp; m.rotation.y = Math.atan2(-dz, dx);
+        const ud = m.userData; if (ud.in || !m.visible) return;
+        if (!ud.go) { if (t < pl.sch.bT(j) || door < 0.95) return; ud.go = true; ud.door = this.dwellS + TRAM.doors[ud.di]; ud.t0 = t; ud.fx = m.position.x; ud.fz = m.position.z; }
+        this.track.at(ud.door, p); const [rx, rz] = rightOf(p.yaw);
+        const tx = p.x + rx * 1.05, tz = p.z + rz * 1.05, f = Math.min(1, (t - ud.t0) / BWALK);
+        m.position.x = ud.fx + (tx - ud.fx) * f; m.position.z = ud.fz + (tz - ud.fz) * f; m.position.y = 0.24 - 0.0 * f;
+        m.rotation.y = Math.atan2(-(tz - ud.fz), tx - ud.fx);
+        if (f > 0.82) m.scale.setScalar(Math.max(0.001, (1 - f) / 0.18 * 0.98));
+        if (f >= 1) { m.visible = false; ud.in = true; this.stats.boarded++; }
       });
-      // alighters step out of a door and walk off along the platform
-      if (door > 0.55) while (pl.alighters.length < Math.min(pl.alight, 6) && t >= 0.5 + pl.alighters.length * 0.5) {
-        const di = pl.alighters.length % TRAM.doors.length; this.track.at(this.dwellS + TRAM.doors[di], p); const [rx, rz] = rightOf(p.yaw);
+      // alighters (one figure per person up to ~12): step out of a door and walk off along the platform
+      while (pl.live < dwell.alight && t >= pl.sch.alT(pl.live) && door > 0.9) {
+        const i = pl.live++; if (i % pl.skip) continue;
+        const di = i % TRAM.doors.length; this.track.at(this.dwellS + TRAM.doors[di], p); const [rx, rz] = rightOf(p.yaw);
         const m = this._person(); m.position.set(p.x + rx * 1.1, 0.0, p.z + rz * 1.1);
         const away = (this._rnd() < 0.5 ? -1 : 1) * (4 + this._rnd() * 8); this.track.at(this.dwellS + TRAM.doors[di] + away, p); const [qx, qz] = rightOf(p.yaw);
-        m.userData.tx = p.x + qx * (4.6 + this._rnd() * 2); m.userData.tz = p.z + qz * (4.6 + this._rnd() * 2); m.userData.life = 14;
-        this.active.push(m); pl.alighters.push(m);
+        m.userData.tx = p.x + qx * (4.0 + this._rnd() * 1.0); m.userData.tz = p.z + qz * (4.0 + this._rnd() * 1.0); m.userData.life = 12; m.userData.out = true;
+        this.active.push(m); pl.alighters.push(m); this.stats.alighted++;
       }
     }
     for (let i = this.active.length - 1; i >= 0; i--) {
       const m = this.active[i], ud = m.userData;
       const dx = ud.tx - m.position.x, dz = ud.tz - m.position.z, l = Math.hypot(dx, dz);
-      if (l > 0.2) { const sp = 1.3 * dt; m.position.x += dx / l * sp; m.position.z += dz / l * sp; m.rotation.y = Math.atan2(-dz, dx); m.position.y = Math.min(0.24, m.position.y + dt * 0.4); }
+      if (l > 0.2) { const sp = 1.4 * dt; m.position.x += dx / l * sp; m.position.z += dz / l * sp; m.rotation.y = Math.atan2(-dz, dx); m.position.y = Math.min(0.24, m.position.y + dt * 0.5); }
       ud.life -= dt;
       if (ud.life < 1) m.scale.setScalar(Math.max(0.001, ud.life));
       if (ud.life <= 0) { this.scene.remove(m); this.active.splice(i, 1); }
     }
   }
   /** show only the crowds near the tram */
-  cull(sTram) { this.stops.forEach((st, k) => { const near = Math.abs(st.s - sTram) < 400; for (const m of this.waiting[k]) if (m.userData.go) { /* boarded: stays hidden */ } else m.visible = near; }); }
+  cull(sTram) { this.stops.forEach((st, k) => { const near = Math.abs(st.s - sTram) < 400; for (const m of this.waiting[k]) if (m.userData.go) { /* boarded or boarding: not culled */ } else m.visible = near; }); }
 }
 

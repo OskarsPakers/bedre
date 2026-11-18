@@ -141,6 +141,7 @@ export function initGoals({ game, world, album, areaAt, toast, eligibleNow, elig
   const reset = () => { c = fresh(); lastLive = {}; ensureWeek(); drawIndicator(); };
   bus.on('roundStart', reset);
   bus.on('introStart', () => { reset(); adv = []; advAll = false; });
+  bus.on('menu', () => { reset(); adv = []; advAll = false; });
   bus.on('swallow', (o, hole) => {
     if (!hole.isPlayer || game.phase !== 'playing') return;
     const e = album.byObj.get(o.id);

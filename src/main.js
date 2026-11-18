@@ -105,7 +105,7 @@ async function boot() {
   initScoresUi();
   initOnline({ game, world });
   applyMapRules(game); // non-centre maps: unranked + no Online until the worker stores per-map boards
-  initFreedom({ game, world }); initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
+  initFreedom({ game, world}); initTrace(game, world); initModes(game, { params }); bindAnalytics(game, getMode); // modes, score trace, analytics (src/modes.js, trace.js, analytics.js)
   initMeta({ game, world }).catch((e) => console.warn('[meta]', e)); // album, achievements, % meter, recap, share (src/meta/)
   initRadio(); initPwa();
   const anyPanel = () => !!document.querySelector('#scores:not(.hidden), #about:not(.hidden), #meta-panel:not(.hidden), #mp-lobby:not(.hidden), #mp-priv:not(.hidden), #mp-friends:not(.hidden), #mp-noroom:not(.hidden)');
@@ -114,10 +114,25 @@ async function boot() {
   onLang(() => { if (!$('play').disabled) $('play').textContent = playLabel(); });
   $('play').addEventListener('click', () => { maybeFullscreen(); game.start(); });
   $('again').addEventListener('click', () => game.start());   // (Play again keeps whatever fullscreen state the first Play set up)
+  $('to-menu').addEventListener('click', () => game.toMenu());   // results -> start screen (solo + online rooms: Game.toMenu)
   $('pause-btn').addEventListener('click', () => game.pause(true));
+  // pause -> Main menu abandons the round (a short confirm first: the progress is lost, nothing is submitted)
+  const askAbandon = (v) => {
+    $('pause-main').hidden = v; $('pause-confirm').hidden = !v;
+    setTimeout(() => { try { $(v ? 'pc-no' : 'resume').focus({ preventScroll: true, focusVisible: false }); } catch { /* ignore */ } }, 0);
+  };
+  $('pause-menu').addEventListener('click', () => askAbandon(true));
+  $('pc-no').addEventListener('click', () => askAbandon(false));
+  $('pc-yes').addEventListener('click', () => { askAbandon(false); game.toMenu(); });
+  new MutationObserver(() => { if ($('pause').classList.contains('hidden')) { $('pause-main').hidden = false; $('pause-confirm').hidden = true; } }).observe($('pause'), { attributes: true, attributeFilter: ['class'] });
   $('resume').addEventListener('click', () => game.pause(false, { countdown: isTouchUi() }));   // phones: a 3-2-1 before the world moves again
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !anyPanel()) { if (game.phase === 'playing' || game.phase === 'intro') game.pause(!game.paused); return; }
+    if (e.key === 'Escape' && !anyPanel()) {
+      if (!$('pause-confirm').hidden) { askAbandon(false); return; }                                   // the abandon confirm: Esc = keep the pause panel
+      if (game.phase === 'playing' || game.phase === 'intro') game.pause(!game.paused);
+      else if (game.phase === 'ended' || (game.online && game.online.state === 'ended')) game.toMenu();   // results: Esc = Main menu (never a trap)
+      return;
+    }
     const typing = e.target && e.target.tagName === 'INPUT';
     const onBtn = e.target && e.target.tagName === 'BUTTON';
     if (((e.key === 'Enter' && !onBtn) || (e.key === ' ' && !typing && !onBtn)) && game.phase !== 'playing' && game.phase !== 'intro' && !game.paused && !anyPanel() && !$('play').disabled) game.start();

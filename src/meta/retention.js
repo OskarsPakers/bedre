@@ -156,6 +156,7 @@ export function initRetention({ game, world, album, areaAt, toast, openPanel, el
   // toasts that cannot show over the results panel (streak milestones) come out when the next round starts (with or without the fly-in)
   const flushDeferred = () => { if (deferred.length) { const d = deferred.splice(0); setTimeout(() => d.forEach((x) => toast(x.icon, x.text, { ms: 4200 })), 900); } };
   bus.on('introStart', () => { last = null; drawLine(); drawChips(); flushDeferred(); });
+  bus.on('menu', () => { last = null; drawLine(); drawChips(); });   // start screen after the results: the chip shows what the round just earned
   bus.on('roundGo', flushDeferred);
   onLang(() => { drawChips(); drawLine(); });
   setInterval(drawChips, 30000);                       // a midnight / Monday rollover while the start screen is open

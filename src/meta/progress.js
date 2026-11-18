@@ -140,7 +140,8 @@ export async function initMeta({ game, world }) {
   // ---- events --------------------------------------------------------------------------------------------------------
   const normKind = (k) => String(k || '').replace(/^person\d+$/, 'person');
   bus.on('roundStart', () => { resetRound(); drawPct(); });
-  bus.on('introStart', () => { resetRound(); drawPct(); });   // the fly-in after "Play again" must not show the last round's % / share bar
+  bus.on('introStart', () => { resetRound(); drawPct(); });
+  bus.on('menu', () => { resetRound(); drawPct(); });             // back on the start screen (Game.toMenu): nothing of the last round stays   // the fly-in after "Play again" must not show the last round's % / share bar
   bus.on('swallow', (o, hole) => {
     R.all += o.value;
     const ai = objArea[o.id];
@@ -346,6 +347,8 @@ export async function initMeta({ game, world }) {
     window.__lastXp = a;
   }
   bus.on('introStart', () => { roundRewards = []; xpFor = null; wd.clearAward(); });
+  bus.on('menu', () => { roundRewards = []; xpFor = null; wd.clearAward(); wd.refreshAll(); });
+  bus.on('menu', () => { clearToasts(); for (const id of ['rt-map', 'rt-ach', 'r-share']) { const e = $(id); if (e) e.replaceChildren(); } const bd = $('rt-badge'); if (bd) bd.hidden = true; recapInfo = null; });
   bus.on('introStart', () => { clearToasts(); for (const id of ['rt-map', 'rt-ach', 'r-share']) { const e = $(id); if (e) e.replaceChildren(); } const bd = $('rt-badge'); if (bd) bd.hidden = true; recapInfo = null; });
 
   // ---- "My progress" panel + entry buttons ---------------------------------------------------------------------------

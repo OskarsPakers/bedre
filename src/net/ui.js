@@ -7,7 +7,7 @@ extendStrings({
   mpOnline: 'Tiešsaiste', mpBeta: 'BETA', mpConnecting: 'Savienojas…', mpUnavailable: 'Tiešsaiste šobrīd nav pieejama. Viena spēlētāja režīms darbojas.',
   mpNewVersion: 'Ir pieejama jauna spēles versija.', mpReload: 'Jauna versija — pārlādēt', mpNoData: 'Tiešsaiste nav pieejama, kamēr nav ielādēti pilsētas dati. Viena spēlētāja režīms darbojas.', mpLobbyTitle: 'Tiešsaistes istaba', mpWaiting: 'Gaida spēlētājus…',
   mpStartsIn: 'Kārta sākas pēc {n} s', mpNextIn: 'Nākamā kārta sākas pēc {n} s', mpFillBots: 'Visi sāk vienlaikus. Pretinieku bedres (AI) aizpildīs istabu līdz {n} bedrēm.',
-  mpPlayers: 'Spēlētāji {n}/{max}', mpYou: 'tu', mpLeave: 'Atstāt', mpRunning: 'Notiek kārta · atlikušas {t}', mpRunningHint: 'Pievienoties var tikai nākamajai kārtai. Pa to laiku vari skatīties līderus.',
+  mpPlayers: 'Spēlētāji {n}/{max}', mpYou: 'tu', mpLeave: 'Atgriezties', mpRunning: 'Notiek kārta · atlikušas {t}', mpRunningHint: 'Pievienoties var tikai nākamajai kārtai. Pa to laiku vari skatīties līderus.',
   mpReconnecting: 'Savienojums pārtrūka — atjauno…', mpOtherTab: 'Šī kārta ir atvērta citā cilnē — spēle turpinās tur.',
   mpRejoinRun: 'Tava tiešsaistes kārta vēl notiek · atlikušas {t}', mpRejoinEnded: 'Tava tiešsaistes kārta ir beigusies. Skatīt rezultātus?', mpRejoinOther: 'Šī kārta ir atvērta citā cilnē.',
   mpRejoinYes: 'Atgriezties kārtā', mpRejoinResults: 'Skatīt rezultātus', mpRejoinTake: 'Pārņemt šeit', mpRejoinNo: 'Nē, paldies',
