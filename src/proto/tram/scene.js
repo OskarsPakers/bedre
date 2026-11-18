@@ -1,6 +1,5 @@
-// 3-D pieces of the tram game, all built from the shared world's THREE: the tram (the game's own low-floor tram model, split into two sections so
-// it bends round the terminus loop, plus doors / lights / destination boards), real-looking rails + sleepers along the route, platforms, stop
-// boards, 100 / 50 / 20 m countdown markers, waiting passengers, and the clean-up of scenery that would sit on the track or in the camera's way.
+// 3-D pieces of the tram game, all built from the shared world's THREE: real-looking rails + sleepers along the route, platforms, stop boards,
+// 100 / 50 / 20 m countdown markers, waiting passengers. (The tram itself: tramModel.js; wires / signals / speed boards: furniture.js; street life: life.js.)
 import * as THREE from 'three';
 import { PROP_DEFS } from '../../propModels.js';
 import { TRAM } from './sim.js';
@@ -17,88 +16,6 @@ function canvasTex(w, h, draw) {
 }
 /** a thin box in a group (local coords: +x forward, +z right, y up) */
 function box(parent, w, h, d, mat, x, y, z) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); parent.add(m); return m; }
-
-// ---- tram ------------------------------------------------------------------------------------------------------------------------------
-/** split the merged tram geometry (triangles are not indexed) into the front (x >= 0) and rear section; each re-centred on its own middle */
-function halves() {
-  const g = PROP_DEFS.tram.make();
-  const pos = g.attributes.position, col = g.attributes.color, nor = g.attributes.normal;
-  const out = [[], []];
-  for (let i = 0; i < pos.count; i += 3) {
-    const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3;
-    out[cx >= 0 ? 0 : 1].push(i);
-  }
-  const mk = (tris, shift) => {
-    const P = new Float32Array(tris.length * 9), C = new Float32Array(tris.length * 9), N = new Float32Array(tris.length * 9);
-    tris.forEach((t, k) => { for (let v = 0; v < 3; v++) { P.set([pos.getX(t + v) - shift, pos.getY(t + v), pos.getZ(t + v)], k * 9 + v * 3); C.set([col.getX(t + v), col.getY(t + v), col.getZ(t + v)], k * 9 + v * 3); N.set([nor.getX(t + v), nor.getY(t + v), nor.getZ(t + v)], k * 9 + v * 3); } });
-    const o = new THREE.BufferGeometry();
-    o.setAttribute('position', new THREE.BufferAttribute(P, 3)); o.setAttribute('color', new THREE.BufferAttribute(C, 3)); o.setAttribute('normal', new THREE.BufferAttribute(N, 3));
-    return o;
-  };
-  return [mk(out[0], 6.0), mk(out[1], -6.0)];
-}
-function destTex(line, dest) {
-  return canvasTex(256, 64, (c, w, h) => {
-    c.fillStyle = '#0c0c0c'; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#ffb21a'; c.font = 'bold 44px ui-monospace, Menlo, Consolas, monospace'; c.textBaseline = 'middle';
-    c.fillText(line, 10, h / 2 + 2);
-    c.font = 'bold ' + (dest.length > 12 ? 22 : 30) + 'px ui-monospace, Menlo, Consolas, monospace';
-    c.fillText(dest.toUpperCase(), 74, h / 2 + 2);
-  });
-}
-
-export class TramModel {
-  constructor(scene) {
-    this.group = new THREE.Group();
-    const [gF, gR] = halves();
-    const body = new THREE.MeshLambertMaterial({ vertexColors: true });
-    this.front = new THREE.Group(); this.rear = new THREE.Group();
-    const mF = new THREE.Mesh(gF, body), mR = new THREE.Mesh(gR, body);
-    for (const m of [mF, mR]) { m.castShadow = true; m.receiveShadow = false; }
-    this.front.add(mF); this.rear.add(mR);
-    this.group.add(this.front, this.rear);
-    // doors on the right-hand side (+z): each = two leaves that slide apart, over a bright opening
-    this.leaves = [];
-    const leafM = lam(0x2f4b66), openM = bas(0xffe7ae), frameM = lam(0xe8edf0);
-    const half = [this.front, this.rear];
-    const doorX = TRAM.doors.map((d) => 12.05 - TRAM.nose + d);   // model x of each door centre (model nose at 12.05)
-    doorX.forEach((x, i) => {
-      const sec = i < 2 ? this.front : this.rear, sx = x - (i < 2 ? 6.0 : -6.0);
-      box(sec, 1.5, 1.95, 0.03, openM, sx, 1.62, 1.285);
-      const la = box(sec, 0.7, 1.9, 0.08, leafM, sx - 0.36, 1.62, 1.33), lb = box(sec, 0.7, 1.9, 0.08, leafM, sx + 0.36, 1.62, 1.33);
-      box(sec, 1.62, 0.07, 0.1, frameM, sx, 2.62, 1.33); box(sec, 1.62, 0.07, 0.1, frameM, sx, 0.64, 1.33);
-      this.leaves.push({ a: la, b: lb, x: sx });
-    });
-    // head / tail lights + destination boards on both ends
-    this.lights = [];
-    for (const z of [-0.85, 0.85]) {
-      const h = box(this.front, 0.06, 0.2, 0.34, bas(0xfff6d8), 6.05 + 0.02, 0.95, z); this.lights.push(h);
-      box(this.rear, 0.06, 0.2, 0.34, bas(0xd9392b), -6.05 - 0.02, 0.95, z);
-    }
-    this.boardFront = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.5), new THREE.MeshBasicMaterial({ map: destTex('11', 'Mežaparks') }));
-    this.boardFront.rotation.y = Math.PI / 2; this.boardFront.position.set(6.07, 3.2, 0); this.front.add(this.boardFront);
-    this.boardRear = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.5), new THREE.MeshBasicMaterial({ map: destTex('11', '') }));
-    this.boardRear.rotation.y = -Math.PI / 2; this.boardRear.position.set(-6.07, 3.2, 0); this.rear.add(this.boardRear);
-    scene.add(this.group);
-    this._p = {}; this._q = {};
-  }
-  setDestination(line, dest) { const o = this.boardFront.material; const old = o.map; o.map = destTex(line, dest); o.needsUpdate = true; if (old) old.dispose(); }
-  /** s = first-door arc length; each section is a rigid chord between two track points (so it follows curves) */
-  place(track, s, door) {
-    const noseS = s + TRAM.nose, jointS = noseS - 12.0, tailS = jointS - 12.0;
-    const a = track.at(noseS, this._p), b = track.at(jointS, this._q);
-    this._sec(this.front, a.x, a.z, b.x, b.z);
-    const a2 = track.at(jointS, this._p), b2 = track.at(tailS, this._q);
-    this._sec(this.rear, a2.x, a2.z, b2.x, b2.z);
-    // doors slide 0.62 m apart
-    const o = door * 0.62;
-    for (const l of this.leaves) { l.a.position.x = l.x - 0.36 - o; l.b.position.x = l.x + 0.36 + o; }
-  }
-  _sec(g, x0, z0, x1, z1) {
-    g.position.set((x0 + x1) / 2, 0, (z0 + z1) / 2);
-    g.rotation.y = Math.atan2(-(z0 - z1), x0 - x1);
-  }
-}
 
 // ---- rails / bed / sleepers ----------------------------------------------------------------------------------------------------------
 export function buildRails(scene, track) {
@@ -293,31 +210,3 @@ export class Passengers {
   cull(sTram) { this.stops.forEach((st, k) => { const near = Math.abs(st.s - sTram) < 400; for (const m of this.waiting[k]) if (m.userData.go) { /* boarded: stays hidden */ } else m.visible = near; }); }
 }
 
-// ---- clean-up of scenery ------------------------------------------------------------------------------------------------------------
-/** Hide what would sit on the track / in the camera's way (trees, lamps, street furniture within a few metres of the centre line, vehicles on or beside it)
- *  and ALL moving road vehicles (cars, buses, trolleybuses, other trams): they are not routed around the player's tram. Pedestrians, birds, boats stay as scenery.
- *  Returns counts. Uses only world.objects / world._hide, the same calls the engine's own tools use. */
-export function clearRoute(world, track) {
-  const cell = 8, grid = new Map(), key = (x, z) => Math.floor(x / cell) * 100003 + Math.floor(z / cell);
-  for (let i = 0; i < track.n; i += 2) { const k = key(track.x[i], track.z[i]); let a = grid.get(k); if (!a) grid.set(k, (a = [])); a.push(i); }
-  const near = (x, z, r) => {
-    const cx = Math.floor(x / cell), cz = Math.floor(z / cell), rc = Math.ceil(r / cell), r2 = r * r;
-    for (let i = cx - rc; i <= cx + rc; i++) for (let j = cz - rc; j <= cz + rc; j++) { const a = grid.get(i * 100003 + j); if (!a) continue; for (const s of a) { const dx = track.x[s] - x, dz = track.z[s] - z; if (dx * dx + dz * dz <= r2) return true; } }
-    return false;
-  };
-  const R = { tree: 6.5, lamp: 3.2, bench: 3.2, bin: 3.2, kiosk: 5, flag: 3.5, parasol: 4, bike: 3, scooter: 3, stall: 5, bench2: 3, car: 8, van: 8, bus: 10, tram: 12, monument: 0, lantern: 3 };
-  const counts = { hidden: 0, vehicles: 0 };
-  const veh = new Set(['car', 'van', 'bus', 'tram']);
-  for (const o of world.objects) {
-    if (o.isBuilding || o.state === 2) continue;
-    if (o.mover && veh.has(o.cls)) { if (o.m) o.m.off = true; o.state = 2; world._hide(o); counts.vehicles++; continue; }
-    const r = o.kind === 'shelter' ? 7 : R[o.cls];
-    if (r && near(o.x, o.z, r)) { o.state = 2; world._hide(o); counts.hidden++; }
-  }
-  world.flush();
-  // the quality scaler re-enables movers through traffic.setFraction: keep the road vehicles off
-  const tr = world.traffic, orig = tr.setFraction.bind(tr);
-  const rehide = () => { for (const o of tr.list) if (veh.has(o.cls)) { if (o.m) o.m.off = true; if (o.state !== 2) { o.state = 2; world._hide(o); } } world.flush(); };
-  tr.setFraction = (f) => { orig(f); rehide(); };
-  return counts;
-}

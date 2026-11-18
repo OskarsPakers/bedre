@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#25323f" />
   <title>Tramvaja vadītājs</title>
-  <meta name="description" content="Tramvaja vadītājs: a small 3D tram-driving prototype on the real tracks of Riga (Mežaparks end of line 11). Prototype of BEDRE — Rīga." />
+  <meta name="description" content="Tramvaja vadītājs: a small 3D tram-driving game on the real tracks of Riga (city centre and the Mežaparks end of line 11): signals, other trams, passengers, a timetable. Prototype of BEDRE — Rīga." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>html, body { margin: 0; height: 100%; background: #25323f; }</style>
 </head>
@@ -22,19 +22,24 @@
     <div id="strip"><div class="in">
       <div class="l1"><span class="nm"><span class="k" data-i18n="next">Nākamā pietura</span><b id="st-name">—</b></span><span id="st-extra" class="k"></span></div>
       <div class="l2"><span id="st-dist">— m</span><span id="st-due" class="due">—</span></div>
+      <div class="l3"><span id="pill" class="pill">—</span><span id="load" class="load"></span><span class="cmf" title="comfort"><span class="k" data-i18n="comfort">Komforts</span><span class="bar"><i id="cmf"></i></span></span></div>
       <div id="prog"></div>
     </div></div>
+    <div id="sig" class="hidden"><span class="head"><i class="r"></i><i class="y"></i><i class="g"></i></span><b id="sig-d"></b><span id="sig-k"></span></div>
     <div id="align" class="hidden"></div>
+    <div id="sbar" class="hidden" aria-hidden="true"><div class="trk"><i class="zone"></i><i class="mark"></i><b class="door"></b></div><span id="sbar-t"></span></div>
     <div id="msg"></div>
     <div id="stoptoast" class="card hide"></div>
-    <div id="cab"></div>
+    <div id="cab"><div class="pillar l"></div><div class="pillar r"></div><div class="dash"><span class="dv" id="cab-v">0</span><span class="du">km/h</span><span class="dl" id="cab-l">50</span></div></div>
     <div id="state"></div>
+    <div id="coach" class="hidden"><b id="coach-t"></b><span id="coach-s"></span><button type="button" id="coach-x" aria-label="skip">×</button></div>
     <div id="speedo"><div class="limit" id="lim">50</div><div class="limit next hidden" id="lim2">25</div><div class="v" id="spd">0</div><div class="u"><span data-i18n="kmh">km/h</span></div></div>
     <button class="tbtn" id="btn-doors" type="button"><span class="ic">⇄</span><span data-i18n="doors">Durvis</span></button>
     <button class="tbtn" id="btn-bell" type="button"><span class="ic">🔔</span><span data-i18n="bell">Zvans</span></button>
     <button class="tbtn" id="btn-cam" type="button"><span class="ic">👁</span><span data-i18n="cab">Kabīne</span></button>
     <button class="tbtn" id="btn-eb" type="button"><span class="ic">!</span><span data-i18n="eb">Avārija</span></button>
     <button class="tbtn" id="btn-pause" type="button" data-i18n-aria="pause" aria-label="Pauze">II</button>
+    <button class="tbtn" id="btn-mute" type="button" data-i18n-aria="sound" aria-label="Skaņa" aria-pressed="false">♪</button>
     <div id="lever" role="slider" aria-label="Svira" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0">
       <div class="zp"></div><div class="zb"></div><div class="mid"></div>
       <div class="lb t" data-i18n="power">Vilkme</div><div class="lb b" data-i18n="brake">Bremze</div>
@@ -42,31 +47,52 @@
     </div>
   </div>
 
-  <div id="start" class="overlay hidden"><div class="card panel">
+  <div id="start" class="overlay hidden"><div class="card panel wide">
     <div class="board" id="board">11 Mežaparks</div>
     <h1 data-i18n="title">Tramvaja vadītājs</h1>
     <p id="how"></p>
-    <div class="seg" id="runsel" role="group">
-      <button type="button" data-run="short" aria-pressed="true"></button>
-      <button type="button" data-run="full" aria-pressed="false"></button>
-    </div>
+    <div id="routes" class="routes" role="radiogroup"></div>
+    <div class="seg" id="runsel" role="group"></div>
     <p class="muted" id="route-info"></p>
+    <div class="seg" id="themesel" role="group" aria-label="theme">
+      <button type="button" data-theme="day" aria-pressed="true"><span data-i18n="themeDay">Diena</span></button>
+      <button type="button" data-theme="evening" aria-pressed="false"><span data-i18n="themeEvening">Vakars</span></button>
+      <button type="button" data-theme="winter" aria-pressed="false"><span data-i18n="themeWinter">Ziema</span></button>
+    </div>
     <button class="btn primary" id="play" type="button" disabled data-i18n="play">Braukt</button>
-    <div class="row"><a class="back" href="/" id="back"></a><div class="langs"><button type="button" data-lang="lv" aria-pressed="false">LV</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
+    <div class="row"><a class="back" href="/" id="back"></a><button type="button" class="btn small" id="btn-howto" data-i18n="howto">Kā braukt</button><div class="langs"><button type="button" data-lang="lv" aria-pressed="false">LV</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
     <footer id="foot"></footer>
   </div></div>
 
-  <div id="pause" class="overlay hidden"><div class="card panel"><h1 data-i18n="paused">Pauze</h1><button class="btn primary" id="resume" type="button" data-i18n="resume">Turpināt</button></div></div>
+  <div id="pause" class="overlay hidden"><div class="card panel">
+    <h1 data-i18n="paused">Pauze</h1>
+    <button class="btn primary" id="resume" type="button" data-i18n="resume">Turpināt</button>
+    <div class="settings" id="settings">
+      <label class="tog"><input type="checkbox" id="set-sound" checked /><span data-i18n="setSound">Skaņa</span></label>
+      <label class="tog"><input type="checkbox" id="set-left" /><span data-i18n="setLeft">Svira kreisajā pusē</span></label>
+      <label class="tog"><input type="checkbox" id="set-cab" /><span data-i18n="setCab">Kabīnes skats</span></label>
+      <div class="seg" id="set-theme"><button type="button" data-theme="day"><span data-i18n="themeDay">Diena</span></button><button type="button" data-theme="evening"><span data-i18n="themeEvening">Vakars</span></button><button type="button" data-theme="winter"><span data-i18n="themeWinter">Ziema</span></button></div>
+    </div>
+    <div class="row"><button type="button" class="btn small" id="restart" data-i18n="restart">No jauna</button><button type="button" class="btn small" id="tomenu" data-i18n="menu">Izvēlne</button></div>
+  </div></div>
+
+  <div id="howto" class="overlay hidden"><div class="card panel">
+    <h1 data-i18n="howto">Kā braukt</h1>
+    <ol class="steps"><li data-i18n="how1"></li><li data-i18n="how2"></li><li data-i18n="how3"></li><li data-i18n="how4"></li><li data-i18n="how5"></li></ol>
+    <button class="btn primary" id="howto-ok" type="button" data-i18n="ok">Skaidrs</button>
+  </div></div>
 
   <div id="result" class="overlay hidden"><div class="card panel">
     <div class="board" id="res-board"></div>
     <h1 data-i18n="resTitle">Brauciens pabeigts</h1>
     <div class="stars" id="res-stars"></div>
     <div class="total"><span><span class="k" data-i18n="points">Punkti</span></span><span class="n" id="res-pts">0</span></div>
+    <p class="pb" id="res-pb"></p>
+    <div class="cats" id="res-cats"></div>
     <table class="res" id="res-table"></table>
     <p class="muted" id="res-extra"></p>
-    <button class="btn primary" id="again" type="button" data-i18n="again">Braukt vēlreiz</button>
-    <div class="row"><a class="back" href="/" id="back2"></a></div>
+    <div class="row"><button class="btn primary" id="again" type="button" data-i18n="again">Braukt vēlreiz</button><button class="btn" id="share" type="button" data-i18n="share">Dalīties</button></div>
+    <div class="row"><button class="btn small" id="res-menu" type="button" data-i18n="menu">Izvēlne</button><a class="back" href="/" id="back2"></a></div>
     <footer id="foot2"></footer>
   </div></div>
 

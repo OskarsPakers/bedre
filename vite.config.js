@@ -49,8 +49,18 @@ const dataPreload = () => {
     },
   };
 };
+// The SPA fallback of the host (`not_found_handling: single-page-application`) serves the main index.html for ANY unknown path (e.g. the removed
+// prototype /kur/): all its URLs are absolute, so it boots fine, but the address bar would stay wrong -> an inline script as the first thing in <head>
+// sends every non-root path of the MAIN page back to "/" (keeping ?query and #hash). Prototype pages (own index.html) are not affected.
+const unknownPathRedirect = () => ({
+  name: 'bedre-unknown-path-redirect',
+  transformIndexHtml: { order: 'pre', handler(html, ctx) {
+    if (!ctx || !/^\/(index\.html)?$/.test(ctx.path || '')) return html;
+    return html.replace('<head>', "<head>\n  <script>(function(){var p=location.pathname;if(p!=='/'&&p!=='/index.html')location.replace('/'+location.search+location.hash)})();</script>");
+  } },
+});
 export default defineConfig({
-  plugins: [swStamp(), dataPreload()],
+  plugins: [swStamp(), dataPreload(), unknownPathRedirect()],
   define: { __PLACEMENTS__: JSON.stringify(placements()) },
   server: {
     port: 5173, host: true,
@@ -61,8 +71,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500,
     // three.js in its own long-cacheable chunk (game code changes far more often than the library)
     rolldownOptions: {
-      // multi-page build: the main game + the prototypes (each at its own subpath: /kur/, ...). Add new prototype entries to this list.
-      input: { main: 'index.html', kur: 'kur/index.html', tramvajs: 'tramvajs/index.html' },
+      // multi-page build: the main game + the prototypes (each at its own subpath: /tramvajs/, ...). Add new prototype entries to this list.
+      input: { main: 'index.html', tramvajs: 'tramvajs/index.html' },
       output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }] } },
     },
   },

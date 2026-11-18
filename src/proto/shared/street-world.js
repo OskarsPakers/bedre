@@ -1,5 +1,5 @@
 // Shared prototype bootstrap: builds the existing BEDRE world (ground, buildings with shapes + sights, trees, props, static movers) WITHOUT
-// the hole game (no Game / holes / bots / theme manager / backend). Used by the street-level prototypes (kur/, ...).
+// the hole game (no Game / holes / bots / theme manager / backend). Used by the street-level game (tramvajs/); any further street-level prototype can reuse it.
 // Everything is imported through the engine modules' existing exports; nothing here edits them.
 //   const S = await bootStreetWorld({ canvas, params, onProgress });
 //   S = { THREE, renderer, scene, world, data, light, sky, quality, slug, resize(w, h, camera?) , tick(camera, focusX, focusZ, dt) }
